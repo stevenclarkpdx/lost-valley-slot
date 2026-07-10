@@ -476,6 +476,26 @@ type PresentationBeat =
   | 'footprint'
   | 'transition'
 
+type PresentationPhase =
+  | 'idle'
+  | 'spin-started'
+  | 'reels-spinning'
+  | 'reel-stop-sequence'
+  | 'anticipation'
+  | 'result-evaluation'
+  | 'cluster-resolution'
+  | 'wild-resolution'
+  | 'golden-amber-resolution'
+  | 'credit-award'
+  | 'evidence-resolution'
+  | 'trail-marker-resolution'
+  | 'feature-transition'
+  | 'feature-survey'
+  | 'feature-reveal'
+  | 'feature-complete'
+  | 'return-to-base'
+  | 'input-ready'
+
 type WinTier = 'dead' | 'tiny' | 'small' | 'medium' | 'large'
 
 interface FeatureRevealEvent {
@@ -561,6 +581,48 @@ function presentationDurationForTier(tier: WinTier, compressed: boolean): number
   }
 }
 
+function beatForPhase(phase: PresentationPhase): PresentationBeat {
+  switch (phase) {
+    case 'spin-started':
+    case 'reels-spinning':
+    case 'reel-stop-sequence':
+    case 'anticipation':
+      return 'reeling'
+    case 'cluster-resolution':
+    case 'credit-award':
+      return 'cluster'
+    case 'wild-resolution':
+      return 'wild'
+    case 'golden-amber-resolution':
+      return 'golden'
+    case 'evidence-resolution':
+      return 'evidence'
+    case 'trail-marker-resolution':
+      return 'footprint'
+    case 'feature-transition':
+      return 'transition'
+    default:
+      return 'idle'
+  }
+}
+
+function isReelPhase(phase: PresentationPhase): boolean {
+  return (
+    phase === 'spin-started' ||
+    phase === 'reels-spinning' ||
+    phase === 'reel-stop-sequence' ||
+    phase === 'anticipation'
+  )
+}
+
+function phaseAllowsBaseInput(phase: PresentationPhase): boolean {
+  return phase === 'input-ready'
+}
+
+function phaseAllowsFeatureSurvey(phase: PresentationPhase): boolean {
+  return phase === 'input-ready'
+}
+
 function balanceCountDurationForTier(tier: WinTier): number {
   switch (tier) {
     case 'large':
@@ -628,12 +690,9 @@ function App() {
   const [lastSpinSummary, setLastSpinSummary] = useState<SpinLedgerEntry | null>(null)
   const [spinHistory, setSpinHistory] = useState<SpinLedgerEntry[]>([])
   const [activeLedgerId, setActiveLedgerId] = useState<number | null>(null)
-  const [isReeling, setIsReeling] = useState(false)
   const [settledReels, setSettledReels] = useState(5)
   const [winAnimationKey, setWinAnimationKey] = useState(0)
-  const [triggerTransition, setTriggerTransition] = useState(false)
-  const [isCelebrating, setIsCelebrating] = useState(false)
-  const [presentationBeat, setPresentationBeat] = useState<PresentationBeat>('idle')
+  const [presentationPhase, setPresentationPhase] = useState<PresentationPhase>('input-ready')
   const [reducedMotion, setReducedMotion] = useState(false)
   const [skipAnimations, setSkipAnimations] = useState(false)
   const [simulation, setSimulation] = useState<SimulationResult | null>(null)
@@ -644,6 +703,10 @@ function App() {
   )
   const [sweepResults, setSweepResults] = useState<TuningSweepResult[]>([])
   const [configNotice, setConfigNotice] = useState<string | null>(null)
+  const presentationBeat = beatForPhase(presentationPhase)
+  const isReeling = isReelPhase(presentationPhase)
+  const triggerTransition = presentationPhase === 'feature-transition'
+  const inputLocked = feature !== null || balance < bet || !phaseAllowsBaseInput(presentationPhase)
 
   useEffect(() => {
     for (const src of [
@@ -710,17 +773,14 @@ function App() {
     setFeatureIntro(false)
     setFeatureEnding(false)
     setFeatureRevealEvents([])
-    setIsReeling(false)
-    setIsCelebrating(false)
-    setPresentationBeat('idle')
+    setPresentationPhase('input-ready')
     setSettledReels(5)
-    setTriggerTransition(false)
     nextSpinId.current = 1
     nextFeatureSessionId.current = 1
   }
 
   const handleSpin = () => {
-    if (feature || balance < bet || isReeling || triggerTransition || isCelebrating) return
+    if (inputLocked) return
     spinTimers.current.forEach((timer) => window.clearTimeout(timer))
     spinTimers.current = []
     const result = spinBaseGame(config, manualRng.current)
@@ -749,11 +809,8 @@ function App() {
     setFeatureRevealEvents([])
     setCurrentWinTier(winTier)
     setSpin(result)
-    setIsReeling(true)
-    setIsCelebrating(true)
-    setPresentationBeat('reeling')
+    setPresentationPhase('spin-started')
     setSettledReels(0)
-    setTriggerTransition(false)
 
     const compressed = reducedMotion || skipAnimations
     const reelStart = compressed ? 60 : 420
@@ -765,30 +822,37 @@ function App() {
         ? 760
         : 520
 
-    let visibleFootprintsAfterStop = 0
-    let anticipationHold = 0
-    let anticipationApplied = false
+    const footprintsBeforeFinalReel = result.board.reduce(
+      (count, row) =>
+        count + row.slice(0, config.boardSize - 1).filter((symbol) => symbol === 'footprint').length,
+      0,
+    )
+    const finalReelAnticipation =
+      footprintsBeforeFinalReel === 2 && result.footprintCount >= 2
+        ? footprintAnticipationDelay
+        : 0
     const reelStopTimes = Array.from({ length: config.boardSize }, (_, reelIndex) => {
-      const stopTime = reelStart + reelIndex * reelDelay + anticipationHold
-      const footprintsOnStoppingReel = result.board.reduce(
-        (count, row) => count + (row[reelIndex] === 'footprint' ? 1 : 0),
-        0,
-      )
-
-      visibleFootprintsAfterStop += footprintsOnStoppingReel
-      const reelsStillHidden = reelIndex < config.boardSize - 1
-      if (
-        !anticipationApplied &&
-        reelsStillHidden &&
-        visibleFootprintsAfterStop >= 2 &&
-        result.footprintCount >= 2
-      ) {
-        anticipationHold += footprintAnticipationDelay
-        anticipationApplied = true
-      }
-
-      return stopTime
+      const finalReelDelay = reelIndex === config.boardSize - 1 ? finalReelAnticipation : 0
+      return reelStart + reelIndex * reelDelay + finalReelDelay
     })
+
+    const spinStartedTimer = window.setTimeout(
+      () => setPresentationPhase('reels-spinning'),
+      compressed ? 0 : 80,
+    )
+    spinTimers.current.push(spinStartedTimer)
+    const stopSequenceTimer = window.setTimeout(
+      () => setPresentationPhase('reel-stop-sequence'),
+      reelStart,
+    )
+    spinTimers.current.push(stopSequenceTimer)
+    if (finalReelAnticipation > 0) {
+      const anticipationTimer = window.setTimeout(
+        () => setPresentationPhase('anticipation'),
+        Math.max(0, reelStopTimes[config.boardSize - 1] - finalReelAnticipation),
+      )
+      spinTimers.current.push(anticipationTimer)
+    }
 
     reelStopTimes.forEach((stopTime, reelIndex) => {
       const timer = window.setTimeout(() => {
@@ -799,80 +863,104 @@ function App() {
     })
 
     // Presentation state machine:
-    // 1) engine resolves immediately above
-    // 2) the true board is placed under a full reel-motion mask before paint
-    // 3) readable outcomes stay gated until the reels visually stop
-    // 4) each result category gets its own short readable beat
-    // 5) UI unlocks only after the final beat or feature transition completes
+    // 1) engine resolves immediately above, but the outcome is visually gated by reels
+    // 2) reels stop left-to-right; exactly two visible Footprints slow only the final reel
+    // 3) the player sees explicit evaluation, win, credit, evidence, trail, and transition phases
+    // 4) input unlocks only after the final phase completes
     const finishTimer = window.setTimeout(() => {
-      setIsReeling(false)
       setSettledReels(config.boardSize)
-      setBalance(balanceAfterBase)
-      setLastSpinSummary(entry)
-      setSpinHistory((history) => [entry, ...history].slice(0, 25))
       setWinAnimationKey((key) => key + 1)
+      setPresentationPhase('result-evaluation')
 
       const hasWildAssist = result.clusterWins.some((cluster) => cluster.wildAssisted)
-      const beats: Array<{ beat: PresentationBeat; duration: number }> = []
+      const phases: Array<{ phase: PresentationPhase; duration: number; onStart?: () => void }> = [
+        { phase: 'result-evaluation', duration: compressed ? 20 : 140 },
+      ]
       if (result.clusterWins.length > 0) {
-        beats.push({ beat: 'cluster', duration: presentationDurationForTier(winTier, compressed) })
+        phases.push({
+          phase: 'cluster-resolution',
+          duration: presentationDurationForTier(winTier, compressed),
+        })
       } else if (!compressed) {
-        beats.push({ beat: 'cluster', duration: presentationDurationForTier('dead', compressed) })
+        phases.push({
+          phase: 'cluster-resolution',
+          duration: presentationDurationForTier('dead', compressed),
+        })
       }
-      if (hasWildAssist) beats.push({ beat: 'wild', duration: compressed ? 80 : winTier === 'large' ? 720 : 460 })
-      if (hasGoldenAmber) beats.push({ beat: 'golden', duration: compressed ? 90 : winTier === 'large' ? 980 : 680 })
+      if (hasWildAssist) {
+        phases.push({
+          phase: 'wild-resolution',
+          duration: compressed ? 80 : winTier === 'large' ? 720 : 460,
+        })
+      }
+      if (hasGoldenAmber) {
+        phases.push({
+          phase: 'golden-amber-resolution',
+          duration: compressed ? 90 : winTier === 'large' ? 980 : 680,
+        })
+      }
+      phases.push({
+        phase: 'credit-award',
+        duration: compressed ? 60 : Math.max(180, balanceCountDurationForTier(winTier)),
+        onStart: () => {
+          setBalance(balanceAfterBase)
+          setLastSpinSummary(entry)
+          setSpinHistory((history) => [entry, ...history].slice(0, 25))
+        },
+      })
       if (result.fieldNotes.uniqueEvidence.length > 0) {
-        beats.push({
-          beat: 'evidence',
+        phases.push({
+          phase: 'evidence-resolution',
           duration: compressed ? 90 : result.fieldNotes.bonus > 0 ? 620 : 360,
         })
       }
       if (result.footprintCount > 0) {
-        beats.push({
-          beat: 'footprint',
+        phases.push({
+          phase: 'trail-marker-resolution',
           duration: compressed ? 90 : result.featureTriggered ? 820 : result.footprintCount === 2 ? 520 : 260,
         })
       }
 
       let elapsed = 0
-      for (const { beat, duration } of beats) {
-        const beatTimer = window.setTimeout(() => setPresentationBeat(beat), elapsed)
-        spinTimers.current.push(beatTimer)
+      for (const { phase, duration, onStart } of phases) {
+        const phaseTimer = window.setTimeout(() => {
+          setPresentationPhase(phase)
+          onStart?.()
+        }, elapsed)
+        spinTimers.current.push(phaseTimer)
         elapsed += duration
       }
 
       const endPresentationTimer = window.setTimeout(() => {
         if (result.featureTriggered) {
-          setPresentationBeat('transition')
-          setTriggerTransition(true)
+          setPresentationPhase('feature-transition')
           const featureTimer = window.setTimeout(() => {
-          const featureRngSeed = manualRng.current.int(1, 0x7fffffff)
-          const featureSessionId = nextFeatureSessionId.current
-          nextFeatureSessionId.current += 1
-          setFeature(
-            createFeatureSession(
-              config.featureProfile,
-              createSeededRng(featureRngSeed),
-              result.featureStartingRespins,
-              {
-                sessionId: featureSessionId,
-                featureRngSeed,
-                boardGenerationSeed: featureRngSeed,
-              },
-            ),
-          )
-          setFeatureRevealEvents([])
-          setFeatureIntro(true)
-          setTriggerTransition(false)
-          setIsCelebrating(false)
-          setPresentationBeat('idle')
-          const introTimer = window.setTimeout(() => setFeatureIntro(false), 950)
-          spinTimers.current.push(introTimer)
+            const featureRngSeed = manualRng.current.int(1, 0x7fffffff)
+            const featureSessionId = nextFeatureSessionId.current
+            nextFeatureSessionId.current += 1
+            setFeature(
+              createFeatureSession(
+                config.featureProfile,
+                createSeededRng(featureRngSeed),
+                result.featureStartingRespins,
+                {
+                  sessionId: featureSessionId,
+                  featureRngSeed,
+                  boardGenerationSeed: featureRngSeed,
+                },
+              ),
+            )
+            setFeatureRevealEvents([])
+            setFeatureIntro(true)
+            const introTimer = window.setTimeout(() => {
+              setFeatureIntro(false)
+              setPresentationPhase('input-ready')
+            }, compressed ? 80 : 950)
+            spinTimers.current.push(introTimer)
           }, compressed ? 160 : 2200)
           spinTimers.current.push(featureTimer)
         } else {
-          setPresentationBeat('idle')
-          setIsCelebrating(false)
+          setPresentationPhase('input-ready')
         }
       }, elapsed)
       spinTimers.current.push(endPresentationTimer)
@@ -925,6 +1013,7 @@ function App() {
       setFeatureRevealEvents([])
       setFeatureIntro(false)
       setFeatureEnding(false)
+      setPresentationPhase('input-ready')
       setSimulation(null)
       setActiveLedgerId(null)
       manualRng.current = createSeededRng(20260708)
@@ -937,6 +1026,7 @@ function App() {
 
   const leaveFeature = () => {
     const featureWin = feature?.totalWin ?? 0
+    setPresentationPhase('return-to-base')
     setFeatureEnding(true)
     window.setTimeout(() => {
       setCurrentWinTier(baseWinTier(featureWin))
@@ -973,15 +1063,37 @@ function App() {
       setFeatureIntro(false)
       setFeatureEnding(false)
       setFeatureRevealEvents([])
+      setPresentationPhase('input-ready')
     }, 900)
   }
 
   const stepFeature = () => {
-    if (featureIntro || featureEnding || !feature) return
-    const next = stepFeatureSession(feature)
-    const latestReveals = next.steps.at(-1)?.reveals ?? []
-    setFeature(next)
-    setFeatureRevealEvents(toFeatureRevealEvents(latestReveals, next))
+    if (featureIntro || featureEnding || !feature || !phaseAllowsFeatureSurvey(presentationPhase)) {
+      return
+    }
+    const compressed = reducedMotion || skipAnimations
+    setPresentationPhase('feature-survey')
+    setFeatureRevealEvents([])
+
+    const surveyTimer = window.setTimeout(() => {
+      const next = stepFeatureSession(feature)
+      const latestReveals = next.steps.at(-1)?.reveals ?? []
+      setFeature(next)
+      setFeatureRevealEvents(toFeatureRevealEvents(latestReveals, next))
+      setPresentationPhase('feature-reveal')
+
+      const revealDuration =
+        compressed
+          ? 80
+          : latestReveals.length > 0
+            ? 420 + latestReveals.length * 160
+            : 320
+      const readyTimer = window.setTimeout(() => {
+        setPresentationPhase(next.isComplete ? 'feature-complete' : 'input-ready')
+      }, revealDuration)
+      spinTimers.current.push(readyTimer)
+    }, compressed ? 40 : 360)
+    spinTimers.current.push(surveyTimer)
   }
 
   return (
@@ -1015,6 +1127,7 @@ function App() {
                 introActive={featureIntro}
                 endingActive={featureEnding}
                 revealEvents={featureRevealEvents}
+                presentationPhase={presentationPhase}
               />
             ) : (
               <BaseGame
@@ -1048,12 +1161,18 @@ function App() {
               <button
                 className="spin-button"
                 onClick={handleSpin}
-                disabled={balance < bet || isReeling || triggerTransition || isCelebrating}
+                disabled={inputLocked}
               >
                 {isReeling ? 'ROLL' : balance >= bet ? 'SPIN' : 'EMPTY'}
                 <span>
                   {triggerTransition
                     ? 'Valley opens'
+                    : presentationPhase === 'credit-award'
+                      ? 'Counting win'
+                      : presentationPhase === 'evidence-resolution'
+                        ? 'Updating notes'
+                        : presentationPhase === 'trail-marker-resolution'
+                          ? 'Reading trail'
                     : isReeling
                       ? 'Reels turning'
                       : balance >= bet
@@ -1437,6 +1556,7 @@ function FeatureBoard({
   introActive,
   endingActive,
   revealEvents,
+  presentationPhase,
 }: {
   session: FeatureSession
   onStep: () => void
@@ -1444,11 +1564,34 @@ function FeatureBoard({
   introActive: boolean
   endingActive: boolean
   revealEvents: FeatureRevealEvent[]
+  presentationPhase: PresentationPhase
 }) {
   const discoveries = session.steps.flatMap((step) => step.reveals)
   const lastStep = session.steps.at(-1)
   const collectorEvent = lastStep?.reveals.some((reveal) => reveal.tile.kind === 'collector')
   const revealEventByIndex = new Map(revealEvents.map((event) => [event.index, event]))
+  const surveyBusy =
+    presentationPhase === 'feature-survey' || presentationPhase === 'feature-reveal'
+  const featureCopy =
+    presentationPhase === 'feature-survey'
+      ? 'Fog stirs as the expedition sweeps the valley.'
+      : presentationPhase === 'feature-reveal'
+        ? lastStep?.hit
+          ? 'Discovery emerging from the fog.'
+          : 'The sweep turns up no fresh site.'
+        : session.isComplete
+          ? 'Survey complete.'
+          : 'The expedition awaits your survey.'
+  const surveyButtonLabel =
+    presentationPhase === 'feature-survey'
+      ? 'Surveying...'
+      : presentationPhase === 'feature-reveal'
+        ? lastStep?.hit
+          ? 'Discovery emerging'
+          : 'Survey resolving'
+        : session.steps.length === 0
+          ? 'Survey valley'
+          : 'Respin'
 
   return (
     <div
@@ -1456,7 +1599,7 @@ function FeatureBoard({
         collectorEvent ? 'collector-event' : ''
       } ${lastStep && !lastStep.hit && !session.isComplete ? 'feature-miss' : ''} ${
         session.isComplete ? 'feature-complete' : ''
-      }`}
+      } phase-${presentationPhase}`}
     >
       {introActive && (
         <div className="feature-intro">
@@ -1472,7 +1615,7 @@ function FeatureBoard({
         </div>
       </div>
       <p className="feature-copy">
-        {session.isComplete ? 'Survey complete.' : 'The expedition awaits your survey.'}{' '}
+        {featureCopy}{' '}
         {discoveries.length} of {session.tiles.length} sites revealed ·{' '}
         {session.respinsRemaining} respins remain.
       </p>
@@ -1611,13 +1754,16 @@ function FeatureBoard({
           <button
             className="survey-button"
             onClick={onStep}
-            disabled={introActive || endingActive}
+            disabled={
+              introActive ||
+              endingActive ||
+              surveyBusy ||
+              !phaseAllowsFeatureSurvey(presentationPhase)
+            }
           >
             {introActive
               ? 'Entering valley…'
-              : session.steps.length === 0
-                ? 'Survey valley'
-                : 'Respin'}
+              : surveyButtonLabel}
           </button>
         )}
       </div>

@@ -1585,6 +1585,25 @@ button {
   animation: collector-sweep 780ms ease-out both;
 }
 
+.feature-screen.phase-feature-survey .fog-grid::before {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  z-index: 4;
+  inset: -6px;
+  background:
+    radial-gradient(circle at 28% 34%, rgba(198, 214, 194, .18), transparent 34%),
+    radial-gradient(circle at 72% 62%, rgba(103, 126, 107, .2), transparent 32%),
+    linear-gradient(110deg, transparent, rgba(164, 178, 153, .13), transparent);
+  opacity: 0;
+  animation: survey-fog-stir 360ms ease-out both;
+}
+
+.feature-screen.phase-feature-reveal .feature-total strong {
+  color: #ffd477;
+  text-shadow: 0 0 14px rgba(255, 212, 119, .24);
+}
+
 .feature-screen.feature-miss .fog-grid {
   animation: survey-miss 240ms ease-out both;
 }
@@ -2210,6 +2229,22 @@ button {
   100% {
     filter: brightness(1);
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes survey-fog-stir {
+  0% {
+    opacity: 0;
+    transform: translateX(-8px) scale(.98);
+    filter: blur(2px);
+  }
+  45% {
+    opacity: .9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(9px) scale(1.02);
+    filter: blur(4px);
   }
 }
 
@@ -3181,6 +3216,7 @@ footer {
   .reel-motion-strip,
   .screen.trigger-transition::after,
   .base-game.two-footprint-sweat::before,
+  .feature-screen.phase-feature-survey .fog-grid::before,
   .feature-screen.feature-miss .fog-grid,
   .symbol.reel-spinning,
   .symbol.reel-settled,

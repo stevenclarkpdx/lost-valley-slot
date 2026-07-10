@@ -2,6 +2,13 @@
 
 Brief summaries of significant project changes. Version numbers are prototype milestones, not release tags unless later matched to commits.
 
+## v0.52 - Presentation State Machine
+
+- Replaced loose presentation flags with a typed player-facing presentation phase flow.
+- Sequenced base spins through reel motion, result evaluation, cluster, credit, Evidence, Trail Marker, and feature-transition beats before unlocking input.
+- Limited two-Footprint anticipation to the final reel decision point.
+- Added explicit Fossil Valley survey and reveal phases so the player sees immediate survey feedback before the next input window.
+
 ## v0.54 - Evidence System Progression
 
 - Redesigned Field Notes around explicit 3/4/5 Evidence milestones with scaling rewards.
