@@ -1,0 +1,48 @@
+# Lost Valley Design Vision
+
+Theme: dinosaur paleontology / lost expedition.
+
+Fantasy:
+The player is not collecting coins. They are mounting an expedition, finding evidence, and uncovering a hidden prehistoric valley.
+
+Main game:
+The 5x5 main board represents the expedition phase.
+Symbols:
+- Low: Compass, Brush, Journal, Pickaxe, Canteen
+- Premium: Jeep, Helicopter, Scientist, Satellite Map, Supply Crate
+- Scatter: Footprint
+
+Trigger:
+3+ Footprints trigger the Lost Valley feature.
+
+Feature:
+The screen shifts to a fog-covered valley grid. Each successful respin reveals fog tiles.
+
+Discovery jackpots:
+- Mini: New Fossil
+- Minor: Complete Skeleton
+- Major: Living Specimen
+- Grand: New Species
+
+Valley variants:
+1. Fossil Valley
+   - Reliable, steady value.
+   - Medium hit rate.
+   - Lower ceiling.
+   - Feels safe and consistent.
+
+2. Predator Valley
+   - Low hit rate.
+   - Huge upside.
+   - Rare major discoveries.
+   - Feels dangerous, tense, and swingy.
+
+3. Nesting Grounds
+   - High hit frequency.
+   - Chain reactions.
+   - More respin resets.
+   - Feels active, chaotic, and generous, but often with smaller wins.
+
+Visual target:
+Gritty, cinematic, dark jungle / excavation / fossil UI. Commercial slot readability, but less bouncy and toy-like.
+Avoid generic coins/treasure where possible.

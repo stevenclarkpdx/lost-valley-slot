@@ -1,0 +1,93 @@
+Base Game Model: Expedition Cluster Pays
+
+Board:
+- 5x5 grid.
+- Each spin fills all 25 cells independently from weighted symbols.
+- Bet is 1 unit by default. All payouts are bet multiples.
+
+Symbol Types:
+Low expedition tools:
+- Compass
+- Brush
+- Journal
+- Pickaxe
+- Canteen
+
+Premium expedition assets:
+- Jeep
+- Helicopter
+- Scientist
+- Satellite Map
+- Supply Crate
+
+Scatter:
+- Footprint
+
+Cluster Rules:
+- A cluster is a group of matching symbols connected orthogonally: up, down, left, right.
+- Diagonal adjacency does not count.
+- Clusters pay only at size 4 or larger.
+- Each cell can belong to only one cluster.
+- Multiple clusters can pay on the same spin.
+- Footprints do not participate in cluster pays.
+- Footprints only trigger the Lost Valley feature.
+
+Trigger:
+- 3+ Footprints anywhere on the board triggers the feature.
+- 3 Footprints = normal trigger.
+- 4 Footprints = feature starts with +1 extra respin.
+- 5+ Footprints = feature starts with +2 extra respins.
+- Scatter symbols do not pay directly in Milestone 1.
+
+Suggested Symbol Weights:
+Low symbols: common
+- Compass: 12
+- Brush: 12
+- Journal: 11
+- Pickaxe: 11
+- Canteen: 10
+
+Premium symbols: less common
+- Jeep: 7
+- Helicopter: 5
+- Scientist: 5
+- Satellite Map: 4
+- Supply Crate: 6
+
+Scatter:
+- Footprint: 3
+
+Cluster Paytable, bet multiples:
+
+Low symbols:
+- 4 connected: 0.5x
+- 5 connected: 1x
+- 6 connected: 2x
+- 7 connected: 4x
+- 8+ connected: 8x
+
+Premium symbols:
+- 4 connected: 1x
+- 5 connected: 3x
+- 6 connected: 8x
+- 7 connected: 20x
+- 8+ connected: 50x
+
+Premium ranking:
+- Helicopter, Scientist, and Satellite Map should use the premium table.
+- Jeep and Supply Crate can use a middle table if needed later, but for Milestone 1 use the premium table.
+
+Win Calculation:
+- Evaluate all clusters after board generation.
+- Sum all cluster payouts.
+- Then check scatter trigger.
+- Feature payout is added separately.
+- Base RTP = average cluster payout per spin / bet.
+- Feature RTP = trigger frequency * average feature payout.
+- Total RTP = Base RTP + Feature RTP.
+
+Design Intent:
+- Low-symbol clusters create small frequent reinforcement.
+- Premium clusters create rare but visible base-game wins.
+- Footprints are pure anticipation symbols.
+- The main board should feel like the expedition is gathering enough evidence to find the Lost Valley.

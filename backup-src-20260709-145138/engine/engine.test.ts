@@ -1,0 +1,251 @@
+import { describe, expect, it } from 'vitest'
+import {
+  calculateFieldNotes,
+  getFeatureStartingRespins,
+  isFeatureTriggered,
+} from './baseGame'
+import { DEFAULT_CONFIG } from './config'
+import { parseConfig, serializeConfig } from './configIO'
+import {
+  createFeatureSession,
+  featureEngine,
+  featureSessionToResult,
+  playFeatureToCompletion,
+  stepFeatureSession,
+} from './featureEngine'
+import type { FeatureProfile } from './featureTypes'
+import { calculateClusterWins } from './payouts'
+import { createSeededRng, type Rng } from './rng'
+import type { Board } from './types'
+import { runSimulation } from './simulation'
+
+describe('seeded RNG', () => {
+  it('produces the same sequence for the same seed', () => {
+    const first = createSeededRng(8675309)
+    const second = createSeededRng(8675309)
+    expect(Array.from({ length: 10 }, () => first.next())).toEqual(
+      Array.from({ length: 10 }, () => second.next()),
+    )
+  })
+})
+
+describe('config JSON', () => {
+  it('round-trips a versioned config', () => {
+    expect(parseConfig(serializeConfig(DEFAULT_CONFIG))).toEqual(DEFAULT_CONFIG)
+  })
+})
+
+describe('feature trigger', () => {
+  it('requires at least three Footprints anywhere on the board', () => {
+    const board = Array.from({ length: 5 }, () => Array(5).fill('compass')) as Board
+    board[0][0] = 'footprint'
+    board[2][3] = 'footprint'
+    expect(isFeatureTriggered(board)).toBe(false)
+    board[4][4] = 'footprint'
+    expect(isFeatureTriggered(board)).toBe(true)
+  })
+
+  it('awards extra starting respins for four and five Footprints', () => {
+    expect(getFeatureStartingRespins(3, 3)).toBe(3)
+    expect(getFeatureStartingRespins(4, 3)).toBe(4)
+    expect(getFeatureStartingRespins(5, 3)).toBe(5)
+    expect(getFeatureStartingRespins(7, 3)).toBe(5)
+  })
+})
+
+describe('FeatureEngine', () => {
+  it('creates an active session with starting respins and no reveals', () => {
+    const session = createFeatureSession(
+      DEFAULT_CONFIG.featureProfile,
+      createSeededRng(1),
+      4,
+    )
+    expect(session.respinsRemaining).toBe(4)
+    expect(session.tiles.every((tile) => tile === null)).toBe(true)
+    expect(session.steps).toHaveLength(0)
+    expect(session.totalWin).toBe(0)
+    expect(session.isComplete).toBe(false)
+  })
+
+  it('decrements respins by one on a miss', () => {
+    const missRng: Rng = { next: () => 0.99, int: (min) => min }
+    const session = createFeatureSession(DEFAULT_CONFIG.featureProfile, missRng)
+    const next = stepFeatureSession(session)
+    expect(next.respinsRemaining).toBe(2)
+    expect(next.steps.at(-1)?.hit).toBe(false)
+    expect(next.isComplete).toBe(false)
+  })
+
+  it('reveals a tile and resets respins on a hit', () => {
+    const hitRng: Rng = { next: () => 0, int: (min) => min }
+    const session = createFeatureSession(DEFAULT_CONFIG.featureProfile, hitRng)
+    const next = stepFeatureSession(session)
+    expect(next.tiles.filter((tile) => tile !== null).length).toBeGreaterThanOrEqual(1)
+    expect(next.respinsRemaining).toBe(
+      DEFAULT_CONFIG.featureProfile.payoutRules.hitResetsRespinsTo,
+    )
+    expect(next.steps.at(-1)?.hit).toBe(true)
+  })
+
+  it('matches the completion runner when stepped with the same seed', () => {
+    const resolved = playFeatureToCompletion(
+      DEFAULT_CONFIG.featureProfile,
+      createSeededRng(2468),
+    )
+    let session = createFeatureSession(
+      DEFAULT_CONFIG.featureProfile,
+      createSeededRng(2468),
+    )
+    while (!session.isComplete) session = stepFeatureSession(session)
+    expect(featureSessionToResult(session)).toEqual(resolved)
+  })
+
+  it('ends after three consecutive misses', () => {
+    const missRng: Rng = { next: () => 0.99, int: (min) => min }
+    const result = featureEngine.play(DEFAULT_CONFIG.featureProfile, missRng)
+    expect(result.steps).toHaveLength(3)
+    expect(result.steps.at(-1)?.respinsRemaining).toBe(0)
+    expect(result.totalWin).toBe(0)
+  })
+
+  it('ends when every tile has been revealed', () => {
+    const hitRng: Rng = { next: () => 0, int: (min) => min }
+    const result = featureEngine.play(DEFAULT_CONFIG.featureProfile, hitRng)
+    expect(result.fullyRevealed).toBe(true)
+    expect(result.tiles.every((tile) => tile !== null)).toBe(true)
+    expect(result.steps).toHaveLength(25)
+  })
+
+  it('uses bonus respins initially but resets to the standard three after a hit', () => {
+    const rolls = [0, 0.99, 0.99, 0.99]
+    const rng: Rng = {
+      next: () => rolls.shift() ?? 0.99,
+      int: (min) => min,
+    }
+    const result = featureEngine.play(DEFAULT_CONFIG.featureProfile, rng, 5)
+    expect(result.startingRespins).toBe(5)
+    expect(result.steps[0].respinsRemaining).toBe(3)
+    expect(result.steps.at(-1)?.respinsRemaining).toBe(0)
+    expect(result.steps).toHaveLength(4)
+  })
+
+  it('executes a non-themed profile with collectors, jackpots, and completion pay', () => {
+    const profile: FeatureProfile = {
+      id: 'test-profile',
+      displayName: 'Test Feature',
+      startingRespins: 1,
+      boardWidth: 1,
+      boardHeight: 1,
+      hitGeneration: {
+        hitProbability: 1,
+        multiHitProbability: 0,
+        maxTilesPerHit: 1,
+      },
+      collectorProbability: 0,
+      collectors: [],
+      jackpotProbability: 1,
+      jackpotWeights: [
+        { id: 'top-award', displayName: 'Top Award', weight: 1, payoutValue: 10 },
+      ],
+      tileTable: [
+        {
+          id: 'basic',
+          displayName: 'Basic',
+          rarity: 'common',
+          rarityWeight: 1,
+          payoutValue: 1,
+        },
+      ],
+      payoutRules: {
+        tileValueMultiplier: 1,
+        collectorCollectsExistingTiles: true,
+        hitResetsRespinsTo: 1,
+      },
+      completionReward: 5,
+    }
+    const rng: Rng = { next: () => 0, int: (min) => min }
+    const result = featureEngine.play(profile, rng)
+    expect(result.tiles[0]?.kind).toBe('jackpot')
+    expect(result.totalWin).toBe(15)
+    expect(result.completionReward).toBe(5)
+  })
+
+  it('uses named tile definitions from the supplied profile', () => {
+    const rng: Rng = { next: () => 0, int: (min) => min }
+    const result = featureEngine.play(DEFAULT_CONFIG.featureProfile, rng)
+    expect(result.tiles[0]?.id).toBe('small-fossil')
+    expect(result.tiles[0]?.displayName).toBe('Small Fossil')
+  })
+})
+
+describe('payout calculation', () => {
+  it('pays orthogonal clusters of four or more and excludes Footprints', () => {
+    const board: Board = [
+      ['trexTooth', 'trexTooth', 'raptorClaw', 'crate', 'crate'],
+      ['trexTooth', 'campWild', 'raptorClaw', 'crate', 'crate'],
+      ['trexTooth', 'raptorClaw', 'raptorClaw', 'footprint', 'footprint'],
+      ['jeep', 'scientist', 'raptorClaw', 'footprint', 'footprint'],
+      ['helicopter', 'scientist', 'map', 'crate', 'footprint'],
+    ]
+    const result = calculateClusterWins(board, DEFAULT_CONFIG)
+    expect(result.wins.map((win) => [win.symbol, win.size, win.payout])).toEqual([
+      ['crate', 4, 0.17472],
+      ['trexTooth', 5, 0.56],
+      ['raptorClaw', 6, 1.12],
+    ])
+    expect(result.total).toBeCloseTo(1.85472)
+  })
+
+  it('does not connect matching symbols diagonally', () => {
+    const board: Board = [
+      ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
+      ['raptorClaw', 'trexTooth', 'pterosaurFeather', 'sauropodHorn', 'triceratopsEggshell'],
+      ['triceratopsEggshell', 'pterosaurFeather', 'trexTooth', 'raptorClaw', 'sauropodHorn'],
+      ['pterosaurFeather', 'sauropodHorn', 'raptorClaw', 'trexTooth', 'triceratopsEggshell'],
+      ['sauropodHorn', 'triceratopsEggshell', 'pterosaurFeather', 'raptorClaw', 'trexTooth'],
+    ]
+    expect(calculateClusterWins(board, DEFAULT_CONFIG).wins).toHaveLength(0)
+  })
+
+  it('awards Field Notes only for unique natural evidence symbols', () => {
+    const board: Board = [
+      ['trexTooth', 'trexTooth', 'campWild', 'jeep', 'crate'],
+      ['raptorClaw', 'jeep', 'crate', 'scientist', 'map'],
+      ['triceratopsEggshell', 'jeep', 'crate', 'scientist', 'map'],
+      ['footprint', 'helicopter', 'crate', 'scientist', 'map'],
+      ['footprint', 'helicopter', 'crate', 'scientist', 'map'],
+    ]
+    expect(calculateFieldNotes(board)).toEqual({
+      uniqueEvidence: ['trexTooth', 'raptorClaw', 'triceratopsEggshell'],
+      bonus: 5,
+    })
+  })
+})
+
+describe('simulation diagnostics', () => {
+  it('is reproducible and normalizes core distributions', () => {
+    const first = runSimulation(DEFAULT_CONFIG, 1_000, 123)
+    const second = runSimulation(DEFAULT_CONFIG, 1_000, 123)
+    expect(first).toEqual(second)
+    expect(
+      Object.values(first.footprintDistribution).reduce((sum, value) => sum + value, 0),
+    ).toBeCloseTo(1)
+    expect(
+      Object.values(first.symbolFrequencyDistribution).reduce(
+        (sum, value) => sum + value,
+        0,
+      ),
+    ).toBeCloseTo(1)
+  })
+
+  it('preserves the tuned Fossil Valley payout stream', () => {
+    const result = runSimulation(DEFAULT_CONFIG, 10_000, 123)
+    expect(result.baseRtp).toBeCloseTo(0.480497472, 4)
+    expect(result.evidenceRtp).toBeCloseTo(0.0395, 4)
+    expect(result.featureRtp).toBeCloseTo(0.4074, 4)
+    expect(result.totalRtp).toBeCloseTo(0.927397472, 4)
+    expect(result.triggerFrequency).toBeCloseTo(0.009, 4)
+    expect(result.averageFeatureWin).toBeCloseTo(45.27, 2)
+    expect(result.evidenceBonusFrequency).toBeCloseTo(0.0071, 4)
+  })
+})

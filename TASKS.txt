@@ -1,0 +1,28 @@
+# Build Tasks
+
+Phase 1:
+- Create Vite React TypeScript app.
+- Build static slot cabinet layout.
+- Add 5x5 main board.
+- Add spin button.
+- Generate random symbols.
+- Trigger feature on 3+ Footprints.
+
+Phase 2:
+- Add Lost Valley feature screen.
+- Add fog grid.
+- Add respin logic.
+- Add three valley profiles.
+- Add discovery jackpot names and weights.
+
+Phase 3:
+- Add tuning panel.
+- Add simulation panel.
+- Add histogram and RTP breakdown.
+- Add manual play and autoplay modes.
+
+Phase 4:
+- Improve visual polish.
+- Add animation timing.
+- Add better symbol art placeholders.
+- Add export/import JSON tuning configs.

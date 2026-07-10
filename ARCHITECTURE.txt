@@ -1,0 +1,66 @@
+# Lost Valley Prototype Architecture
+
+Goal
+Build a browser-based slot-design sandbox whose base game feels like an
+expedition and whose Fossil Valley feature is the destination. This milestone
+proves one complete, measurable game loop; Predator Valley and Nesting Grounds
+are intentionally excluded.
+
+Structure
+- src/engine: pure TypeScript game rules, seeded RNG, configuration, payouts,
+  generic feature execution, profiles, and simulation. It has no React or
+  browser dependencies.
+- src/components: React presentation for the cabinet, board, feature, and
+  analytics controls.
+- src/App.tsx: thin orchestration layer between engine results and presentation.
+
+Rules and units
+- One spin costs 1 credit.
+- The base game is a 5x5 independently weighted symbol board.
+- Orthogonally connected groups of 4+ matching non-scatter symbols pay cluster
+  awards using low and premium tables.
+- 3+ Footprints trigger Fossil Valley; Footprints do not otherwise pay.
+- 4 Footprints add 1 initial respin; 5+ add 2. Hits reset to the standard 3.
+- Fossil Valley is a 5x5 fog grid. A hit reveals one tile and resets respins to
+  3; a miss removes one respin. It ends at 0 respins or a fully revealed grid.
+- All random behavior consumes an injected seeded RNG, making play and
+  simulation reproducible.
+
+Analytics
+Simulation uses the same engine as manual play and reports trigger frequency,
+average feature win, feature RTP contribution, total RTP estimate, and feature
+win percentiles. It also records footprint, cluster, symbol, and final-reveal
+distributions plus full-reveal rate. Runs accept a seed and 10K/100K/1M sample
+size; low-confidence and out-of-range RTP results are surfaced as warnings. RTP
+values are payout divided by total 1-credit spins and are prototype estimates,
+not certified gambling math.
+
+Tuning configuration
+The complete GameConfig is exported and imported as versioned JSON. Imports are
+validated before replacing the active configuration, and both manual play and
+simulation use the same newly loaded config.
+
+Engineering constraints
+- Game state and animation state remain separate.
+- Engine functions return immutable result values.
+- Configuration is centralized and serializable.
+- Unit tests cover RNG determinism, trigger detection, feature termination,
+  and payout calculation before presentation polish.
+
+Feature framework
+- FeatureEngine executes any supplied FeatureProfile and contains no theme or
+  valley-specific knowledge.
+- Interactive play uses FeatureSession: creation performs no game action, and
+  each player input applies one shared stepFeatureSession transition.
+- Simulation uses playFeatureToCompletion, which repeatedly applies the same
+  session transition until respins expire or the board completes.
+- FeatureProfile owns dimensions, respins, hit and multi-hit generation,
+  weighted tiles, collectors, jackpots, payout rules, and completion rewards.
+- TileDefinition gives every reveal an id, display name, rarity weight, payout,
+  and optional discovery category.
+- Fossil Valley lives only as profile data under src/engine/profiles. Adding a
+  future profile must not require edits to FeatureEngine.
+
+Milestone boundary
+Rough slot-machine styling and Fossil Valley only. No external art, audio,
+Predator Valley, Nesting Grounds, tuning persistence, or production animation.

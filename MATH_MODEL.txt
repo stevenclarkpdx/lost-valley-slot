@@ -1,0 +1,40 @@
+# Math Model
+
+This is a design sandbox, not certified gambling math.
+
+Main loop:
+- 5x5 board.
+- Random symbol generation.
+- Payline/cluster pays can be simple at first.
+- 3+ Footprint scatters trigger feature.
+- Track:
+  - Base RTP
+  - Feature RTP
+  - Total RTP
+  - Hit frequency
+  - Bonus frequency
+
+Feature loop:
+- Starts with 3 respins.
+- Successful reveal resets respins to 3.
+- Miss decrements respins.
+- Ends when respins reach 0 or valley grid is fully revealed.
+
+Each valley has independent parameters:
+- hitChance
+- multiHitChance
+- chainReactionChance
+- collectorChance
+- jackpotWeights
+- baseTileValueRange
+- fullRevealAward
+
+Important analytics:
+- Average feature win
+- Median feature win
+- 90th / 99th percentile feature win
+- Full reveal rate
+- Discovery jackpot frequency
+- Distribution of final revealed tile count
+- RTP contribution by valley
+- Frequency of reaching near-full states

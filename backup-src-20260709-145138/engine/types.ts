@@ -1,0 +1,96 @@
+export const SYMBOLS = [
+  'trexTooth',
+  'raptorClaw',
+  'triceratopsEggshell',
+  'pterosaurFeather',
+  'sauropodHorn',
+  'campWild',
+  'jeep',
+  'helicopter',
+  'scientist',
+  'map',
+  'crate',
+  'footprint',
+] as const
+
+export type SymbolId = (typeof SYMBOLS)[number]
+export type Board = SymbolId[][]
+export type EvidenceSymbolId = Extract<
+  SymbolId,
+  | 'trexTooth'
+  | 'raptorClaw'
+  | 'triceratopsEggshell'
+  | 'pterosaurFeather'
+  | 'sauropodHorn'
+>
+import type { FeatureProfile } from './featureTypes'
+
+export interface WeightedSymbol {
+  symbol: SymbolId
+  weight: number
+}
+
+export interface GameConfig {
+  boardSize: number
+  symbolWeights: WeightedSymbol[]
+  clusterPays: {
+    low: [number, number, number, number, number]
+    premium: [number, number, number, number, number]
+  }
+  featureProfile: FeatureProfile
+}
+
+export interface CellPosition {
+  row: number
+  column: number
+}
+
+export interface ClusterWin {
+  symbol: Exclude<SymbolId, 'footprint' | 'campWild'>
+  size: number
+  cells: CellPosition[]
+  payout: number
+}
+
+export interface FieldNotesResult {
+  uniqueEvidence: EvidenceSymbolId[]
+  bonus: number
+}
+
+export interface BaseSpinResult {
+  board: Board
+  footprintCount: number
+  featureTriggered: boolean
+  featureStartingRespins: number
+  clusterWins: ClusterWin[]
+  clusterWin: number
+  fieldNotes: FieldNotesResult
+  baseWin: number
+}
+
+export interface SimulationResult {
+  seed: number
+  spins: number
+  triggers: number
+  triggerFrequency: number
+  averageFeatureWin: number
+  baseRtp: number
+  evidenceRtp: number
+  featureRtp: number
+  totalRtp: number
+  evidenceBonusFrequency: number
+  evidenceUniqueDistribution: Record<'0' | '1' | '2' | '3' | '4' | '5', number>
+  averageEvidenceBonus: number
+  percentiles: {
+    p50: number
+    p90: number
+    p99: number
+  }
+  footprintDistribution: Record<string, number>
+  clusterCountDistribution: Record<string, number>
+  clusterSizeDistribution: Record<string, number>
+  symbolFrequencyDistribution: Record<SymbolId, number>
+  finalRevealDistribution: Record<string, number>
+  fullRevealRate: number
+  totalClusters: number
+}
