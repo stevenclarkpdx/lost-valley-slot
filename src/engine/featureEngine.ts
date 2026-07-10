@@ -3,6 +3,7 @@ import type {
   FeatureProfile,
   FeatureResult,
   FeatureSession,
+  FeatureSessionDebug,
   JackpotDefinition,
   RevealedFeatureTile,
   TileDefinition,
@@ -137,10 +138,12 @@ export function createFeatureSession(
   profile: FeatureProfile,
   rng: Rng,
   startingRespins = profile.startingRespins,
+  debug?: FeatureSessionDebug,
 ): FeatureSession {
   return {
     profile,
     rng,
+    debug,
     tiles: Array(profile.boardWidth * profile.boardHeight).fill(null),
     steps: [],
     startingRespins,

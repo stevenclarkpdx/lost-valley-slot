@@ -79,9 +79,16 @@ export interface FeatureResult {
   fullyRevealed: boolean
 }
 
+export interface FeatureSessionDebug {
+  sessionId: number
+  featureRngSeed: number
+  boardGenerationSeed: number
+}
+
 export interface FeatureSession {
   profile: FeatureProfile
   rng: Rng
+  debug?: FeatureSessionDebug
   tiles: Array<RevealedFeatureTile | null>
   steps: FeatureStep[]
   startingRespins: number

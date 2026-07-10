@@ -1117,6 +1117,47 @@ button {
   font-size: 18px;
 }
 
+.feature-debug-panel {
+  padding: 7px 8px;
+  border: 1px dashed rgba(151, 121, 69, .38);
+  color: #8f927d;
+  background: rgba(5, 8, 6, .68);
+  font-family: Consolas, monospace;
+  font-size: 8px;
+}
+
+.feature-debug-panel summary {
+  cursor: pointer;
+  color: #c29b56;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.feature-debug-panel dl {
+  display: grid;
+  gap: 4px;
+  margin: 7px 0 0;
+}
+
+.feature-debug-panel div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+}
+
+.feature-debug-panel dt,
+.feature-debug-panel dd {
+  margin: 0;
+}
+
+.feature-debug-panel dt {
+  color: #676f62;
+}
+
+.feature-debug-panel dd {
+  color: #d0ba82;
+}
+
 .fog-tile {
   aspect-ratio: 1;
   display: grid;

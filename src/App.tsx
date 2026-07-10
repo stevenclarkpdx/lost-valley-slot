@@ -495,6 +495,7 @@ function formatCredits(value: number): string {
 function App() {
   const manualRng = useRef(createSeededRng(20260708))
   const nextSpinId = useRef(1)
+  const nextFeatureSessionId = useRef(1)
   const spinTimers = useRef<number[]>([])
   const [config, setConfig] = useState<GameConfig>(() =>
     JSON.parse(JSON.stringify(DEFAULT_CONFIG)),
@@ -565,6 +566,7 @@ function App() {
     setSettledReels(5)
     setTriggerTransition(false)
     nextSpinId.current = 1
+    nextFeatureSessionId.current = 1
   }
 
   const handleSpin = () => {
@@ -602,11 +604,41 @@ function App() {
     const reelStart = compressed ? 60 : 420
     const reelDelay = compressed ? 0 : 75
     const reelSettle = compressed ? 80 : 250
+    const footprintAnticipationDelay = compressed
+      ? 0
+      : result.featureTriggered
+        ? 760
+        : 520
 
-    Array.from({ length: config.boardSize }, (_, reelIndex) => {
+    let visibleFootprintsAfterStop = 0
+    let anticipationHold = 0
+    let anticipationApplied = false
+    const reelStopTimes = Array.from({ length: config.boardSize }, (_, reelIndex) => {
+      const stopTime = reelStart + reelIndex * reelDelay + anticipationHold
+      const footprintsOnStoppingReel = result.board.reduce(
+        (count, row) => count + (row[reelIndex] === 'footprint' ? 1 : 0),
+        0,
+      )
+
+      visibleFootprintsAfterStop += footprintsOnStoppingReel
+      const reelsStillHidden = reelIndex < config.boardSize - 1
+      if (
+        !anticipationApplied &&
+        reelsStillHidden &&
+        visibleFootprintsAfterStop >= 2 &&
+        result.footprintCount >= 2
+      ) {
+        anticipationHold += footprintAnticipationDelay
+        anticipationApplied = true
+      }
+
+      return stopTime
+    })
+
+    reelStopTimes.forEach((stopTime, reelIndex) => {
       const timer = window.setTimeout(() => {
         setSettledReels(reelIndex + 1)
-      }, reelStart + reelIndex * reelDelay)
+      }, stopTime)
       spinTimers.current.push(timer)
       return timer
     })
@@ -658,11 +690,19 @@ function App() {
           setPresentationBeat('transition')
           setTriggerTransition(true)
           const featureTimer = window.setTimeout(() => {
+          const featureRngSeed = manualRng.current.int(1, 0x7fffffff)
+          const featureSessionId = nextFeatureSessionId.current
+          nextFeatureSessionId.current += 1
           setFeature(
             createFeatureSession(
               config.featureProfile,
-              manualRng.current,
+              createSeededRng(featureRngSeed),
               result.featureStartingRespins,
+              {
+                sessionId: featureSessionId,
+                featureRngSeed,
+                boardGenerationSeed: featureRngSeed,
+              },
             ),
           )
           setFeatureIntro(true)
@@ -679,7 +719,7 @@ function App() {
         }
       }, elapsed)
       spinTimers.current.push(endPresentationTimer)
-    }, reelStart + (config.boardSize - 1) * reelDelay + reelSettle)
+    }, reelStopTimes[reelStopTimes.length - 1] + reelSettle)
     spinTimers.current.push(finishTimer)
 
     if (result.featureTriggered) {
@@ -730,6 +770,7 @@ function App() {
       setSimulation(null)
       setActiveLedgerId(null)
       manualRng.current = createSeededRng(20260708)
+      nextFeatureSessionId.current = 1
       setConfigNotice(`Loaded ${file.name}.`)
     } catch (error) {
       setConfigNotice(error instanceof Error ? error.message : 'Config import failed.')
@@ -777,18 +818,13 @@ function App() {
   }
 
   const stepFeature = () => {
-    if (featureIntro || featureEnding) return
-    setFeature((session) => {
-      if (!session) return null
-      const next = stepFeatureSession(session)
-      setRecentRevealOrder(
-        Object.fromEntries(next.steps.at(-1)?.reveals.map((reveal, index) => [
-          reveal.index,
-          index,
-        ]) ?? []),
-      )
-      return next
-    })
+    if (featureIntro || featureEnding || !feature) return
+    const next = stepFeatureSession(feature)
+    const latestReveals = next.steps.at(-1)?.reveals ?? []
+    setFeature(next)
+    setRecentRevealOrder(
+      Object.fromEntries(latestReveals.map((reveal, index) => [reveal.index, index])),
+    )
   }
 
   return (
@@ -1301,6 +1337,24 @@ function FeatureBoard({
             <small>Respins</small>
             <strong>{session.respinsRemaining}</strong>
           </div>
+          {import.meta.env.DEV && (
+            <FeatureDebugPanel
+              session={session}
+              currentState={
+                endingActive
+                  ? 'ending'
+                  : introActive
+                    ? 'intro'
+                    : session.isComplete
+                      ? 'complete'
+                      : lastStep?.hit
+                        ? 'revealed'
+                        : lastStep
+                          ? 'miss'
+                          : 'ready'
+              }
+            />
+          )}
           <div className="feature-side-stat">
             <small>Revealed</small>
             <strong>
@@ -1370,6 +1424,53 @@ function FeatureBoard({
         )}
       </div>
     </div>
+  )
+}
+
+function FeatureDebugPanel({
+  session,
+  currentState,
+}: {
+  session: FeatureSession
+  currentState: string
+}) {
+  const revealCount = session.tiles.filter((tile) => tile !== null).length
+  const hiddenCount = session.tiles.length - revealCount
+
+  return (
+    <details className="feature-debug-panel">
+      <summary>Feature debug</summary>
+      <dl>
+        <div>
+          <dt>Feature Session ID</dt>
+          <dd>{session.debug?.sessionId ?? 'n/a'}</dd>
+        </div>
+        <div>
+          <dt>Feature RNG seed</dt>
+          <dd>{session.debug?.featureRngSeed ?? 'n/a'}</dd>
+        </div>
+        <div>
+          <dt>Board generation seed</dt>
+          <dd>{session.debug?.boardGenerationSeed ?? 'n/a'}</dd>
+        </div>
+        <div>
+          <dt>Reveal count</dt>
+          <dd>{revealCount}</dd>
+        </div>
+        <div>
+          <dt>Remaining hidden tiles</dt>
+          <dd>{hiddenCount}</dd>
+        </div>
+        <div>
+          <dt>Current respins</dt>
+          <dd>{session.respinsRemaining}</dd>
+        </div>
+        <div>
+          <dt>Current feature state</dt>
+          <dd>{currentState}</dd>
+        </div>
+      </dl>
+    </details>
   )
 }
 

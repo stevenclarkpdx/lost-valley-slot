@@ -1,0 +1,40 @@
+Lost Valley Development Workflow
+Development Philosophy
+Favor improving existing systems over adding new mechanics.
+Preserve the expedition/discovery fantasy.
+Presentation must never affect game math.
+Engine logic remains deterministic and testable.
+UI consumes engine results; it does not create them.
+Git Workflow
+Work directly on main for now.
+Before starting work, run git status.
+Before completing work:
+Run all tests.
+Run production build.
+Fix any failures before continuing.
+Review the git diff before committing.
+Commit only project files.
+Never commit:
+node_modules
+dist
+generated caches
+Push to origin main after a successful commit.
+Report:
+commit hash
+commit message
+summary of changes
+Implementation Rules
+Keep engine and presentation separated.
+Prefer extending existing systems over creating parallel ones.
+Do not introduce new dependencies unless necessary.
+Do not change RTP targets unless explicitly requested.
+Ask before introducing new gameplay mechanics.
+Version Philosophy
+
+Major milestones should become meaningful commits.
+
+Examples:
+
+v0.4 Game Feel
+v0.5 Presentation
+v0.6 Fossil Valley Polish

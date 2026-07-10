@@ -67,6 +67,26 @@ describe('FeatureEngine', () => {
     expect(session.isComplete).toBe(false)
   })
 
+  it('can attach feature debug metadata without changing starting state', () => {
+    const session = createFeatureSession(
+      DEFAULT_CONFIG.featureProfile,
+      createSeededRng(1),
+      3,
+      {
+        sessionId: 7,
+        featureRngSeed: 12345,
+        boardGenerationSeed: 12345,
+      },
+    )
+    expect(session.debug).toEqual({
+      sessionId: 7,
+      featureRngSeed: 12345,
+      boardGenerationSeed: 12345,
+    })
+    expect(session.tiles.every((tile) => tile === null)).toBe(true)
+    expect(session.steps).toHaveLength(0)
+  })
+
   it('decrements respins by one on a miss', () => {
     const missRng: Rng = { next: () => 0.99, int: (min) => min }
     const session = createFeatureSession(DEFAULT_CONFIG.featureProfile, missRng)
