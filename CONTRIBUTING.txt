@@ -38,3 +38,10 @@ Examples:
 v0.4 Game Feel
 v0.5 Presentation
 v0.6 Fossil Valley Polish
+
+When committing a task:
+
+- Include all intentional source, asset, documentation, configuration, and test changes currently required for the project to run correctly.
+- Exclude generated outputs such as dist, node_modules, caches, temporary files, and local environment files.
+- Before committing, report any unrelated pre-existing working-tree changes.
+- If unrelated changes exist, do not silently include or discard them; ask for confirmation unless they are clearly part of previously completed project work.
