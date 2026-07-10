@@ -372,9 +372,14 @@ describe('payout calculation', () => {
       ['footprint', 'helicopter', 'crate', 'scientist', 'map'],
       ['footprint', 'helicopter', 'crate', 'scientist', 'map'],
     ]
-    expect(calculateFieldNotes(board)).toEqual({
+    expect(calculateFieldNotes(board, DEFAULT_CONFIG)).toEqual({
       uniqueEvidence: ['trexTooth', 'raptorClaw', 'triceratopsEggshell'],
-      bonus: 5,
+      bonus: 3.2,
+      milestone: 3,
+      milestoneReward: 3.2,
+      nextMilestone: 4,
+      nextMilestoneReward: 11.5,
+      remainingToNextMilestone: 1,
     })
   })
 
@@ -386,9 +391,14 @@ describe('payout calculation', () => {
       ['footprint', 'campWild', 'crate', 'scientist', 'map'],
       ['jeep', 'helicopter', 'crate', 'scientist', 'map'],
     ]
-    expect(calculateFieldNotes(board)).toEqual({
+    expect(calculateFieldNotes(board, DEFAULT_CONFIG)).toEqual({
       uniqueEvidence: [],
       bonus: 0,
+      milestone: null,
+      milestoneReward: 0,
+      nextMilestone: 3,
+      nextMilestoneReward: 3.2,
+      remainingToNextMilestone: 3,
     })
   })
 })
@@ -411,17 +421,23 @@ describe('simulation diagnostics', () => {
 
   it('preserves the tuned Fossil Valley payout stream', () => {
     const result = runSimulation(DEFAULT_CONFIG, 10_000, 123)
-    expect(result.baseRtp).toBeCloseTo(0.264771, 4)
-    expect(result.evidenceRtp).toBeCloseTo(0.1415, 4)
-    expect(result.featureRtp).toBeCloseTo(0.4884, 4)
-    expect(result.totalRtp).toBeCloseTo(0.894671, 4)
-    expect(result.triggerFrequency).toBeCloseTo(0.0109, 4)
-    expect(result.averageFeatureWin).toBeCloseTo(44.81, 2)
-    expect(result.evidenceBonusFrequency).toBeCloseTo(0.0251, 4)
-    expect(result.wildAppearanceRate).toBeCloseTo(0.012452, 4)
-    expect(result.wildAssistedClusterFrequency).toBeCloseTo(0.1287, 4)
-    expect(result.goldenAmberHitFrequency).toBeCloseTo(0.0256, 4)
-    expect(result.twoFootprintFrequency).toBeCloseTo(0.0659, 4)
-    expect(result.baseWinsOver10Frequency).toBeCloseTo(0.0022, 4)
+    expect(result.baseRtp).toBeCloseTo(0.257807, 4)
+    expect(result.evidenceRtp).toBeCloseTo(0.22516, 4)
+    expect(result.evidenceRtpByMilestone['3']).toBeCloseTo(0.14976, 4)
+    expect(result.evidenceRtpByMilestone['4']).toBeCloseTo(0.0529, 4)
+    expect(result.evidenceRtpByMilestone['5']).toBeCloseTo(0.0225, 4)
+    expect(result.featureRtp).toBeCloseTo(0.4806, 4)
+    expect(result.totalRtp).toBeCloseTo(0.963567, 4)
+    expect(result.triggerFrequency).toBeCloseTo(0.0106, 4)
+    expect(result.averageFeatureWin).toBeCloseTo(45.34, 2)
+    expect(result.evidenceBonusFrequency).toBeCloseTo(0.0517, 4)
+    expect(result.evidenceMilestoneFrequency['3']).toBeCloseTo(0.0468, 4)
+    expect(result.evidenceMilestoneFrequency['4']).toBeCloseTo(0.0046, 4)
+    expect(result.evidenceMilestoneFrequency['5']).toBeCloseTo(0.0003, 4)
+    expect(result.wildAppearanceRate).toBeCloseTo(0.012472, 4)
+    expect(result.wildAssistedClusterFrequency).toBeCloseTo(0.1268, 4)
+    expect(result.goldenAmberHitFrequency).toBeCloseTo(0.0264, 4)
+    expect(result.twoFootprintFrequency).toBeCloseTo(0.065, 4)
+    expect(result.baseWinsOver10Frequency).toBeCloseTo(0.0056, 4)
   })
 })

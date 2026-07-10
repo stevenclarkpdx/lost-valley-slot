@@ -24,6 +24,8 @@ export function runSimulation(
   ) as Record<SymbolId, number>
   const revealCounts: Record<string, number> = {}
   const evidenceUniqueCounts = { '0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 }
+  const evidenceMilestoneCounts = { '3': 0, '4': 0, '5': 0 }
+  const evidencePaidByMilestone = { '3': 0, '4': 0, '5': 0 }
   const baseWins: number[] = []
   let basePaid = 0
   let evidencePaid = 0
@@ -41,6 +43,11 @@ export function runSimulation(
     const base = spinBaseGame(config, rng)
     basePaid += base.clusterWin
     evidencePaid += base.fieldNotes.bonus
+    if (base.fieldNotes.milestone !== null) {
+      const milestone = String(base.fieldNotes.milestone) as keyof typeof evidenceMilestoneCounts
+      evidenceMilestoneCounts[milestone] += 1
+      evidencePaidByMilestone[milestone] += base.fieldNotes.bonus
+    }
     baseWins.push(base.baseWin)
     if (base.baseWin > 10) baseWinsOver10 += 1
     if (base.baseWin > largestBaseGameHit) largestBaseGameHit = base.baseWin
@@ -107,9 +114,18 @@ export function runSimulation(
     averageFeatureWin: triggers === 0 ? 0 : featurePaid / triggers,
     baseRtp: basePaid / spins,
     evidenceRtp: evidencePaid / spins,
+    evidenceRtpByMilestone: {
+      '3': evidencePaidByMilestone['3'] / spins,
+      '4': evidencePaidByMilestone['4'] / spins,
+      '5': evidencePaidByMilestone['5'] / spins,
+    },
     featureRtp: featurePaid / spins,
     totalRtp: (basePaid + evidencePaid + featurePaid) / spins,
     evidenceBonusFrequency: evidenceBonusHits / spins,
+    evidenceMilestoneFrequency: normalize(evidenceMilestoneCounts, spins) as Record<
+      '3' | '4' | '5',
+      number
+    >,
     evidenceUniqueDistribution: normalize(evidenceUniqueCounts, spins) as Record<
       '0' | '1' | '2' | '3' | '4' | '5',
       number

@@ -586,7 +586,13 @@ function baseGameMessage(
   }
   if (spin.featureTriggered) return 'Three Footprints — the hidden valley opens.'
   if (spin.fieldNotes.bonus > 0) {
-    return `FIELD NOTES UPDATED · Discovery Bonus ${spin.fieldNotes.bonus.toFixed(2)} · Total ${spin.baseWin.toFixed(2)}`
+    const milestoneName =
+      spin.fieldNotes.milestone === 5
+        ? 'Expedition complete'
+        : spin.fieldNotes.milestone === 4
+          ? 'Major discovery'
+          : 'First breakthrough'
+    return `FIELD NOTES UPDATED · ${milestoneName} ${spin.fieldNotes.bonus.toFixed(2)} · Total ${spin.baseWin.toFixed(2)}`
   }
   if (spin.footprintCount === 2) return 'Two trail markers found — one more would reveal the route.'
   if (spin.clusterWin > 0) {
@@ -1349,6 +1355,19 @@ function FieldNotesPanel({
   active?: boolean
 }) {
   const found = new Set(reveal ? spin.fieldNotes.uniqueEvidence : [])
+  const visibleCount = reveal ? spin.fieldNotes.uniqueEvidence.length : 0
+  const milestone = reveal ? spin.fieldNotes.milestone : null
+  const nextMilestone = reveal ? spin.fieldNotes.nextMilestone : 3
+  const remaining = reveal ? spin.fieldNotes.remainingToNextMilestone : 3
+  const nextReward = reveal ? spin.fieldNotes.nextMilestoneReward : 0
+  const milestoneLabel =
+    milestone === 5
+      ? 'Expedition complete'
+      : milestone === 4
+        ? 'Major discovery'
+        : milestone === 3
+          ? 'First breakthrough'
+          : 'No milestone'
   return (
     <aside
       className={`field-notes ${reveal && spin.fieldNotes.bonus > 0 ? 'bonus-hit' : ''} ${
@@ -1358,9 +1377,14 @@ function FieldNotesPanel({
     >
       <div className="field-notes-heading">
         <span className="eyebrow">Field Notes</span>
-        <strong>{reveal ? spin.fieldNotes.uniqueEvidence.length : 0}/5</strong>
+        <strong>{visibleCount}/5</strong>
       </div>
       <p>Document unique evidence found anywhere on the expedition grid.</p>
+      <p className="field-notes-progress">
+        {nextMilestone === null
+          ? 'All five evidence lines are complete.'
+          : `${remaining} more unique evidence ${remaining === 1 ? 'symbol' : 'symbols'} to reach ${nextMilestone}.`}
+      </p>
       <ol>
         {FIELD_NOTE_SYMBOLS.map((symbol, index) => {
           const isFound = found.has(symbol)
@@ -1382,13 +1406,23 @@ function FieldNotesPanel({
       <div className="field-notes-bonus">
         {reveal && spin.fieldNotes.bonus > 0 ? (
           <>
-            <span>FIELD NOTES UPDATED</span>
+            <span>{milestoneLabel}</span>
             <strong>{spin.fieldNotes.bonus.toFixed(2)}x</strong>
+            <small>
+              {milestoneLabel}
+              {spin.fieldNotes.nextMilestone !== null
+                ? ` · Next: ${spin.fieldNotes.nextMilestone} evidence for ${spin.fieldNotes.nextMilestoneReward.toFixed(2)}x`
+                : ''}
+            </small>
           </>
         ) : (
           <>
-            <span>Discovery Bonus</span>
-            <strong>3+ unique</strong>
+            <span>Next milestone</span>
+            <strong>{nextMilestone ?? 5} evidence</strong>
+            <small>
+              Next: {nextMilestone ?? 5} evidence
+              {nextReward > 0 ? ` · ${nextReward.toFixed(2)}x` : ''}
+            </small>
           </>
         )}
       </div>
@@ -1887,6 +1921,9 @@ function SimulationPanel({
             label="Evidence bonus hit"
             value={formatPercent(result.evidenceBonusFrequency)}
           />
+          <Metric label="3 Evidence RTP" value={formatPercent(result.evidenceRtpByMilestone['3'])} />
+          <Metric label="4 Evidence RTP" value={formatPercent(result.evidenceRtpByMilestone['4'])} />
+          <Metric label="5 Evidence RTP" value={formatPercent(result.evidenceRtpByMilestone['5'])} />
           <Metric label="Base wins >10x" value={formatPercent(result.baseWinsOver10Frequency)} />
           <Metric label="Feature triggers" value={formatPercent(result.triggerFrequency)} />
           <Metric label="Average feature" value={result.averageFeatureWin.toFixed(2)} />
@@ -2286,6 +2323,9 @@ function Diagnostics({
         <Metric label="3 evidence" value={formatPercent(result.evidenceUniqueDistribution['3'])} />
         <Metric label="4 evidence" value={formatPercent(result.evidenceUniqueDistribution['4'])} />
         <Metric label="5 evidence" value={formatPercent(result.evidenceUniqueDistribution['5'])} />
+        <Metric label="3 evidence RTP" value={formatPercent(result.evidenceRtpByMilestone['3'])} />
+        <Metric label="4 evidence RTP" value={formatPercent(result.evidenceRtpByMilestone['4'])} />
+        <Metric label="5 evidence RTP" value={formatPercent(result.evidenceRtpByMilestone['5'])} />
         <TargetMetric
           label="Feature RTP"
           value={result.featureRtp}

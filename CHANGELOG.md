@@ -2,6 +2,14 @@
 
 Brief summaries of significant project changes. Version numbers are prototype milestones, not release tags unless later matched to commits.
 
+## v0.54 - Evidence System Progression
+
+- Redesigned Field Notes around explicit 3/4/5 Evidence milestones with scaling rewards.
+- Increased natural Evidence frequency so the notebook produces more regular progression and rarer major discoveries.
+- Added per-milestone Evidence RTP and frequency diagnostics for simulation validation.
+- Updated the notebook panel to show current discoveries, next milestone, remaining discoveries, and next reward.
+- Updated config import/export validation for tunable Field Notes payout values.
+
 ## v0.51 - Session Pacing Rebalance
 
 - Retuned default symbol weights to make Fossil Valley, Field Notes, Golden Amber, and Wild-assisted clusters appear more regularly in typical sessions.

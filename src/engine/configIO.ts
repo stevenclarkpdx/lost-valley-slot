@@ -1,7 +1,7 @@
 import { SYMBOLS, type GameConfig } from './types'
 import type { FeatureProfile } from './featureTypes'
 
-const SCHEMA_VERSION = 5
+const SCHEMA_VERSION = 6
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value)
@@ -155,6 +155,19 @@ export function parseConfig(json: string): GameConfig {
     !goldenAmberPays.every((value) => isFiniteNumber(value) && value >= 0)
   ) {
     throw new Error('Low, premium, and Golden Amber cluster paytables need five non-negative values.')
+  }
+
+  const fieldNotesPays = config.fieldNotesPays
+  if (
+    !fieldNotesPays ||
+    !isFiniteNumber(fieldNotesPays[3]) ||
+    fieldNotesPays[3] < 0 ||
+    !isFiniteNumber(fieldNotesPays[4]) ||
+    fieldNotesPays[4] < fieldNotesPays[3] ||
+    !isFiniteNumber(fieldNotesPays[5]) ||
+    fieldNotesPays[5] < fieldNotesPays[4]
+  ) {
+    throw new Error('Field Notes payouts need non-negative scaling values for 3, 4, and 5 evidence.')
   }
 
   validateFeatureProfile(config.featureProfile)

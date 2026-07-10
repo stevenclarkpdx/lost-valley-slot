@@ -849,6 +849,12 @@ button {
   display: none;
 }
 
+.base-field-notes .field-notes p.field-notes-progress {
+  display: block;
+  padding-top: 4px;
+  color: #a99f78;
+}
+
 .base-field-notes .field-notes ol {
   gap: 4px;
   padding: 6px;
@@ -1052,7 +1058,8 @@ button {
 }
 
 .field-notes-bonus span,
-.field-notes-bonus strong {
+.field-notes-bonus strong,
+.field-notes-bonus small {
   display: block;
 }
 
@@ -1068,6 +1075,14 @@ button {
   font-size: 14px;
 }
 
+.field-notes-bonus small {
+  margin-top: 3px;
+  color: #6f5f3e;
+  font-size: 8px;
+  letter-spacing: .08em;
+  line-height: 1.25;
+}
+
 .field-notes.bonus-hit .field-notes-bonus {
   color: #1a1309;
   background:
@@ -1079,6 +1094,10 @@ button {
 .field-notes.bonus-hit .field-notes-bonus strong {
   color: #201408;
   animation: total-count-emphasis 900ms ease-out both;
+}
+
+.field-notes.bonus-hit .field-notes-bonus small {
+  color: #2d1e0d;
 }
 
 .controls {

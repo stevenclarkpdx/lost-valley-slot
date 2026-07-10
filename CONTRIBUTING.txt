@@ -45,3 +45,26 @@ When committing a task:
 - Exclude generated outputs such as dist, node_modules, caches, temporary files, and local environment files.
 - Before committing, report any unrelated pre-existing working-tree changes.
 - If unrelated changes exist, do not silently include or discard them; ask for confirmation unless they are clearly part of previously completed project work.
+
+Experience Preservation
+
+When tuning RTP:
+
+Never optimize only for mathematical accuracy.
+
+Preserve the emotional purpose of each reward source.
+
+Cluster wins should remain satisfying.
+
+Large natural clusters should never become "fake wins."
+
+Redistribute RTP by adjusting frequency before dramatically reducing memorable payouts.
+
+Protect the emotional identity of:
+
+- large cluster wins (clusters should have satisfying scaling where large clusters are significantly more rewarding than small ones)
+- Golden Amber
+- Fossil Valley (valleys should be rewarding but not so much that other reward channels suffer or feel insignificant to the player)
+- Field Notes milestones
+
+When making tuning recommendations, explain where RTP was taken from and where it was added.

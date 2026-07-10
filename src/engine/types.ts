@@ -39,6 +39,7 @@ export interface GameConfig {
     premium: [number, number, number, number, number]
     goldenAmber: [number, number, number, number, number]
   }
+  fieldNotesPays: Record<3 | 4 | 5, number>
   featureProfile: FeatureProfile
 }
 
@@ -58,6 +59,11 @@ export interface ClusterWin {
 export interface FieldNotesResult {
   uniqueEvidence: EvidenceSymbolId[]
   bonus: number
+  milestone: 3 | 4 | 5 | null
+  milestoneReward: number
+  nextMilestone: 3 | 4 | 5 | null
+  nextMilestoneReward: number
+  remainingToNextMilestone: number
 }
 
 export interface BaseSpinResult {
@@ -79,9 +85,11 @@ export interface SimulationResult {
   averageFeatureWin: number
   baseRtp: number
   evidenceRtp: number
+  evidenceRtpByMilestone: Record<'3' | '4' | '5', number>
   featureRtp: number
   totalRtp: number
   evidenceBonusFrequency: number
+  evidenceMilestoneFrequency: Record<'3' | '4' | '5', number>
   evidenceUniqueDistribution: Record<'0' | '1' | '2' | '3' | '4' | '5', number>
   averageEvidenceBonus: number
   percentiles: {

@@ -33,20 +33,28 @@ export function getFeatureStartingRespins(footprintCount: number, baseRespins: n
   return baseRespins
 }
 
-export function calculateFieldNotes(board: Board): FieldNotesResult {
+export function calculateFieldNotes(board: Board, config: GameConfig): FieldNotesResult {
   const boardSymbols = new Set(board.flat())
   const uniqueEvidence = EVIDENCE_SYMBOLS.filter((symbol) =>
     boardSymbols.has(symbol),
   ) as EvidenceSymbolId[]
-  const bonus =
-    uniqueEvidence.length >= 5
-      ? 50
-      : uniqueEvidence.length === 4
-        ? 15
-        : uniqueEvidence.length === 3
-          ? 5
-          : 0
-  return { uniqueEvidence, bonus }
+  const uniqueCount = uniqueEvidence.length
+  const milestone = uniqueCount >= 5 ? 5 : uniqueCount >= 4 ? 4 : uniqueCount >= 3 ? 3 : null
+  const nextMilestone = uniqueCount < 3 ? 3 : uniqueCount < 4 ? 4 : uniqueCount < 5 ? 5 : null
+  const remainingToNextMilestone =
+    nextMilestone === null ? 0 : Math.max(0, nextMilestone - uniqueCount)
+  const bonus = milestone === null ? 0 : config.fieldNotesPays[milestone]
+  const nextMilestoneReward = nextMilestone === null ? 0 : config.fieldNotesPays[nextMilestone]
+
+  return {
+    uniqueEvidence,
+    bonus,
+    milestone,
+    milestoneReward: bonus,
+    nextMilestone,
+    nextMilestoneReward,
+    remainingToNextMilestone,
+  }
 }
 
 export function spinBaseGame(config: GameConfig, rng: Rng): BaseSpinResult {
@@ -55,7 +63,7 @@ export function spinBaseGame(config: GameConfig, rng: Rng): BaseSpinResult {
   )
   const footprintCount = countFootprints(board)
   const payout = calculateClusterWins(board, config)
-  const fieldNotes = calculateFieldNotes(board)
+  const fieldNotes = calculateFieldNotes(board, config)
 
   return {
     board,
