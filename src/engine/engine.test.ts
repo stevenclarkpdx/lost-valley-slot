@@ -277,14 +277,14 @@ describe('payout calculation', () => {
     ]
     const result = calculateClusterWins(board, DEFAULT_CONFIG)
     expect(result.wins.map((win) => [win.symbol, win.size, win.payout])).toEqual([
-      ['trexTooth', 5, 0.44],
-      ['raptorClaw', 6, 0.88],
-      ['crate', 4, 0.14],
+      ['trexTooth', 5, 0.41],
+      ['raptorClaw', 6, 0.82],
+      ['crate', 4, 0.11],
     ])
     expect(result.wins.some((win) => win.symbol === 'trexTooth' && win.wildAssisted)).toBe(
       true,
     )
-    expect(result.total).toBeCloseTo(1.46)
+    expect(result.total).toBeCloseTo(1.34)
   })
 
   it('uses Expedition Camp Wild as a substitute for premium clusters', () => {
@@ -305,7 +305,7 @@ describe('payout calculation', () => {
         { row: 0, column: 2 },
         { row: 0, column: 3 },
       ],
-      payout: 0.14,
+      payout: 0.11,
       wildAssisted: true,
     })
   })
@@ -331,7 +331,7 @@ describe('payout calculation', () => {
     expect(isFeatureTriggered(twoFootprintsAndWild)).toBe(false)
   })
 
-  it("uses Golden Amber's dedicated high-value paytable", () => {
+  it("uses Golden Amber's dedicated paytable", () => {
     const board: Board = [
       ['goldenAmber', 'goldenAmber', 'goldenAmber', 'goldenAmber', 'crate'],
       ['jeep', 'helicopter', 'scientist', 'map', 'crate'],
@@ -348,7 +348,7 @@ describe('payout calculation', () => {
         { row: 0, column: 2 },
         { row: 0, column: 3 },
       ],
-      payout: 10,
+      payout: 0.8,
       wildAssisted: false,
     })
   })
@@ -411,14 +411,17 @@ describe('simulation diagnostics', () => {
 
   it('preserves the tuned Fossil Valley payout stream', () => {
     const result = runSimulation(DEFAULT_CONFIG, 10_000, 123)
-    expect(result.baseRtp).toBeCloseTo(0.48869, 4)
-    expect(result.evidenceRtp).toBeCloseTo(0.04, 4)
-    expect(result.featureRtp).toBeCloseTo(0.4074, 4)
-    expect(result.totalRtp).toBeCloseTo(0.93609, 4)
-    expect(result.triggerFrequency).toBeCloseTo(0.009, 4)
-    expect(result.averageFeatureWin).toBeCloseTo(45.27, 2)
-    expect(result.evidenceBonusFrequency).toBeCloseTo(0.0072, 4)
-    expect(result.wildAppearanceRate).toBeCloseTo(0.011944, 4)
-    expect(result.wildAssistedClusterFrequency).toBeCloseTo(0.1555, 4)
+    expect(result.baseRtp).toBeCloseTo(0.264771, 4)
+    expect(result.evidenceRtp).toBeCloseTo(0.1415, 4)
+    expect(result.featureRtp).toBeCloseTo(0.4884, 4)
+    expect(result.totalRtp).toBeCloseTo(0.894671, 4)
+    expect(result.triggerFrequency).toBeCloseTo(0.0109, 4)
+    expect(result.averageFeatureWin).toBeCloseTo(44.81, 2)
+    expect(result.evidenceBonusFrequency).toBeCloseTo(0.0251, 4)
+    expect(result.wildAppearanceRate).toBeCloseTo(0.012452, 4)
+    expect(result.wildAssistedClusterFrequency).toBeCloseTo(0.1287, 4)
+    expect(result.goldenAmberHitFrequency).toBeCloseTo(0.0256, 4)
+    expect(result.twoFootprintFrequency).toBeCloseTo(0.0659, 4)
+    expect(result.baseWinsOver10Frequency).toBeCloseTo(0.0022, 4)
   })
 })

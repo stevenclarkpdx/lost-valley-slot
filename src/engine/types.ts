@@ -99,6 +99,8 @@ export interface SimulationResult {
   wildAppearanceRate: number
   wildAssistedClusterFrequency: number
   goldenAmberHitFrequency: number
+  twoFootprintFrequency: number
+  baseWinsOver10Frequency: number
   largestBaseGameHit: number
   baseWinPercentiles: {
     p95: number

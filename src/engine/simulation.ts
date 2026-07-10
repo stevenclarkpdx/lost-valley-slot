@@ -33,6 +33,8 @@ export function runSimulation(
   let fullReveals = 0
   let wildAssistedClusterHits = 0
   let goldenAmberClusterHits = 0
+  let twoFootprintHits = 0
+  let baseWinsOver10 = 0
   let largestBaseGameHit = 0
 
   for (let index = 0; index < spins; index += 1) {
@@ -40,6 +42,7 @@ export function runSimulation(
     basePaid += base.clusterWin
     evidencePaid += base.fieldNotes.bonus
     baseWins.push(base.baseWin)
+    if (base.baseWin > 10) baseWinsOver10 += 1
     if (base.baseWin > largestBaseGameHit) largestBaseGameHit = base.baseWin
     if (base.fieldNotes.bonus > 0) evidenceBonusHits += 1
     evidenceUniqueCounts[
@@ -47,6 +50,7 @@ export function runSimulation(
     ] += 1
     const footprintBucket = base.footprintCount >= 5 ? '5+' : String(base.footprintCount)
     footprintCounts[footprintBucket as keyof typeof footprintCounts] += 1
+    if (base.footprintCount === 2) twoFootprintHits += 1
     const clusterCountBucket = String(base.clusterWins.length)
     clusterCounts[clusterCountBucket] = (clusterCounts[clusterCountBucket] ?? 0) + 1
     totalClusters += base.clusterWins.length
@@ -130,6 +134,8 @@ export function runSimulation(
     wildAppearanceRate: symbolCounts.campWild / (spins * config.boardSize * config.boardSize),
     wildAssistedClusterFrequency: wildAssistedClusterHits / spins,
     goldenAmberHitFrequency: goldenAmberClusterHits / spins,
+    twoFootprintFrequency: twoFootprintHits / spins,
+    baseWinsOver10Frequency: baseWinsOver10 / spins,
     largestBaseGameHit,
     baseWinPercentiles: {
       p95: percentile(baseWins, 0.95),

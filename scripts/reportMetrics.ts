@@ -19,6 +19,8 @@ console.log(
       wildAppearanceRate: result.wildAppearanceRate,
       wildAssistedClusterFrequency: result.wildAssistedClusterFrequency,
       goldenAmberHitFrequency: result.goldenAmberHitFrequency,
+      twoFootprintFrequency: result.twoFootprintFrequency,
+      baseWinsOver10Frequency: result.baseWinsOver10Frequency,
       largestBaseGameHit: result.largestBaseGameHit,
       baseWinP95: result.baseWinPercentiles.p95,
       baseWinP99: result.baseWinPercentiles.p99,

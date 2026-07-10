@@ -25,10 +25,10 @@ export interface TuningSweepResult {
 }
 
 export const DEFAULT_TUNING_TARGETS: TuningTargets = {
-  baseRtp: { min: 0.45, max: 0.55 },
-  featureRtp: { min: 0.35, max: 0.45 },
-  totalRtp: { min: 0.88, max: 0.94 },
-  triggerFrequency: { min: 1 / 180, max: 1 / 120 },
+  baseRtp: { min: 0.25, max: 0.35 },
+  featureRtp: { min: 0.45, max: 0.55 },
+  totalRtp: { min: 0.9, max: 0.93 },
+  triggerFrequency: { min: 1 / 110, max: 1 / 100 },
   averageFeatureWin: { min: 45, max: 70 },
   medianFeatureWin: { min: 15, max: 30 },
   p99FeatureWin: { min: 150, max: 300 },

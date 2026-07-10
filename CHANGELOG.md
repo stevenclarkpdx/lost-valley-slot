@@ -2,6 +2,13 @@
 
 Brief summaries of significant project changes. Version numbers are prototype milestones, not release tags unless later matched to commits.
 
+## v0.51 - Session Pacing Rebalance
+
+- Retuned default symbol weights to make Fossil Valley, Field Notes, Golden Amber, and Wild-assisted clusters appear more regularly in typical sessions.
+- Redistributed value from ordinary cluster wins into higher-attention discovery moments while preserving roughly 91-92% total RTP.
+- Added simulation diagnostics for exact two-Footprint events and base wins over 10x.
+- Updated deterministic math tests to lock the new pacing profile.
+
 ## v0.5 - Juice Pass and Presentation Improvements
 
 - Added presentation-only outcome tiers for dead, tiny, small, medium, and large base-game results.

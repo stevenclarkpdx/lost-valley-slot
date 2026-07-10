@@ -1882,10 +1882,12 @@ function SimulationPanel({
             value={formatPercent(result.wildAssistedClusterFrequency)}
           />
           <Metric label="Golden Amber hits" value={formatPercent(result.goldenAmberHitFrequency)} />
+          <Metric label="Two Footprints" value={formatPercent(result.twoFootprintFrequency)} />
           <Metric
             label="Evidence bonus hit"
             value={formatPercent(result.evidenceBonusFrequency)}
           />
+          <Metric label="Base wins >10x" value={formatPercent(result.baseWinsOver10Frequency)} />
           <Metric label="Feature triggers" value={formatPercent(result.triggerFrequency)} />
           <Metric label="Average feature" value={result.averageFeatureWin.toFixed(2)} />
           <small className="sample-note">
@@ -2276,6 +2278,8 @@ function Diagnostics({
           value={formatPercent(result.wildAssistedClusterFrequency)}
         />
         <Metric label="Golden Amber hit" value={formatPercent(result.goldenAmberHitFrequency)} />
+        <Metric label="Two Footprints" value={formatPercent(result.twoFootprintFrequency)} />
+        <Metric label="Base wins >10x" value={formatPercent(result.baseWinsOver10Frequency)} />
         <Metric label="Largest base hit" value={result.largestBaseGameHit.toFixed(2)} />
         <Metric label="Base win P95" value={result.baseWinPercentiles.p95.toFixed(2)} />
         <Metric label="Base win P99" value={result.baseWinPercentiles.p99.toFixed(2)} />
