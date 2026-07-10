@@ -107,6 +107,74 @@ describe('FeatureEngine', () => {
     expect(next.steps.at(-1)?.hit).toBe(true)
   })
 
+  it('returns successful reveal events with complete tile payloads', () => {
+    const hitRng: Rng = { next: () => 0, int: (min) => min }
+    const session = createFeatureSession(DEFAULT_CONFIG.featureProfile, hitRng)
+    const next = stepFeatureSession(session)
+    const reveal = next.steps.at(-1)?.reveals[0]
+
+    expect(reveal).toBeDefined()
+    expect(reveal?.tile.id).toBeTruthy()
+    expect(reveal?.tile.displayName).toBeTruthy()
+    expect(reveal?.tile.payoutValue).toBeGreaterThan(0)
+  })
+
+  it('updates the board tile and reveal event together on the same feature step', () => {
+    const hitRng: Rng = { next: () => 0, int: (min) => min }
+    const session = createFeatureSession(DEFAULT_CONFIG.featureProfile, hitRng)
+    const next = stepFeatureSession(session)
+    const reveal = next.steps.at(-1)?.reveals[0]
+
+    expect(reveal).toBeDefined()
+    expect(next.tiles[reveal!.index]).toEqual(reveal!.tile)
+  })
+
+  it('never leaves a revealed board tile without a discovery id or value', () => {
+    const hitRng: Rng = { next: () => 0, int: (min) => min }
+    const session = createFeatureSession(DEFAULT_CONFIG.featureProfile, hitRng)
+    const next = stepFeatureSession(session)
+
+    for (const tile of next.tiles.filter((tile) => tile !== null)) {
+      expect(tile.id).toBeTruthy()
+      expect(tile.payoutValue).toBeGreaterThan(0)
+    }
+  })
+
+  it('returns complete payloads for every tile in a multi-hit feature step', () => {
+    const multiHitProfile: FeatureProfile = {
+      ...DEFAULT_CONFIG.featureProfile,
+      hitGeneration: {
+        hitProbability: 1,
+        multiHitProbability: 1,
+        maxTilesPerHit: 3,
+      },
+    }
+    const hitRng: Rng = { next: () => 0, int: (min) => min }
+    const session = createFeatureSession(multiHitProfile, hitRng)
+    const next = stepFeatureSession(session)
+    const reveals = next.steps.at(-1)?.reveals ?? []
+
+    expect(reveals).toHaveLength(3)
+    for (const reveal of reveals) {
+      expect(reveal.tile.id).toBeTruthy()
+      expect(reveal.tile.displayName).toBeTruthy()
+      expect(reveal.tile.payoutValue).toBeGreaterThan(0)
+      expect(next.tiles[reveal.index]).toEqual(reveal.tile)
+    }
+  })
+
+  it('produces no reveal event on a miss and preserves existing tile payloads', () => {
+    const hitRng: Rng = { next: () => 0, int: (min) => min }
+    const first = stepFeatureSession(createFeatureSession(DEFAULT_CONFIG.featureProfile, hitRng))
+    const revealedBeforeMiss = first.tiles.map((tile) => (tile ? { ...tile } : null))
+    const missRng: Rng = { next: () => 0.99, int: (min) => min }
+    const next = stepFeatureSession({ ...first, rng: missRng })
+
+    expect(next.steps.at(-1)?.hit).toBe(false)
+    expect(next.steps.at(-1)?.reveals).toEqual([])
+    expect(next.tiles).toEqual(revealedBeforeMiss)
+  })
+
   it('matches the completion runner when stepped with the same seed', () => {
     const resolved = playFeatureToCompletion(
       DEFAULT_CONFIG.featureProfile,

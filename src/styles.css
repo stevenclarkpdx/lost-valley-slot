@@ -43,11 +43,28 @@ body::before {
     linear-gradient(90deg, rgba(0, 0, 0, .52), transparent 18% 82%, rgba(0, 0, 0, .54));
 }
 
+body::after {
+  content: '';
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  opacity: .22;
+  background:
+    radial-gradient(circle at 12% 24%, rgba(207, 190, 139, .16) 0 1px, transparent 2px),
+    radial-gradient(circle at 78% 42%, rgba(207, 190, 139, .12) 0 1px, transparent 2px),
+    radial-gradient(circle at 48% 72%, rgba(136, 158, 105, .14) 0 1px, transparent 2px);
+  background-size: 210px 170px, 260px 220px, 310px 260px;
+  animation: ambient-drift 18s linear infinite;
+}
+
 button {
   font: inherit;
 }
 
 .app-shell {
+  position: relative;
+  z-index: 1;
   width: min(1320px, calc(100% - 32px));
   margin: 0 auto;
   padding: 18px 0 20px;
@@ -97,6 +114,7 @@ button {
 }
 
 .cabinet {
+  position: relative;
   padding: 13px;
   border: 2px solid #2b2117;
   border-radius: 16px 16px 28px 28px;
@@ -111,7 +129,22 @@ button {
     inset 0 0 34px #000;
 }
 
+.cabinet::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: 8px;
+  border-radius: 14px 14px 25px 25px;
+  background:
+    linear-gradient(100deg, transparent 0 42%, rgba(222, 187, 117, .045) 48%, transparent 56%),
+    radial-gradient(circle at 22% 8%, rgba(75, 108, 61, .09), transparent 24%);
+  opacity: .6;
+  animation: cabinet-breath 7s ease-in-out infinite alternate;
+}
+
 .cabinet-top {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -134,8 +167,20 @@ button {
   letter-spacing: .08em;
 }
 
+.cabinet-balance.win-tier-small,
+.cabinet-balance.win-tier-medium,
+.cabinet-balance.win-tier-large {
+  animation: balance-count-glow 420ms ease-out both;
+}
+
+.cabinet-balance.win-tier-large {
+  color: #ffce75;
+  text-shadow: 0 0 12px rgba(240, 189, 98, .38);
+}
+
 .screen {
   position: relative;
+  z-index: 1;
   overflow: hidden;
   min-height: 400px;
   border: 7px solid #090d0b;
@@ -175,7 +220,7 @@ button {
   font-size: 11px;
   letter-spacing: .12em;
   text-align: center;
-  animation: rumble-card 850ms ease-out both;
+  animation: compass-lock-card 1250ms ease-out both;
 }
 
 .screen.trigger-transition::after {
@@ -184,7 +229,7 @@ button {
     linear-gradient(90deg, transparent 0%, rgba(203, 183, 133, .06) 36%, rgba(218, 202, 156, .22) 50%, rgba(203, 183, 133, .06) 64%, transparent 100%),
     radial-gradient(circle at 50% 48%, rgba(214, 184, 126, .13), transparent 42%),
     repeating-linear-gradient(0deg, transparent 0 4px, rgba(255,255,255,.018) 4px 5px);
-  animation: fossil-dust-sweep 1650ms cubic-bezier(.2, .7, .22, 1) both;
+  animation: fossil-dust-sweep 2200ms cubic-bezier(.2, .7, .22, 1) both;
 }
 
 .screen.feature-fadeout {
@@ -193,7 +238,27 @@ button {
 
 .base-game,
 .feature-screen {
+  position: relative;
   padding: 10px;
+}
+
+.base-game::before {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: 4px;
+  z-index: 2;
+  opacity: 0;
+  background:
+    radial-gradient(circle at 8% 50%, rgba(160, 184, 158, .28), transparent 22%),
+    radial-gradient(circle at 92% 45%, rgba(160, 184, 158, .22), transparent 22%),
+    linear-gradient(90deg, rgba(22, 35, 30, .55), transparent 18% 82%, rgba(22, 35, 30, .55));
+  transition: opacity 220ms ease;
+}
+
+.base-game.two-footprint-sweat::before {
+  opacity: .72;
+  animation: reel-edge-fog 760ms ease-out both;
 }
 
 .base-game-layout {
@@ -464,13 +529,65 @@ button {
   animation: cluster-win-pulse 760ms cubic-bezier(.2, .7, .2, 1) both;
 }
 
+.base-game.win-tier-dead.beat-cluster .symbol.winning,
+.base-game.win-tier-tiny.beat-cluster .symbol.winning {
+  outline-color: rgba(137, 159, 96, .58);
+  animation: tiny-win-tap 260ms ease-out both;
+  box-shadow:
+    inset 0 0 10px #080b09,
+    0 0 6px rgba(214,154,58,.12);
+}
+
+.base-game.win-tier-small.beat-cluster .symbol.winning {
+  outline-color: #a8b86b;
+  animation: cluster-win-pulse 620ms cubic-bezier(.2, .7, .2, 1) both;
+}
+
+.base-game.win-tier-medium.beat-cluster .symbol.winning {
+  outline-color: #e0a84d;
+  animation: medium-win-pulse 920ms ease-out both;
+  box-shadow:
+    inset 0 0 15px #080b09,
+    0 0 18px rgba(214,154,58,.34),
+    0 0 35px rgba(214,154,58,.12);
+}
+
+.base-game.win-tier-large.beat-cluster .symbol.winning {
+  z-index: 4;
+  outline-color: #ffd076;
+  animation: large-win-pulse 1180ms cubic-bezier(.17, .75, .2, 1) both;
+  box-shadow:
+    inset 0 0 18px #080b09,
+    0 0 24px rgba(240,189,98,.5),
+    0 0 55px rgba(240,189,98,.2);
+}
+
+.base-game.win-tier-medium.beat-cluster .reel-stage,
+.base-game.win-tier-large.beat-cluster .reel-stage {
+  animation: cabinet-win-warmth 860ms ease-out both;
+}
+
 .symbol.wild-assisted {
   outline-color: #d7993a;
   animation: wild-assisted-hold 1800ms ease-in-out infinite;
 }
 
 .base-game.beat-wild .symbol.wild-assisted {
-  animation: wild-assisted-pulse 820ms ease-out both;
+  animation: wild-assisted-pulse 980ms ease-out both;
+}
+
+.base-game.beat-wild .symbol.wild {
+  animation: camp-landing-flicker 780ms ease-out both;
+}
+
+.base-game.beat-wild .symbol.wild-assisted::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  pointer-events: none;
+  border: 1px dashed rgba(240, 189, 98, .42);
+  border-radius: 8px;
+  animation: wild-link-line 980ms ease-out both;
 }
 
 .symbol.golden-paying {
@@ -479,7 +596,11 @@ button {
 }
 
 .base-game.beat-golden .symbol.golden-paying {
-  animation: golden-amber-pulse 900ms ease-out both;
+  animation: golden-amber-event 1180ms ease-out both;
+}
+
+.base-game.beat-golden .symbol.golden-paying .concept-art {
+  animation: golden-internal-shimmer 1180ms ease-out both;
 }
 
 .symbol.reel-spinning {
@@ -697,6 +818,25 @@ button {
   animation: trail-marker-fill 520ms ease-out both;
 }
 
+.lost-valley-panel.trail-suspense {
+  animation: trail-panel-suspense 760ms ease-out both;
+}
+
+.lost-valley-panel.trail-suspense .lost-valley-heading::before {
+  content: '⌖';
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  color: #d6a557;
+  animation: compass-needle-search 760ms ease-out both;
+}
+
+.lost-valley-panel.trail-suspense .footprint-track span.found {
+  animation: trail-marker-suspense 760ms ease-out both;
+}
+
 .base-field-notes {
   min-width: 0;
 }
@@ -829,6 +969,23 @@ button {
   animation: field-note-check 420ms ease-out both;
 }
 
+.field-notes.notes-active {
+  animation: journal-page-settle 520ms ease-out both;
+}
+
+.field-notes.notes-active .note-check {
+  overflow: hidden;
+  white-space: nowrap;
+  animation: ink-check-write 360ms steps(2, end) both;
+}
+
+.field-notes.bonus-hit li.found {
+  animation-name: field-note-entry-reward;
+  animation-duration: 720ms;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
 .field-notes.notes-active li.found:nth-child(1) {
   animation-delay: 0ms;
 }
@@ -916,7 +1073,7 @@ button {
   background:
     linear-gradient(rgba(255,255,255,.16), transparent),
     linear-gradient(#e2b964, #9a6627);
-  animation: field-note-bonus 760ms ease-out both;
+  animation: field-note-bonus 960ms ease-out 420ms both;
 }
 
 .field-notes.bonus-hit .field-notes-bonus strong {
@@ -1248,10 +1405,43 @@ button {
 }
 
 .discovery-card.newly-revealed {
-  animation-name: fog-release, discovery-reveal;
-  animation-duration: 250ms, 520ms;
-  animation-timing-function: ease-out, cubic-bezier(.18, .78, .22, 1);
-  animation-fill-mode: both, both;
+  animation-name: discovery-reveal;
+  animation-duration: 520ms;
+  animation-timing-function: cubic-bezier(.18, .78, .22, 1);
+  animation-fill-mode: both;
+}
+
+.discovery-card.newly-revealed.rarity-common {
+  animation-duration: 420ms;
+}
+
+.discovery-card.newly-revealed.rarity-rare,
+.discovery-card.newly-revealed.rarity-legendary {
+  animation-name: rare-discovery-reveal;
+  animation-duration: 880ms;
+}
+
+.discovery-card.newly-revealed.discovery-living-specimen,
+.discovery-card.newly-revealed.discovery-new-species {
+  animation-name: living-specimen-event;
+  animation-duration: 1150ms;
+}
+
+.discovery-card.newly-revealed.rarity-rare .reveal-fog-overlay,
+.discovery-card.newly-revealed.rarity-legendary .reveal-fog-overlay {
+  animation-duration: 420ms;
+}
+
+.reveal-fog-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 38% 35%, rgba(204, 218, 204, .32), transparent 36%),
+    radial-gradient(circle at 62% 60%, rgba(122, 139, 124, .24), transparent 32%),
+    linear-gradient(135deg, rgba(104, 124, 106, .72), rgba(5, 9, 7, .88));
+  animation: fog-release 250ms ease-out both;
 }
 
 .discovery-card::after {
@@ -1503,6 +1693,45 @@ button {
   }
 }
 
+@keyframes rare-discovery-reveal {
+  0% {
+    opacity: 0;
+    filter: brightness(1.8) saturate(1.18);
+    transform: scale(.84) rotateY(16deg);
+  }
+  38% {
+    opacity: 1;
+    filter: brightness(1.35) saturate(1.12);
+    transform: scale(1.045) rotateY(0);
+  }
+  100% {
+    opacity: 1;
+    filter: brightness(1) saturate(1);
+    transform: scale(1) rotateY(0);
+  }
+}
+
+@keyframes living-specimen-event {
+  0% {
+    opacity: 0;
+    filter: brightness(1.7) saturate(1.2);
+    transform: scale(.82) rotateY(18deg);
+  }
+  30% {
+    opacity: 1;
+    filter: brightness(1.42) saturate(1.18);
+    transform: scale(1.06) rotateY(0);
+  }
+  62% {
+    filter: brightness(1.16) saturate(1.1);
+    transform: scale(1.025);
+  }
+  100% {
+    filter: brightness(1) saturate(1);
+    transform: scale(1);
+  }
+}
+
 @keyframes fog-release {
   from {
     clip-path: inset(0);
@@ -1511,6 +1740,42 @@ button {
   to {
     clip-path: inset(0 0 100% 0);
     opacity: 0;
+  }
+}
+
+@keyframes ambient-drift {
+  from {
+    background-position: 0 0, 0 0, 0 0;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    background-position: 34px -42px, -28px 36px, 22px -30px;
+    transform: translate3d(0, -6px, 0);
+  }
+}
+
+@keyframes cabinet-breath {
+  from {
+    opacity: .38;
+    filter: brightness(.94);
+  }
+  to {
+    opacity: .68;
+    filter: brightness(1.06);
+  }
+}
+
+@keyframes reel-edge-fog {
+  0% {
+    opacity: 0;
+    filter: blur(1px);
+  }
+  45% {
+    opacity: .72;
+  }
+  100% {
+    opacity: .3;
+    filter: blur(0);
   }
 }
 
@@ -1570,6 +1835,67 @@ button {
   }
 }
 
+@keyframes tiny-win-tap {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  55% {
+    transform: scale(1.025);
+    filter: brightness(1.08);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes medium-win-pulse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  42% {
+    transform: scale(1.06);
+    filter: brightness(1.22);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1.04);
+  }
+}
+
+@keyframes large-win-pulse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  18% {
+    transform: scale(1);
+    filter: brightness(.82);
+  }
+  52% {
+    transform: scale(1.09);
+    filter: brightness(1.36);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1.08);
+  }
+}
+
+@keyframes cabinet-win-warmth {
+  0% {
+    filter: brightness(1);
+  }
+  45% {
+    filter: brightness(1.14) saturate(1.08);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+
 @keyframes cluster-win-hold {
   0%, 100% {
     filter: brightness(1);
@@ -1602,6 +1928,30 @@ button {
   }
 }
 
+@keyframes camp-landing-flicker {
+  0%,
+  100% {
+    filter: brightness(1);
+    box-shadow:
+      inset 0 0 18px #070805,
+      inset 0 0 0 2px rgba(237, 188, 94, .17),
+      0 0 18px rgba(214, 154, 58, .42);
+  }
+  28% {
+    filter: brightness(1.22) saturate(1.08);
+    box-shadow:
+      inset 0 0 20px #070805,
+      inset 0 0 0 2px rgba(237, 188, 94, .25),
+      0 0 28px rgba(240, 151, 52, .5);
+  }
+  46% {
+    filter: brightness(.98);
+  }
+  68% {
+    filter: brightness(1.17);
+  }
+}
+
 @keyframes wild-assisted-pulse {
   0%, 100% {
     transform: scale(1);
@@ -1612,6 +1962,21 @@ button {
       inset 0 0 14px #080b09,
       0 0 22px rgba(224, 151, 45, .45),
       0 0 38px rgba(224, 151, 45, .18);
+  }
+}
+
+@keyframes wild-link-line {
+  from {
+    opacity: 0;
+    transform: scale(.96);
+  }
+  45% {
+    opacity: .8;
+    transform: scale(1.03);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.05);
   }
 }
 
@@ -1644,6 +2009,37 @@ button {
       inset 0 0 14px #080b09,
       0 0 24px rgba(255, 185, 54, .58),
       0 0 46px rgba(255, 185, 54, .22);
+  }
+}
+
+@keyframes golden-amber-event {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  22% {
+    transform: scale(1);
+    filter: brightness(.92);
+  }
+  58% {
+    transform: scale(1.08);
+    filter: brightness(1.42) saturate(1.2);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1.08) saturate(1.08);
+  }
+}
+
+@keyframes golden-internal-shimmer {
+  0% {
+    filter: saturate(1.14) brightness(1.08) contrast(1.08) drop-shadow(0 4px 2px rgba(0,0,0,.5));
+  }
+  45% {
+    filter: saturate(1.35) brightness(1.34) contrast(1.12) drop-shadow(0 0 10px rgba(255, 210, 103, .55));
+  }
+  100% {
+    filter: saturate(1.18) brightness(1.1) contrast(1.08) drop-shadow(0 4px 2px rgba(0,0,0,.5));
   }
 }
 
@@ -1698,6 +2094,46 @@ button {
   }
 }
 
+@keyframes trail-panel-suspense {
+  0% {
+    filter: brightness(1);
+  }
+  42% {
+    filter: brightness(1.12) saturate(1.08);
+  }
+  100% {
+    filter: brightness(1.02);
+  }
+}
+
+@keyframes compass-needle-search {
+  0% {
+    transform: rotate(-28deg);
+    opacity: .65;
+  }
+  45% {
+    transform: rotate(24deg);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(0deg);
+    opacity: .9;
+  }
+}
+
+@keyframes trail-marker-suspense {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.08);
+    box-shadow: inset 0 0 14px rgba(91, 171, 196, .2), 0 0 18px rgba(91, 171, 196, .22);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 @keyframes rumble-card {
   from {
     opacity: 0;
@@ -1706,6 +2142,26 @@ button {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes compass-lock-card {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(.98);
+    filter: brightness(.8);
+  }
+  32% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: brightness(1.18);
+  }
+  64% {
+    filter: brightness(.92);
+  }
+  100% {
+    opacity: 1;
+    filter: brightness(1);
   }
 }
 
@@ -1826,6 +2282,47 @@ button {
   }
 }
 
+@keyframes journal-page-settle {
+  0% {
+    transform: rotateX(0) translateY(0);
+  }
+  40% {
+    transform: rotateX(2deg) translateY(-1px);
+    filter: brightness(1.08);
+  }
+  100% {
+    transform: rotateX(0) translateY(0);
+    filter: brightness(1);
+  }
+}
+
+@keyframes ink-check-write {
+  from {
+    max-width: 0;
+    opacity: .2;
+  }
+  to {
+    max-width: 16px;
+    opacity: 1;
+  }
+}
+
+@keyframes field-note-entry-reward {
+  0% {
+    transform: translateX(0);
+    filter: brightness(1);
+  }
+  35% {
+    transform: translateX(2px);
+    filter: brightness(1.24);
+    background: rgba(72, 60, 29, .72);
+  }
+  100% {
+    transform: translateX(0);
+    filter: brightness(1);
+  }
+}
+
 @keyframes field-note-bonus {
   0% {
     filter: brightness(.9);
@@ -1838,6 +2335,19 @@ button {
   100% {
     filter: brightness(1);
     transform: scale(1);
+  }
+}
+
+@keyframes balance-count-glow {
+  0% {
+    filter: brightness(.92);
+  }
+  45% {
+    filter: brightness(1.32);
+    text-shadow: 0 0 12px rgba(240, 189, 98, .35);
+  }
+  100% {
+    filter: brightness(1);
   }
 }
 
@@ -2646,9 +3156,12 @@ footer {
   .discovery-log li,
   .field-notes li.found,
   .field-notes.bonus-hit .field-notes-bonus,
+  .field-notes.notes-active,
   .lost-valley-panel.trail-active .footprint-track span.found,
+  .lost-valley-panel.trail-suspense,
   .reel-motion-strip,
   .screen.trigger-transition::after,
+  .base-game.two-footprint-sweat::before,
   .feature-screen.feature-miss .fog-grid,
   .symbol.reel-spinning,
   .symbol.reel-settled,
@@ -2656,6 +3169,8 @@ footer {
   .symbol.wild-assisted,
   .symbol.golden-paying,
   .symbol.trigger-footprint,
+  body::after,
+  .cabinet::after,
   .dust-burst i,
   .feature-intro,
   .fog-tile:not(.discovery-card)::after {

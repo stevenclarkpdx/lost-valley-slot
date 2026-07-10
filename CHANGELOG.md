@@ -2,6 +2,19 @@
 
 Brief summaries of significant project changes. Version numbers are prototype milestones, not release tags unless later matched to commits.
 
+## v0.5 - Juice Pass and Presentation Improvements
+
+- Added presentation-only outcome tiers for dead, tiny, small, medium, and large base-game results.
+- Made dead spins quieter while giving medium/large wins stronger cabinet emphasis and credit count-up pacing.
+- Strengthened two-Footprint anticipation, Field Notes journal reactions, Expedition Camp Wild assistance, and Golden Amber pay emphasis.
+- Added restrained ambient cabinet life and rarity-sensitive Fossil Valley discovery reveal timing.
+
+## v0.411 - Atomic Fossil Valley Reveal Rendering
+
+- Fixed Fossil Valley reveal animation so fog clears from an overlay instead of clipping the discovery card itself.
+- Replaced reveal-order-only presentation state with atomic reveal events containing discovery payload, payout, rarity, respin, and feature value context.
+- Added tests protecting reveal payload synchronization between feature step events and board tile state.
+
 ## v0.41 - Fossil Valley Integrity
 
 - Isolated interactive Fossil Valley sessions behind per-feature RNG seeds while preserving deterministic simulation behavior.

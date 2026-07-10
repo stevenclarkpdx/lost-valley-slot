@@ -23,6 +23,7 @@ import type {
   SymbolId,
 } from './engine/types'
 import type {
+  FeatureReveal,
   FeatureSession,
   RevealedFeatureTile,
   TileRarity,
@@ -475,6 +476,38 @@ type PresentationBeat =
   | 'footprint'
   | 'transition'
 
+type WinTier = 'dead' | 'tiny' | 'small' | 'medium' | 'large'
+
+interface FeatureRevealEvent {
+  index: number
+  tileId: string
+  displayName: string
+  payoutValue: number
+  rarity: TileRarity
+  respinsRemaining: number
+  totalFeatureValue: number
+  order: number
+}
+
+function toFeatureRevealEvents(
+  reveals: FeatureReveal[],
+  session: FeatureSession,
+): FeatureRevealEvent[] {
+  return reveals.map((reveal, order) => {
+    const presentation = discoveryPresentation(reveal.tile)
+    return {
+      index: reveal.index,
+      tileId: reveal.tile.id,
+      displayName: presentation.displayName,
+      payoutValue: reveal.tile.payoutValue,
+      rarity: presentation.rarity,
+      respinsRemaining: session.respinsRemaining,
+      totalFeatureValue: session.totalWin,
+      order,
+    }
+  })
+}
+
 const REEL_SPIN_SYMBOLS: SymbolId[] = [
   'trexTooth',
   'raptorClaw',
@@ -492,6 +525,81 @@ function formatCredits(value: number): string {
   return value.toFixed(2)
 }
 
+function baseWinTier(win: number): WinTier {
+  if (win <= 0) return 'dead'
+  if (win < 1) return 'tiny'
+  if (win < 5) return 'small'
+  if (win < 20) return 'medium'
+  return 'large'
+}
+
+function promoteWinTier(tier: WinTier): WinTier {
+  if (tier === 'dead') return 'tiny'
+  if (tier === 'tiny') return 'small'
+  if (tier === 'small') return 'medium'
+  return 'large'
+}
+
+function outcomeWinTier(win: number, goldenAmberPaying: boolean): WinTier {
+  const tier = baseWinTier(win)
+  return goldenAmberPaying ? promoteWinTier(tier) : tier
+}
+
+function presentationDurationForTier(tier: WinTier, compressed: boolean): number {
+  if (compressed) return tier === 'dead' ? 40 : 90
+  switch (tier) {
+    case 'dead':
+      return 180
+    case 'tiny':
+      return 140
+    case 'small':
+      return 320
+    case 'medium':
+      return 680
+    case 'large':
+      return 1050
+  }
+}
+
+function balanceCountDurationForTier(tier: WinTier): number {
+  switch (tier) {
+    case 'large':
+      return 900
+    case 'medium':
+      return 620
+    case 'small':
+      return 320
+    case 'tiny':
+      return 160
+    case 'dead':
+      return 180
+  }
+}
+
+function baseGameMessage(
+  spin: BaseSpinResult,
+  lastFeatureWin: number | null,
+  winTier: WinTier,
+): string {
+  if (lastFeatureWin !== null) {
+    return `Fossil Valley survey complete · ${lastFeatureWin.toFixed(2)} credits recovered`
+  }
+  if (spin.featureTriggered) return 'Three Footprints — the hidden valley opens.'
+  if (spin.fieldNotes.bonus > 0) {
+    return `FIELD NOTES UPDATED · Discovery Bonus ${spin.fieldNotes.bonus.toFixed(2)} · Total ${spin.baseWin.toFixed(2)}`
+  }
+  if (spin.footprintCount === 2) return 'Two trail markers found — one more would reveal the route.'
+  if (spin.clusterWin > 0) {
+    if (winTier === 'tiny') return `Minor find · ${spin.clusterWin.toFixed(2)} credits`
+    if (winTier === 'small') return `${spin.clusterWins.length} expedition cluster${spin.clusterWins.length === 1 ? '' : 's'} pay ${spin.clusterWin.toFixed(2)}`
+    if (winTier === 'medium') return `Notable discovery · ${spin.clusterWin.toFixed(2)} credits`
+    return `Major expedition find · ${spin.clusterWin.toFixed(2)} credits`
+  }
+  if (spin.fieldNotes.uniqueEvidence.length > 0) return 'Evidence logged. No payout this time.'
+  if (spin.footprintCount === 1) return 'A faint trail mark fades into the brush.'
+  return 'No fresh signs in this sector.'
+}
+
 function App() {
   const manualRng = useRef(createSeededRng(20260708))
   const nextSpinId = useRef(1)
@@ -504,11 +612,13 @@ function App() {
   const [feature, setFeature] = useState<FeatureSession | null>(null)
   const [featureIntro, setFeatureIntro] = useState(false)
   const [featureEnding, setFeatureEnding] = useState(false)
-  const [recentRevealOrder, setRecentRevealOrder] = useState<Record<number, number>>({})
+  const [featureRevealEvents, setFeatureRevealEvents] = useState<FeatureRevealEvent[]>([])
   const [lastFeatureWin, setLastFeatureWin] = useState<number | null>(null)
   const [startingBalance, setStartingBalance] = useState(100)
   const [bet, setBet] = useState(1)
   const [balance, setBalance] = useState(100)
+  const [displayedBalance, setDisplayedBalance] = useState(100)
+  const [currentWinTier, setCurrentWinTier] = useState<WinTier>('dead')
   const [lastSpinSummary, setLastSpinSummary] = useState<SpinLedgerEntry | null>(null)
   const [spinHistory, setSpinHistory] = useState<SpinLedgerEntry[]>([])
   const [activeLedgerId, setActiveLedgerId] = useState<number | null>(null)
@@ -548,10 +658,44 @@ function App() {
     return () => media.removeEventListener('change', update)
   }, [])
 
+  useEffect(() => {
+    if (reducedMotion || skipAnimations) {
+      setDisplayedBalance(balance)
+      return
+    }
+
+    const start = displayedBalance
+    const delta = balance - start
+    if (Math.abs(delta) < 0.005) {
+      setDisplayedBalance(balance)
+      return
+    }
+
+    const duration = balanceCountDurationForTier(currentWinTier)
+    const startedAt = performance.now()
+    let frame = 0
+
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - startedAt) / duration)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setDisplayedBalance(start + delta * eased)
+      if (progress < 1) {
+        frame = window.requestAnimationFrame(tick)
+      } else {
+        setDisplayedBalance(balance)
+      }
+    }
+
+    frame = window.requestAnimationFrame(tick)
+    return () => window.cancelAnimationFrame(frame)
+  }, [balance, currentWinTier, reducedMotion, skipAnimations])
+
   const resetCredits = () => {
     spinTimers.current.forEach((timer) => window.clearTimeout(timer))
     spinTimers.current = []
     setBalance(startingBalance)
+    setDisplayedBalance(startingBalance)
+    setCurrentWinTier('dead')
     setSpinHistory([])
     setLastSpinSummary(null)
     setLastFeatureWin(null)
@@ -559,7 +703,7 @@ function App() {
     setFeature(null)
     setFeatureIntro(false)
     setFeatureEnding(false)
-    setRecentRevealOrder({})
+    setFeatureRevealEvents([])
     setIsReeling(false)
     setIsCelebrating(false)
     setPresentationBeat('idle')
@@ -577,6 +721,10 @@ function App() {
     const id = nextSpinId.current
     nextSpinId.current += 1
     const balanceAfterBase = balance - bet + result.baseWin
+    const hasGoldenAmber = result.clusterWins.some(
+      (cluster) => cluster.symbol === 'goldenAmber',
+    )
+    const winTier = outcomeWinTier(result.baseWin, hasGoldenAmber)
     const entry: SpinLedgerEntry = {
       id,
       bet,
@@ -592,7 +740,8 @@ function App() {
     }
 
     setLastFeatureWin(null)
-    setRecentRevealOrder({})
+    setFeatureRevealEvents([])
+    setCurrentWinTier(winTier)
     setSpin(result)
     setIsReeling(true)
     setIsCelebrating(true)
@@ -658,13 +807,14 @@ function App() {
       setWinAnimationKey((key) => key + 1)
 
       const hasWildAssist = result.clusterWins.some((cluster) => cluster.wildAssisted)
-      const hasGoldenAmber = result.clusterWins.some(
-        (cluster) => cluster.symbol === 'goldenAmber',
-      )
       const beats: Array<{ beat: PresentationBeat; duration: number }> = []
-      if (result.clusterWins.length > 0) beats.push({ beat: 'cluster', duration: compressed ? 80 : 260 })
-      if (hasWildAssist) beats.push({ beat: 'wild', duration: compressed ? 80 : 320 })
-      if (hasGoldenAmber) beats.push({ beat: 'golden', duration: compressed ? 90 : 360 })
+      if (result.clusterWins.length > 0) {
+        beats.push({ beat: 'cluster', duration: presentationDurationForTier(winTier, compressed) })
+      } else if (!compressed) {
+        beats.push({ beat: 'cluster', duration: presentationDurationForTier('dead', compressed) })
+      }
+      if (hasWildAssist) beats.push({ beat: 'wild', duration: compressed ? 80 : winTier === 'large' ? 720 : 460 })
+      if (hasGoldenAmber) beats.push({ beat: 'golden', duration: compressed ? 90 : winTier === 'large' ? 980 : 680 })
       if (result.fieldNotes.uniqueEvidence.length > 0) {
         beats.push({
           beat: 'evidence',
@@ -674,7 +824,7 @@ function App() {
       if (result.footprintCount > 0) {
         beats.push({
           beat: 'footprint',
-          duration: compressed ? 90 : result.featureTriggered ? 680 : 390,
+          duration: compressed ? 90 : result.featureTriggered ? 820 : result.footprintCount === 2 ? 520 : 260,
         })
       }
 
@@ -705,13 +855,14 @@ function App() {
               },
             ),
           )
+          setFeatureRevealEvents([])
           setFeatureIntro(true)
           setTriggerTransition(false)
           setIsCelebrating(false)
           setPresentationBeat('idle')
           const introTimer = window.setTimeout(() => setFeatureIntro(false), 950)
           spinTimers.current.push(introTimer)
-          }, compressed ? 160 : 1650)
+          }, compressed ? 160 : 2200)
           spinTimers.current.push(featureTimer)
         } else {
           setPresentationBeat('idle')
@@ -765,6 +916,7 @@ function App() {
       setConfig(imported)
       setSpin(freshBoard(imported))
       setFeature(null)
+      setFeatureRevealEvents([])
       setFeatureIntro(false)
       setFeatureEnding(false)
       setSimulation(null)
@@ -781,6 +933,7 @@ function App() {
     const featureWin = feature?.totalWin ?? 0
     setFeatureEnding(true)
     window.setTimeout(() => {
+      setCurrentWinTier(baseWinTier(featureWin))
       setLastFeatureWin(featureWin)
       setBalance((current) => current + featureWin)
       setLastSpinSummary((entry) =>
@@ -813,7 +966,7 @@ function App() {
       setFeature(null)
       setFeatureIntro(false)
       setFeatureEnding(false)
-      setRecentRevealOrder({})
+      setFeatureRevealEvents([])
     }, 900)
   }
 
@@ -822,9 +975,7 @@ function App() {
     const next = stepFeatureSession(feature)
     const latestReveals = next.steps.at(-1)?.reveals ?? []
     setFeature(next)
-    setRecentRevealOrder(
-      Object.fromEntries(latestReveals.map((reveal, index) => [reveal.index, index])),
-    )
+    setFeatureRevealEvents(toFeatureRevealEvents(latestReveals, next))
   }
 
   return (
@@ -839,7 +990,9 @@ function App() {
         <section className="cabinet" aria-label="Lost Valley slot cabinet">
           <div className="cabinet-top">
             <span>Base Camp</span>
-            <span className="cabinet-balance">Balance {formatCredits(balance)}</span>
+            <span className={`cabinet-balance win-tier-${currentWinTier}`}>
+              Balance {formatCredits(displayedBalance)}
+            </span>
             <span className="status-light">● Survey active</span>
           </div>
 
@@ -855,7 +1008,7 @@ function App() {
                 onLeave={leaveFeature}
                 introActive={featureIntro}
                 endingActive={featureEnding}
-                recentRevealOrder={recentRevealOrder}
+                revealEvents={featureRevealEvents}
               />
             ) : (
               <BaseGame
@@ -866,6 +1019,7 @@ function App() {
                 winAnimationKey={winAnimationKey}
                 triggerTransition={triggerTransition}
                 presentationBeat={presentationBeat}
+                winTier={currentWinTier}
                 reducedMotion={reducedMotion || skipAnimations}
               />
             )}
@@ -875,7 +1029,7 @@ function App() {
             <div className="controls">
               <div>
                 <small>BALANCE</small>
-                <strong>{formatCredits(balance)}</strong>
+                <strong>{formatCredits(displayedBalance)}</strong>
               </div>
               <div>
                 <small>BET</small>
@@ -916,6 +1070,7 @@ function App() {
         <div className="side-rail">
           <CreditPanel
             balance={balance}
+            displayedBalance={displayedBalance}
             startingBalance={startingBalance}
             bet={bet}
             lastSpin={lastSpinSummary}
@@ -943,6 +1098,7 @@ function App() {
               setConfig(nextConfig)
               setSpin(freshBoard(nextConfig))
               setFeature(null)
+              setFeatureRevealEvents([])
               setActiveLedgerId(null)
               setSimulation(null)
               setConfigNotice('Applied tuning sweep configuration.')
@@ -968,6 +1124,7 @@ function BaseGame({
   winAnimationKey,
   triggerTransition,
   presentationBeat,
+  winTier,
   reducedMotion,
 }: {
   spin: BaseSpinResult
@@ -977,13 +1134,17 @@ function BaseGame({
   winAnimationKey: number
   triggerTransition: boolean
   presentationBeat: PresentationBeat
+  winTier: WinTier
   reducedMotion: boolean
 }) {
   const revealEvidence = presentationBeat === 'evidence' || presentationBeat === 'footprint' || presentationBeat === 'transition' || presentationBeat === 'idle'
   const revealFootprints = presentationBeat === 'footprint' || presentationBeat === 'transition' || presentationBeat === 'idle'
+  const twoFootprintSweat = presentationBeat === 'footprint' && spin.footprintCount === 2
   return (
     <div
-      className={`base-game beat-${presentationBeat} ${isReeling ? 'reels-active' : ''} ${
+      className={`base-game beat-${presentationBeat} win-tier-${winTier} ${
+        twoFootprintSweat ? 'two-footprint-sweat' : ''
+      } ${isReeling ? 'reels-active' : ''} ${
         reducedMotion ? 'reduced-motion' : ''
       }`}
     >
@@ -992,6 +1153,7 @@ function BaseGame({
           footprintCount={revealFootprints ? spin.footprintCount : 0}
           featureTriggered={revealFootprints && spin.featureTriggered}
           active={presentationBeat === 'footprint' || presentationBeat === 'transition'}
+          suspense={twoFootprintSweat}
         />
         <div className="reel-stage">
       <div className="game-label">
@@ -1054,7 +1216,7 @@ function BaseGame({
                     } ${
                   spinning ? 'reel-spinning' : ''
                 } ${isReeling && columnIndex < settledReels ? 'reel-settled' : ''} ${
-                  (triggerTransition || presentationBeat === 'footprint') && symbol === 'footprint' ? 'trigger-footprint' : ''
+                  (triggerTransition || (presentationBeat === 'footprint' && spin.footprintCount >= 2)) && symbol === 'footprint' ? 'trigger-footprint' : ''
                 }`}
                 data-win-key={winning ? winAnimationKey : undefined}
                 key={`${rowIndex}-${columnIndex}`}
@@ -1088,15 +1250,7 @@ function BaseGame({
         )}
       </div>
       <div className="message-strip">
-        {isReeling ? 'Expedition reels in motion…' : lastFeatureWin !== null
-          ? `Fossil Valley survey complete · ${lastFeatureWin.toFixed(2)} credits recovered`
-          : spin.featureTriggered
-            ? 'Three Footprints—the valley is opening.'
-            : spin.fieldNotes.bonus > 0
-              ? `FIELD NOTES UPDATED · Discovery Bonus ${spin.fieldNotes.bonus.toFixed(2)} · Total ${spin.baseWin.toFixed(2)}`
-              : spin.clusterWin > 0
-                ? `${spin.clusterWins.length} expedition ${spin.clusterWins.length === 1 ? 'cluster' : 'clusters'} pay ${spin.clusterWin.toFixed(2)}`
-              : 'Search the grid for three Footprints'}
+        {isReeling ? 'Expedition reels in motion…' : baseGameMessage(spin, lastFeatureWin, winTier)}
       </div>
       <details className="cluster-debug">
         <summary className="debug-heading">
@@ -1132,17 +1286,19 @@ function LostValleyPanel({
   footprintCount,
   featureTriggered,
   active,
+  suspense,
 }: {
   footprintCount: number
   featureTriggered: boolean
   active: boolean
+  suspense: boolean
 }) {
   const found = Math.min(footprintCount, 3)
   return (
     <aside
       className={`lost-valley-panel ${featureTriggered ? 'trail-complete' : ''} ${
         active ? 'trail-active' : ''
-      }`}
+      } ${suspense ? 'trail-suspense' : ''}`}
     >
       <div className="lost-valley-heading">
         <span>Trail markers</span>
@@ -1246,18 +1402,19 @@ function FeatureBoard({
   onLeave,
   introActive,
   endingActive,
-  recentRevealOrder,
+  revealEvents,
 }: {
   session: FeatureSession
   onStep: () => void
   onLeave: () => void
   introActive: boolean
   endingActive: boolean
-  recentRevealOrder: Record<number, number>
+  revealEvents: FeatureRevealEvent[]
 }) {
   const discoveries = session.steps.flatMap((step) => step.reveals)
   const lastStep = session.steps.at(-1)
   const collectorEvent = lastStep?.reveals.some((reveal) => reveal.tile.kind === 'collector')
+  const revealEventByIndex = new Map(revealEvents.map((event) => [event.index, event]))
 
   return (
     <div
@@ -1292,20 +1449,20 @@ function FeatureBoard({
         >
           {session.tiles.map((tile, index) => {
             const presentation = tile ? discoveryPresentation(tile) : null
-            const revealOrder = recentRevealOrder[index]
+            const revealEvent = revealEventByIndex.get(index)
             return (
               <div
                 className={
                   tile === null
                     ? 'fog-tile'
-                    : `fog-tile discovery-card kind-${tile.kind} rarity-${presentation!.rarity} ${
-                        revealOrder !== undefined ? 'newly-revealed' : ''
+                    : `fog-tile discovery-card kind-${tile.kind} rarity-${presentation!.rarity} discovery-${tile.id} ${
+                        revealEvent !== undefined ? 'newly-revealed' : ''
                       }`
                 }
                 key={index}
                 style={
-                  revealOrder !== undefined
-                    ? { animationDelay: `${revealOrder * 120}ms` }
+                  revealEvent !== undefined
+                    ? { animationDelay: `${revealEvent.order * 120}ms` }
                     : undefined
                 }
                 title={presentation?.displayName}
@@ -1321,6 +1478,13 @@ function FeatureBoard({
                       />
                     </span>
                     <strong>{presentation!.displayName}</strong>
+                    {revealEvent && (
+                      <span
+                        className="reveal-fog-overlay"
+                        style={{ animationDelay: `${revealEvent.order * 120}ms` }}
+                        aria-hidden="true"
+                      />
+                    )}
                     <small>{presentation!.rarity} · {tile.payoutValue.toFixed(0)}x</small>
                   </>
                 )}
@@ -1476,6 +1640,7 @@ function FeatureDebugPanel({
 
 function CreditPanel({
   balance,
+  displayedBalance,
   startingBalance,
   bet,
   lastSpin,
@@ -1485,6 +1650,7 @@ function CreditPanel({
   onReset,
 }: {
   balance: number
+  displayedBalance: number
   startingBalance: number
   bet: number
   lastSpin: SpinLedgerEntry | null
@@ -1501,7 +1667,7 @@ function CreditPanel({
           <h2>Credits</h2>
         </div>
         <span className={`balance-readout ${balance < bet ? 'low' : ''}`}>
-          {formatCredits(balance)}
+          {formatCredits(displayedBalance)}
         </span>
       </div>
 
