@@ -2,6 +2,28 @@
 
 Brief summaries of significant project changes. Version numbers are prototype milestones, not release tags unless later matched to commits.
 
+## v0.56 - Fossil Assembly Progression
+
+- Added configurable Fossil Assembly support to the generic feature engine without hard-coding Fossil Valley-specific logic.
+- Converted Fossil Valley discoveries into archaeological evidence that can fill Skull, Spine, Limbs, and Tail specimen sections.
+- Added section-completion bonuses, final specimen classification, notable discoveries, and expedition-summary state.
+- Updated the Fossil Valley sidebar to show live specimen assembly progress, classification, section status, and assembly breakthroughs.
+- Added tests for assembly progress, section rewards, classification rewards, and updated deterministic simulation baselines.
+
+## v0.55 - Fossil Valley Excavation Site Presentation
+
+- Reframed Fossil Valley as a grounded archaeological dig site with expedition props, ropes, lanterns, survey grid signage, and stone excavation squares.
+- Restyled feature reveal tiles so the existing 5x5 board reads as embedded excavation ground rather than a floating reward grid.
+- Redesigned the feature sidebar as an expedition dossier with field instruments and a dormant specimen assembly placeholder for future Fossil Assembly work.
+- Added atmospheric state feedback for survey, reveal, miss, ready, and complete moments while preserving current feature mechanics.
+
+## v0.53 - Commercial Presentation Flow
+
+- Reordered the base-game presentation flow so Footprint anticipation resolves before cluster wins, Evidence resolves before total spin win, and feature transitions wait until all base rewards are clear.
+- Added a dedicated credit presentation beat so total spin wins no longer reuse cluster animation state.
+- Strengthened Evidence discovery presentation with board-level artifact focus and milestone escalation for four and five discoveries.
+- Added Fossil Valley survey column anticipation, ready-state button feedback, and clearer feature-complete summary emphasis.
+
 ## v0.52 - Presentation State Machine
 
 - Replaced loose presentation flags with a typed player-facing presentation phase flow.

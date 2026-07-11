@@ -264,6 +264,83 @@ describe('FeatureEngine', () => {
     expect(result.tiles[0]?.id).toBe('small-fossil')
     expect(result.tiles[0]?.displayName).toBe('Small Fossil')
   })
+
+  it('adds Fossil Assembly progress from configured tile contributions', () => {
+    const rng: Rng = { next: () => 0, int: (min) => min }
+    const next = stepFeatureSession(createFeatureSession(DEFAULT_CONFIG.featureProfile, rng))
+    const limbs = next.assembly?.sections.find((section) => section.id === 'limbs')
+
+    expect(limbs?.piecesFound).toBe(1)
+    expect(limbs?.completed).toBe(false)
+    expect(next.steps.at(-1)?.assemblyEvents).toContainEqual({
+      type: 'piece-found',
+      sectionId: 'limbs',
+      sectionName: 'Limbs',
+      piecesAdded: 1,
+    })
+  })
+
+  it('awards section completion bonuses once when assembly sections complete', () => {
+    const rng: Rng = { next: () => 0, int: (min) => min }
+    let session = createFeatureSession(DEFAULT_CONFIG.featureProfile, rng)
+    session = stepFeatureSession(session)
+    session = stepFeatureSession(session)
+    session = stepFeatureSession(session)
+    const limbs = session.assembly?.sections.find((section) => section.id === 'limbs')
+
+    expect(limbs?.completed).toBe(true)
+    expect(session.steps.at(-1)?.assemblyEvents).toContainEqual({
+      type: 'section-complete',
+      sectionId: 'limbs',
+      sectionName: 'Limbs',
+      bonusAwarded: 6,
+    })
+    expect(session.steps.at(-1)?.bonusAwarded).toBe(6)
+    expect(session.totalWin).toBe(24)
+  })
+
+  it('awards classification bonuses at feature completion', () => {
+    const profile: FeatureProfile = {
+      ...DEFAULT_CONFIG.featureProfile,
+      boardWidth: 1,
+      boardHeight: 1,
+      hitGeneration: {
+        hitProbability: 1,
+        multiHitProbability: 0,
+        maxTilesPerHit: 1,
+      },
+      tileTable: [
+        {
+          id: 'amber-test',
+          displayName: 'Amber Test',
+          rarity: 'rare',
+          rarityWeight: 1,
+          payoutValue: 5,
+          classificationTag: 'amber-sample',
+        },
+      ],
+      assembly: {
+        id: 'test-assembly',
+        displayName: 'Test Assembly',
+        sections: [{ id: 'skull', displayName: 'Skull', requiredPieces: 1, completionBonus: 0 }],
+        fullCompletionBonus: 0,
+        classificationRules: [
+          {
+            id: 'amber-preserved',
+            displayName: 'Amber Preserved',
+            requiredTags: ['amber-sample'],
+            bonus: 7,
+          },
+        ],
+      },
+    }
+    const rng: Rng = { next: () => 0, int: (min) => min }
+    const result = featureEngine.play(profile, rng)
+
+    expect(result.assembly?.classificationName).toBe('Amber Preserved')
+    expect(result.totalWin).toBe(12)
+    expect(result.steps.at(-1)?.bonusAwarded).toBe(7)
+  })
 })
 
 describe('payout calculation', () => {
@@ -426,10 +503,10 @@ describe('simulation diagnostics', () => {
     expect(result.evidenceRtpByMilestone['3']).toBeCloseTo(0.14976, 4)
     expect(result.evidenceRtpByMilestone['4']).toBeCloseTo(0.0529, 4)
     expect(result.evidenceRtpByMilestone['5']).toBeCloseTo(0.0225, 4)
-    expect(result.featureRtp).toBeCloseTo(0.4806, 4)
-    expect(result.totalRtp).toBeCloseTo(0.963567, 4)
+    expect(result.featureRtp).toBeCloseTo(0.5216, 4)
+    expect(result.totalRtp).toBeCloseTo(1.004567, 4)
     expect(result.triggerFrequency).toBeCloseTo(0.0106, 4)
-    expect(result.averageFeatureWin).toBeCloseTo(45.34, 2)
+    expect(result.averageFeatureWin).toBeCloseTo(49.21, 2)
     expect(result.evidenceBonusFrequency).toBeCloseTo(0.0517, 4)
     expect(result.evidenceMilestoneFrequency['3']).toBeCloseTo(0.0468, 4)
     expect(result.evidenceMilestoneFrequency['4']).toBeCloseTo(0.0046, 4)

@@ -23,6 +23,7 @@ export const FOSSIL_VALLEY_PROFILE: FeatureProfile = {
       rarityWeight: 10,
       payoutValue: 6,
       discoveryCategory: 'fossil',
+      assemblyContribution: { sectionId: 'limbs', pieces: 1 },
     },
     {
       id: 'amber',
@@ -31,6 +32,7 @@ export const FOSSIL_VALLEY_PROFILE: FeatureProfile = {
       rarityWeight: 5,
       payoutValue: 12,
       discoveryCategory: 'mineral',
+      classificationTag: 'amber-sample',
     },
     {
       id: 'footprints',
@@ -39,6 +41,7 @@ export const FOSSIL_VALLEY_PROFILE: FeatureProfile = {
       rarityWeight: 5,
       payoutValue: 12,
       discoveryCategory: 'evidence',
+      classificationTag: 'trackway',
     },
     {
       id: 'fern',
@@ -63,6 +66,7 @@ export const FOSSIL_VALLEY_PROFILE: FeatureProfile = {
       rarityWeight: 2,
       payoutValue: 18,
       discoveryCategory: 'evidence',
+      classificationTag: 'nest-site',
     },
     {
       id: 'bone-cluster',
@@ -71,6 +75,7 @@ export const FOSSIL_VALLEY_PROFILE: FeatureProfile = {
       rarityWeight: 5,
       payoutValue: 24,
       discoveryCategory: 'fossil',
+      assemblyContribution: { sectionId: 'spine', pieces: 1 },
     },
     {
       id: 'dinosaur-egg',
@@ -79,6 +84,7 @@ export const FOSSIL_VALLEY_PROFILE: FeatureProfile = {
       rarityWeight: 5,
       payoutValue: 24,
       discoveryCategory: 'evidence',
+      classificationTag: 'egg-clutch',
     },
     {
       id: 'complete-skeleton',
@@ -87,6 +93,7 @@ export const FOSSIL_VALLEY_PROFILE: FeatureProfile = {
       rarityWeight: 4,
       payoutValue: 30,
       discoveryCategory: 'fossil',
+      assemblyContribution: { sectionId: 'skull', pieces: 1 },
     },
     {
       id: 'living-specimen',
@@ -95,6 +102,7 @@ export const FOSSIL_VALLEY_PROFILE: FeatureProfile = {
       rarityWeight: 4,
       payoutValue: 30,
       discoveryCategory: 'life',
+      classificationTag: 'living-evidence',
     },
     {
       id: 'new-species',
@@ -103,8 +111,53 @@ export const FOSSIL_VALLEY_PROFILE: FeatureProfile = {
       rarityWeight: 2,
       payoutValue: 30,
       discoveryCategory: 'species',
+      assemblyContribution: { sectionId: 'tail', pieces: 1 },
+      classificationTag: 'new-species',
     },
   ],
+  assembly: {
+    id: 'fossil-assembly',
+    displayName: 'Unknown Specimen',
+    sections: [
+      { id: 'skull', displayName: 'Skull', requiredPieces: 2, completionBonus: 8 },
+      { id: 'spine', displayName: 'Spine', requiredPieces: 2, completionBonus: 8 },
+      { id: 'limbs', displayName: 'Limbs', requiredPieces: 3, completionBonus: 6 },
+      { id: 'tail', displayName: 'Tail', requiredPieces: 2, completionBonus: 6 },
+    ],
+    fullCompletionBonus: 20,
+    classificationRules: [
+      {
+        id: 'trace-fossil',
+        displayName: 'Trace Fossil',
+        requiredTags: ['trackway'],
+        bonus: 2,
+      },
+      {
+        id: 'nesting-specimen',
+        displayName: 'Nesting Specimen',
+        requiredTags: ['nest-site', 'egg-clutch'],
+        bonus: 6,
+      },
+      {
+        id: 'amber-preserved-specimen',
+        displayName: 'Amber-Preserved Specimen',
+        requiredTags: ['amber-sample', 'trackway'],
+        bonus: 8,
+      },
+      {
+        id: 'living-descendant',
+        displayName: 'Living Descendant Evidence',
+        requiredTags: ['living-evidence'],
+        bonus: 12,
+      },
+      {
+        id: 'new-species',
+        displayName: 'New Species Candidate',
+        requiredTags: ['new-species'],
+        bonus: 18,
+      },
+    ],
+  },
   payoutRules: {
     tileValueMultiplier: 1,
     collectorCollectsExistingTiles: true,

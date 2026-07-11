@@ -7,6 +7,33 @@ export interface TileDefinition {
   rarityWeight: number
   payoutValue: number
   discoveryCategory?: string
+  assemblyContribution?: {
+    sectionId: string
+    pieces: number
+  }
+  classificationTag?: string
+}
+
+export interface AssemblySectionDefinition {
+  id: string
+  displayName: string
+  requiredPieces: number
+  completionBonus: number
+}
+
+export interface ClassificationRule {
+  id: string
+  displayName: string
+  requiredTags: string[]
+  bonus: number
+}
+
+export interface AssemblyProfile {
+  id: string
+  displayName: string
+  sections: AssemblySectionDefinition[]
+  fullCompletionBonus: number
+  classificationRules: ClassificationRule[]
 }
 
 export interface CollectorDefinition {
@@ -39,6 +66,7 @@ export interface FeatureProfile {
   jackpotProbability: number
   jackpotWeights: JackpotDefinition[]
   tileTable: TileDefinition[]
+  assembly?: AssemblyProfile
   payoutRules: {
     tileValueMultiplier: number
     collectorCollectsExistingTiles: boolean
@@ -53,6 +81,11 @@ export interface RevealedFeatureTile {
   displayName: string
   payoutValue: number
   discoveryCategory?: string
+  assemblyContribution?: {
+    sectionId: string
+    pieces: number
+  }
+  classificationTag?: string
 }
 
 export interface FeatureReveal {
@@ -60,10 +93,46 @@ export interface FeatureReveal {
   tile: RevealedFeatureTile
 }
 
+export interface AssemblySectionState {
+  id: string
+  displayName: string
+  requiredPieces: number
+  piecesFound: number
+  completed: boolean
+  completionBonus: number
+  bonusAwarded: boolean
+}
+
+export interface AssemblyEvent {
+  type: 'piece-found' | 'section-complete' | 'classification-upgrade' | 'specimen-complete'
+  sectionId?: string
+  sectionName?: string
+  piecesAdded?: number
+  bonusAwarded?: number
+  classificationId?: string
+  classificationName?: string
+}
+
+export interface AssemblyState {
+  id: string
+  displayName: string
+  sections: AssemblySectionState[]
+  tagsFound: string[]
+  classificationId: string
+  classificationName: string
+  classificationBonus: number
+  classificationBonusAwarded: boolean
+  fullCompletionBonus: number
+  fullCompletionBonusAwarded: boolean
+  notableDiscoveries: string[]
+}
+
 export interface FeatureStep {
   hit: boolean
   respinsRemaining: number
   reveals: FeatureReveal[]
+  assemblyEvents?: AssemblyEvent[]
+  bonusAwarded?: number
 }
 
 export interface FeatureResult {
@@ -75,6 +144,7 @@ export interface FeatureResult {
   steps: FeatureStep[]
   startingRespins: number
   completionReward: number
+  assembly?: AssemblyState
   totalWin: number
   fullyRevealed: boolean
 }
@@ -94,6 +164,7 @@ export interface FeatureSession {
   startingRespins: number
   respinsRemaining: number
   completionReward: number
+  assembly?: AssemblyState
   totalWin: number
   fullyRevealed: boolean
   isComplete: boolean

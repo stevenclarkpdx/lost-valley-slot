@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type CSSProperties } from 'react'
 import { DEFAULT_CONFIG } from './engine/config'
 import { parseConfig, serializeConfig } from './engine/configIO'
 import { spinBaseGame } from './engine/baseGame'
@@ -474,6 +474,7 @@ type PresentationBeat =
   | 'golden'
   | 'evidence'
   | 'footprint'
+  | 'credit'
   | 'transition'
 
 type PresentationPhase =
@@ -589,8 +590,9 @@ function beatForPhase(phase: PresentationPhase): PresentationBeat {
     case 'anticipation':
       return 'reeling'
     case 'cluster-resolution':
-    case 'credit-award':
       return 'cluster'
+    case 'credit-award':
+      return 'credit'
     case 'wild-resolution':
       return 'wild'
     case 'golden-amber-resolution':
@@ -865,7 +867,7 @@ function App() {
     // Presentation state machine:
     // 1) engine resolves immediately above, but the outcome is visually gated by reels
     // 2) reels stop left-to-right; exactly two visible Footprints slow only the final reel
-    // 3) the player sees explicit evaluation, win, credit, evidence, trail, and transition phases
+    // 3) the player sees explicit anticipation, win, evidence, credit, and transition phases
     // 4) input unlocks only after the final phase completes
     const finishTimer = window.setTimeout(() => {
       setSettledReels(config.boardSize)
@@ -876,6 +878,18 @@ function App() {
       const phases: Array<{ phase: PresentationPhase; duration: number; onStart?: () => void }> = [
         { phase: 'result-evaluation', duration: compressed ? 20 : 140 },
       ]
+      if (result.footprintCount > 0) {
+        phases.push({
+          phase: 'trail-marker-resolution',
+          duration: compressed
+            ? 90
+            : result.featureTriggered
+              ? 880
+              : result.footprintCount === 2
+                ? 560
+                : 260,
+        })
+      }
       if (result.clusterWins.length > 0) {
         phases.push({
           phase: 'cluster-resolution',
@@ -899,27 +913,31 @@ function App() {
           duration: compressed ? 90 : winTier === 'large' ? 980 : 680,
         })
       }
+      if (result.fieldNotes.uniqueEvidence.length > 0) {
+        phases.push({
+          phase: 'evidence-resolution',
+          duration: compressed
+            ? 90
+            : result.fieldNotes.milestone === 5
+              ? 1100
+              : result.fieldNotes.milestone === 4
+                ? 860
+                : result.fieldNotes.bonus > 0
+                  ? 680
+                  : result.fieldNotes.uniqueEvidence.length >= 4
+                    ? 540
+                    : 380,
+        })
+      }
       phases.push({
         phase: 'credit-award',
-        duration: compressed ? 60 : Math.max(180, balanceCountDurationForTier(winTier)),
+        duration: compressed ? 60 : Math.max(220, balanceCountDurationForTier(winTier)),
         onStart: () => {
           setBalance(balanceAfterBase)
           setLastSpinSummary(entry)
           setSpinHistory((history) => [entry, ...history].slice(0, 25))
         },
       })
-      if (result.fieldNotes.uniqueEvidence.length > 0) {
-        phases.push({
-          phase: 'evidence-resolution',
-          duration: compressed ? 90 : result.fieldNotes.bonus > 0 ? 620 : 360,
-        })
-      }
-      if (result.footprintCount > 0) {
-        phases.push({
-          phase: 'trail-marker-resolution',
-          duration: compressed ? 90 : result.featureTriggered ? 820 : result.footprintCount === 2 ? 520 : 260,
-        })
-      }
 
       let elapsed = 0
       for (const { phase, duration, onStart } of phases) {
@@ -1108,7 +1126,7 @@ function App() {
         <section className="cabinet" aria-label="Lost Valley slot cabinet">
           <div className="cabinet-top">
             <span>Base Camp</span>
-            <span className={`cabinet-balance win-tier-${currentWinTier}`}>
+            <span className={`cabinet-balance win-tier-${currentWinTier} phase-${presentationPhase}`}>
               Balance {formatCredits(displayedBalance)}
             </span>
             <span className="status-light">● Survey active</span>
@@ -1262,8 +1280,20 @@ function BaseGame({
   winTier: WinTier
   reducedMotion: boolean
 }) {
-  const revealEvidence = presentationBeat === 'evidence' || presentationBeat === 'footprint' || presentationBeat === 'transition' || presentationBeat === 'idle'
-  const revealFootprints = presentationBeat === 'footprint' || presentationBeat === 'transition' || presentationBeat === 'idle'
+  const revealEvidence =
+    presentationBeat === 'evidence' ||
+    presentationBeat === 'credit' ||
+    presentationBeat === 'transition' ||
+    presentationBeat === 'idle'
+  const revealFootprints =
+    presentationBeat === 'footprint' ||
+    presentationBeat === 'cluster' ||
+    presentationBeat === 'wild' ||
+    presentationBeat === 'golden' ||
+    presentationBeat === 'evidence' ||
+    presentationBeat === 'credit' ||
+    presentationBeat === 'transition' ||
+    presentationBeat === 'idle'
   const twoFootprintSweat = presentationBeat === 'footprint' && spin.footprintCount === 2
   return (
     <div
@@ -1290,6 +1320,9 @@ function BaseGame({
           row.map((symbol, columnIndex) => {
             const display = SYMBOL_DISPLAY[symbol]
             const spinning = isReeling && columnIndex >= settledReels
+            const isEvidenceSymbol = FIELD_NOTE_SYMBOLS.includes(
+              symbol as (typeof FIELD_NOTE_SYMBOLS)[number],
+            )
                 const winning = spin.clusterWins.some(
                   (win) =>
                     win.cells.some(
@@ -1317,9 +1350,9 @@ function BaseGame({
                     } ${symbol === 'campWild' ? 'wild' : ''} ${
                       symbol === 'goldenAmber' ? 'golden-amber' : ''
                     } ${
-                      FIELD_NOTE_SYMBOLS.includes(symbol as (typeof FIELD_NOTE_SYMBOLS)[number])
-                        ? 'evidence'
-                        : ''
+                      isEvidenceSymbol ? 'evidence' : ''
+                    } ${
+                      isEvidenceSymbol && presentationBeat === 'evidence' ? 'evidence-discovery' : ''
                     } ${
                       wildAssistedPaying &&
                       !isReeling &&
@@ -1491,7 +1524,7 @@ function FieldNotesPanel({
     <aside
       className={`field-notes ${reveal && spin.fieldNotes.bonus > 0 ? 'bonus-hit' : ''} ${
         active ? 'notes-active' : ''
-      }`}
+      } evidence-count-${visibleCount} milestone-${milestone ?? 0}`}
       key={spin.board.flat().join('-')}
     >
       <div className="field-notes-heading">
@@ -1570,6 +1603,22 @@ function FeatureBoard({
   const lastStep = session.steps.at(-1)
   const collectorEvent = lastStep?.reveals.some((reveal) => reveal.tile.kind === 'collector')
   const revealEventByIndex = new Map(revealEvents.map((event) => [event.index, event]))
+  const assembly = session.assembly
+  const completedSections = assembly?.sections.filter((section) => section.completed).length ?? 0
+  const totalSections = assembly?.sections.length ?? 0
+  const assemblyPercent =
+    assembly && totalSections > 0
+      ? Math.round(
+          (assembly.sections.reduce(
+            (sum, section) => sum + section.piecesFound / section.requiredPieces,
+            0,
+          ) /
+            totalSections) *
+            100,
+        )
+      : 0
+  const latestAssemblyEvents = lastStep?.assemblyEvents ?? []
+  const latestBonus = lastStep?.bonusAwarded ?? 0
   const surveyBusy =
     presentationPhase === 'feature-survey' || presentationPhase === 'feature-reveal'
   const featureCopy =
@@ -1613,15 +1662,31 @@ function FeatureBoard({
           <span className="eyebrow">Destination discovered</span>
           <h2>{session.profile.displayName}</h2>
         </div>
+        <div className="feature-site-stamp" aria-hidden="true">
+          <span>Site FV-01</span>
+          <strong>Excavation Active</strong>
+        </div>
       </div>
       <p className="feature-copy">
         {featureCopy}{' '}
         {discoveries.length} of {session.tiles.length} sites revealed ·{' '}
         {session.respinsRemaining} respins remain.
       </p>
+      <div className="excavation-atmosphere" aria-hidden="true">
+        <span className="camp-prop prop-tent">Expedition camp</span>
+        <span className="camp-prop prop-lantern">Lantern grid</span>
+        <span className="camp-prop prop-tools">Dig tools</span>
+      </div>
       <div className="feature-exploration">
+        <div className="excavation-site">
+          <div className="site-rope site-rope-top" aria-hidden="true" />
+          <div className="site-rope site-rope-bottom" aria-hidden="true" />
+          <div className="site-sign" aria-hidden="true">
+            <span>Survey grid</span>
+            <strong>{discoveries.length}/25</strong>
+          </div>
         <div
-          className="fog-grid discovery-grid"
+          className="fog-grid discovery-grid excavation-grid"
           style={{ gridTemplateColumns: `repeat(${session.profile.boardWidth}, 1fr)` }}
         >
           {session.tiles.map((tile, index) => {
@@ -1631,10 +1696,10 @@ function FeatureBoard({
               <div
                 className={
                   tile === null
-                    ? 'fog-tile'
+                    ? 'fog-tile survey-square'
                     : `fog-tile discovery-card kind-${tile.kind} rarity-${presentation!.rarity} discovery-${tile.id} ${
                         revealEvent !== undefined ? 'newly-revealed' : ''
-                      }`
+                      } survey-square`
                 }
                 key={index}
                 style={
@@ -1645,9 +1710,19 @@ function FeatureBoard({
                 title={presentation?.displayName}
               >
                 {tile === null ? (
-                  <span className="fog-mark">≈</span>
+                  <>
+                    <span className="grid-coordinate">
+                      {String.fromCharCode(65 + Math.floor(index / session.profile.boardWidth))}
+                      {(index % session.profile.boardWidth) + 1}
+                    </span>
+                    <span className="fog-mark">≈</span>
+                  </>
                 ) : (
                   <>
+                    <span className="grid-coordinate">
+                      {String.fromCharCode(65 + Math.floor(index / session.profile.boardWidth))}
+                      {(index % session.profile.boardWidth) + 1}
+                    </span>
                     <span className="discovery-icon">
                       <DiscoveryIllustration
                         id={tile.id}
@@ -1669,7 +1744,73 @@ function FeatureBoard({
             )
           })}
         </div>
+        </div>
         <aside className="feature-sidebar">
+          <div className="expedition-dossier">
+            <span className="eyebrow">Expedition dossier</span>
+            <strong>Fossil Valley</strong>
+            <small>
+              {assembly
+                ? `${completedSections}/${totalSections} body sections identified`
+                : 'Specimen assembly station reserved'}
+            </small>
+          </div>
+          <div className="specimen-preview" aria-label="Specimen assembly progress">
+            <span>Specimen assembly</span>
+            <div
+              className={`specimen-silhouette completion-${completedSections}`}
+              aria-hidden="true"
+              style={{ '--assembly-progress': `${assemblyPercent}%` } as CSSProperties}
+            >
+              {assembly?.sections.map((section) => (
+                <i
+                  className={`section-${section.id} ${section.completed ? 'complete' : ''}`}
+                  key={section.id}
+                  title={`${section.displayName}: ${section.piecesFound}/${section.requiredPieces}`}
+                />
+              )) ?? (
+                <>
+                  <i />
+                  <i />
+                  <i />
+                </>
+              )}
+            </div>
+            <small>{assembly?.classificationName ?? 'Classification pending'}</small>
+            {assembly && (
+              <div className="assembly-sections">
+                {assembly.sections.map((section) => (
+                  <div
+                    className={`assembly-section ${section.completed ? 'complete' : ''}`}
+                    key={section.id}
+                  >
+                    <span>{section.displayName}</span>
+                    <strong>
+                      {section.piecesFound}/{section.requiredPieces}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          {latestAssemblyEvents.length > 0 && (
+            <div className="assembly-event-panel">
+              <span>Assembly update</span>
+              {latestAssemblyEvents.map((event, index) => (
+                <strong key={`${event.type}-${event.sectionId ?? event.classificationId ?? index}`}>
+                  {event.type === 'section-complete'
+                    ? `${event.sectionName} complete +${event.bonusAwarded?.toFixed(0)}x`
+                    : event.type === 'classification-upgrade'
+                      ? event.bonusAwarded && event.bonusAwarded > 0
+                        ? `${event.classificationName} +${event.bonusAwarded.toFixed(0)}x`
+                        : `${event.classificationName} identified`
+                      : event.type === 'specimen-complete'
+                        ? `Specimen complete +${event.bonusAwarded?.toFixed(0)}x`
+                        : `${event.sectionName} fragment logged`}
+                </strong>
+              ))}
+            </div>
+          )}
           <div className="feature-side-stat feature-total">
             <small>Discovery value</small>
             <strong>{session.totalWin.toFixed(2)}</strong>
@@ -1737,11 +1878,17 @@ function FeatureBoard({
       <div className="feature-footer">
         <span>
           {session.isComplete
-            ? session.fullyRevealed
-              ? 'The entire valley is revealed'
-              : 'Survey exhausted'
+            ? assembly
+              ? `Expedition summary: ${assembly.classificationName} · ${completedSections}/${totalSections} sections complete · ${session.totalWin.toFixed(2)}x`
+              : session.fullyRevealed
+                ? 'The entire valley is revealed'
+                : 'Survey exhausted'
             : lastStep?.hit
-              ? 'Evidence detected'
+              ? latestBonus > 0
+                ? `Specimen breakthrough +${latestBonus.toFixed(0)}x`
+                : latestAssemblyEvents.length > 0
+                  ? 'Fossil evidence added to specimen'
+                  : 'Evidence detected'
               : lastStep
                 ? 'No discovery — one respin spent'
                 : '25 hidden sites await'}

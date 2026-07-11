@@ -81,10 +81,48 @@ function validateFeatureProfile(profile: Partial<FeatureProfile> | undefined): v
         !isFiniteNumber(tile.rarityWeight) ||
         tile.rarityWeight <= 0 ||
         !isFiniteNumber(tile.payoutValue) ||
-        tile.payoutValue < 0,
+        tile.payoutValue < 0 ||
+        (tile.assemblyContribution !== undefined &&
+          (typeof tile.assemblyContribution.sectionId !== 'string' ||
+            !isFiniteNumber(tile.assemblyContribution.pieces) ||
+            tile.assemblyContribution.pieces <= 0)) ||
+        (tile.classificationTag !== undefined && typeof tile.classificationTag !== 'string'),
     )
   ) {
     throw new Error('Feature tile table is invalid.')
+  }
+
+  if (profile.assembly !== undefined) {
+    const assembly = profile.assembly
+    if (
+      typeof assembly.id !== 'string' ||
+      typeof assembly.displayName !== 'string' ||
+      !Array.isArray(assembly.sections) ||
+      assembly.sections.length === 0 ||
+      assembly.sections.some(
+        (section) =>
+          typeof section.id !== 'string' ||
+          typeof section.displayName !== 'string' ||
+          !Number.isInteger(section.requiredPieces) ||
+          section.requiredPieces < 1 ||
+          !isFiniteNumber(section.completionBonus) ||
+          section.completionBonus < 0,
+      ) ||
+      !isFiniteNumber(assembly.fullCompletionBonus) ||
+      assembly.fullCompletionBonus < 0 ||
+      !Array.isArray(assembly.classificationRules) ||
+      assembly.classificationRules.some(
+        (rule) =>
+          typeof rule.id !== 'string' ||
+          typeof rule.displayName !== 'string' ||
+          !Array.isArray(rule.requiredTags) ||
+          rule.requiredTags.some((tag) => typeof tag !== 'string') ||
+          !isFiniteNumber(rule.bonus) ||
+          rule.bonus < 0,
+      )
+    ) {
+      throw new Error('Feature assembly settings are invalid.')
+    }
   }
 
   const payoutRules = profile.payoutRules
