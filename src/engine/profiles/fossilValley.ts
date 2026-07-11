@@ -3,6 +3,9 @@ import type { FeatureProfile } from '../featureTypes'
 export const FOSSIL_VALLEY_PROFILE: FeatureProfile = {
   id: 'fossil-valley',
   displayName: 'Fossil Valley',
+  triggerSymbol: 'footprint',
+  triggerDisplayName: 'Fossil Footprints',
+  theme: 'fossil',
   startingRespins: 3,
   boardWidth: 5,
   boardHeight: 5,
@@ -23,7 +26,7 @@ export const FOSSIL_VALLEY_PROFILE: FeatureProfile = {
       rarityWeight: 10,
       payoutValue: 6,
       discoveryCategory: 'fossil',
-      assemblyContribution: { sectionId: 'limbs', pieces: 1 },
+      progressionContribution: { sectionId: 'limbs', pieces: 1 },
     },
     {
       id: 'amber',
@@ -75,7 +78,7 @@ export const FOSSIL_VALLEY_PROFILE: FeatureProfile = {
       rarityWeight: 5,
       payoutValue: 24,
       discoveryCategory: 'fossil',
-      assemblyContribution: { sectionId: 'spine', pieces: 1 },
+      progressionContribution: { sectionId: 'spine', pieces: 1 },
     },
     {
       id: 'dinosaur-egg',
@@ -93,7 +96,7 @@ export const FOSSIL_VALLEY_PROFILE: FeatureProfile = {
       rarityWeight: 4,
       payoutValue: 30,
       discoveryCategory: 'fossil',
-      assemblyContribution: { sectionId: 'skull', pieces: 1 },
+      progressionContribution: { sectionId: 'skull', pieces: 1 },
     },
     {
       id: 'living-specimen',
@@ -111,11 +114,11 @@ export const FOSSIL_VALLEY_PROFILE: FeatureProfile = {
       rarityWeight: 2,
       payoutValue: 30,
       discoveryCategory: 'species',
-      assemblyContribution: { sectionId: 'tail', pieces: 1 },
+      progressionContribution: { sectionId: 'tail', pieces: 1 },
       classificationTag: 'new-species',
     },
   ],
-  assembly: {
+  progression: {
     id: 'fossil-assembly',
     displayName: 'Unknown Specimen',
     sections: [

@@ -1,95 +1,71 @@
-# Lost Valley Feature Engine
+# Lost Valley Engine
 
-## Architecture
+## Current shape
 
-`FeatureEngine` is a pure TypeScript executor. It knows only about reveal boards,
-respins, hits, weighted tiles, collectors, jackpots, payouts, and completion. It
-contains no theme, valley, or presentation logic.
+The engine is pure TypeScript. It owns math, seeded randomness, profile
+resolution, feature stepping, and simulation. React owns presentation and should
+not make probability or payout decisions.
 
-The main pieces are:
+Core files:
 
-- `src/engine/featureEngine.ts` — executes any supplied profile using an injected
-  seeded RNG.
-- `src/engine/featureTypes.ts` — defines `FeatureProfile`, tile definitions,
-  generated results, and supporting collector/jackpot contracts.
-- `src/engine/profiles/` — contains feature-specific configuration. Fossil Valley
-  is implemented entirely in `fossilValley.ts`.
-- `src/engine/simulation.ts` — runs the same engine and profile used by manual
-  play, keeping simulation results deterministic and representative.
+- `src/engine/baseGame.ts` resolves weighted 5x5 spins, cluster pays, Field
+  Notes, and profile-driven feature triggers.
+- `src/engine/featureEngine.ts` executes any `FeatureProfile` through the same
+  stepwise session API used by manual play and simulation.
+- `src/engine/featureProfiles.ts` is the shared resolver for configured feature
+  profiles, trigger symbols, primary-profile tuning, and triggered-profile
+  lookup.
+- `src/engine/profiles/fossilValley.ts` describes Fossil Valley.
+- `src/engine/profiles/predatorValley.ts` describes Predator Valley.
+- `src/engine/simulation.ts` runs the production engine headlessly and reports
+  combined plus per-feature diagnostics.
 
-A `FeatureProfile` completely describes:
+`GameConfig.featureProfiles` is the authoritative multi-feature source of truth.
+The legacy single `featureProfile` shape is accepted only by JSON import for
+backward compatibility and is immediately normalized into `featureProfiles`.
 
-- Identity and display name
-- Board width and height
-- Starting and hit-reset respins
-- Hit and multi-hit probabilities
-- Weighted tile definitions and payouts
-- Collector and jackpot probabilities/tables
-- Payout rules
-- Full-board completion reward
+## Feature profiles
 
-The engine exposes one shared transition model:
+A `FeatureProfile` describes:
+
+- id, display name, trigger symbol, and optional theme tag;
+- board dimensions;
+- starting respins and hit-reset respins;
+- hit probability, multi-hit probability, and max tiles per hit;
+- weighted reveal tiles;
+- optional collectors and jackpots;
+- payout rules and completion reward;
+- optional generic `progression` configuration.
+
+The engine does not know about Fossil Assembly, Tracking Confidence, dinosaurs,
+or predators. It only understands reveal boards, respins, hits, tile generation,
+payouts, and generic progression events. Presentation maps those generic events
+into theme-specific language:
+
+- Fossil Valley presents progression as Fossil Assembly.
+- Predator Valley presents progression as Tracking Confidence.
+
+## Runtime APIs
 
 - `createFeatureSession(profile, rng, startingRespins?)` creates an active
-  zero-reveal session without consuming RNG.
-- `stepFeatureSession(session)` executes exactly one respin and returns the next
-  session state.
-- `playFeatureToCompletion(profile, rng, startingRespins?)` repeatedly applies
-  that same step function and returns a generic `FeatureResult` for simulation.
+  unrevealed session without resolving the feature.
+- `stepFeatureSession(session)` executes exactly one survey/respin step.
+- `playFeatureToCompletion(profile, rng, startingRespins?)` repeatedly steps the
+  same session model for simulation.
 
-React stores a `FeatureSession` and advances it only on player input. It does not
-calculate feature math. Simulation uses the completion runner, so interactive
-play and bulk analytics cannot drift into separate rule implementations.
+Manual play and simulation therefore share one rule path.
 
-## Creating a fourth feature
+## Adding another valley/profile
 
-1. Add a file such as `src/engine/profiles/fourthFeature.ts`.
-2. Export an object satisfying `FeatureProfile`.
-3. Give every tile, collector, and jackpot a stable unique ID.
-4. Set all probabilities, weights, payout values, respin rules, and completion
-   reward in that object.
-5. Pass the new profile to `createFeatureSession()` for manual play and
-   `playFeatureToCompletion()` for simulation.
-6. Add seeded tests for termination, determinism, and the profile's intended
-   payout behavior.
+To add a fourth feature profile without modifying engine code:
 
-Example:
+1. Create `src/engine/profiles/newValley.ts`.
+2. Export a `FeatureProfile` with a unique `id`, `triggerSymbol`, weighted tiles,
+   hit settings, payout rules, and optional `progression`.
+3. Add the profile to `DEFAULT_CONFIG.featureProfiles`.
+4. Add or import presentation assets for that profile in React.
+5. Add tests for trigger routing, deterministic stepping, and profile-specific
+   payout/progression behavior.
 
-```ts
-import type { FeatureProfile } from '../featureTypes'
-
-export const FOURTH_FEATURE: FeatureProfile = {
-  id: 'fourth-feature',
-  displayName: 'Fourth Feature',
-  startingRespins: 3,
-  boardWidth: 5,
-  boardHeight: 5,
-  hitGeneration: {
-    hitProbability: 0.25,
-    multiHitProbability: 0,
-    maxTilesPerHit: 1,
-  },
-  collectorProbability: 0,
-  collectors: [],
-  jackpotProbability: 0,
-  jackpotWeights: [],
-  tileTable: [
-    {
-      id: 'common-find',
-      displayName: 'Common Find',
-      rarity: 'common',
-      rarityWeight: 10,
-      payoutValue: 2,
-    },
-  ],
-  payoutRules: {
-    tileValueMultiplier: 1,
-    collectorCollectsExistingTiles: true,
-    hitResetsRespinsTo: 3,
-  },
-  completionReward: 0,
-}
-```
-
-No changes to `featureEngine.ts` are required. Selecting profiles is an
-application/configuration concern; executing them remains the engine's job.
+Do not add `if new-valley` branches to `featureEngine.ts`. If the feature cannot
+be described as profile data, extend the generic profile contract first.

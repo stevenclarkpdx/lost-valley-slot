@@ -9,6 +9,11 @@ import {
 import { createSeededRng } from './engine/rng'
 import { runSimulation } from './engine/simulation'
 import {
+  getPrimaryFeatureProfile,
+  getTriggeredFeatureProfile,
+  withUpdatedFeatureProfile,
+} from './engine/featureProfiles'
+import {
   DEFAULT_TUNING_TARGETS,
   describeMetricStatus,
   runTuningSweep,
@@ -28,6 +33,7 @@ import type {
   RevealedFeatureTile,
   TileRarity,
 } from './engine/featureTypes'
+import { schedulePresentationSequence, type PresentationBeatStep } from './presentation/sequenceRunner'
 
 const SYMBOL_DISPLAY: Record<string, { icon: string; label: string }> = {
   trexTooth: { icon: '', label: 'T-Rex Tooth' },
@@ -48,6 +54,7 @@ const SYMBOL_DISPLAY: Record<string, { icon: string; label: string }> = {
   map: { icon: '◇', label: 'Satellite Map' },
   crate: { icon: '▦', label: 'Supply Crate' },
   footprint: { icon: '♣', label: 'Footprint' },
+  predatorTracks: { icon: '!', label: 'Predator Tracks' },
 }
 
 const DISCOVERY_PRESENTATION: Record<
@@ -73,6 +80,20 @@ const DISCOVERY_PRESENTATION: Record<
     rarity: 'rare',
   },
   'new-species': { displayName: 'New Species', icon: '★', rarity: 'legendary' },
+  'fresh-tracks': { displayName: 'Fresh Tracks', icon: '!', rarity: 'common' },
+  'broken-branches': { displayName: 'Broken Branches', icon: '/', rarity: 'common' },
+  'scat-sample': { displayName: 'Scat Sample', icon: '?', rarity: 'common' },
+  feather: { displayName: 'Feather', icon: '~', rarity: 'common' },
+  claws: { displayName: 'Claws', icon: '!', rarity: 'uncommon' },
+  'blood-trail': { displayName: 'Blood Trail', icon: '!', rarity: 'uncommon' },
+  'footprint-pattern': { displayName: 'Footprint Pattern', icon: '!', rarity: 'uncommon' },
+  'nest-site': { displayName: 'Nest Site', icon: 'o', rarity: 'rare' },
+  'den-entrance': { displayName: 'Den Entrance', icon: '^', rarity: 'rare' },
+  'predator-encounter': {
+    displayName: 'Predator Encounter',
+    icon: '!',
+    rarity: 'legendary',
+  },
 }
 
 function discoveryPresentation(tile: RevealedFeatureTile) {
@@ -105,6 +126,7 @@ const CONCEPT_SYMBOL_ASSETS: Record<string, string> = {
   map: new URL('./assets/concept/map.png', import.meta.url).href,
   crate: new URL('./assets/concept/crate.png', import.meta.url).href,
   footprint: new URL('./assets/concept/footprint.png', import.meta.url).href,
+  predatorTracks: new URL('./assets/concept/predatorTracks.png', import.meta.url).href,
   campWild: new URL('./assets/concept/campWild.png', import.meta.url).href,
   goldenAmber: new URL('./assets/concept/goldenAmber.png', import.meta.url).href,
   trexTooth: new URL('./assets/concept/trexTooth.png', import.meta.url).href,
@@ -132,6 +154,29 @@ const CONCEPT_DISCOVERY_ASSETS: Record<string, string> = {
   'living-specimen': new URL('./assets/concept/living-specimen.png', import.meta.url)
     .href,
   'new-species': new URL('./assets/concept/living-specimen.png', import.meta.url).href,
+  'fresh-tracks': new URL('./assets/concept/predator-fresh-tracks.png', import.meta.url)
+    .href,
+  'broken-branches': new URL(
+    './assets/concept/predator-broken-branches.png',
+    import.meta.url,
+  ).href,
+  'scat-sample': new URL('./assets/concept/predator-scat-sample.png', import.meta.url)
+    .href,
+  feather: new URL('./assets/concept/predator-feather.png', import.meta.url).href,
+  claws: new URL('./assets/concept/predator-claws.png', import.meta.url).href,
+  'blood-trail': new URL('./assets/concept/predator-blood-trail.png', import.meta.url)
+    .href,
+  'footprint-pattern': new URL(
+    './assets/concept/predator-footprint-pattern.png',
+    import.meta.url,
+  ).href,
+  'nest-site': new URL('./assets/concept/predator-nest-site.png', import.meta.url).href,
+  'den-entrance': new URL('./assets/concept/predator-den-entrance.png', import.meta.url)
+    .href,
+  'predator-encounter': new URL(
+    './assets/concept/predator-encounter.png',
+    import.meta.url,
+  ).href,
 }
 
 function ConceptImage({
@@ -463,6 +508,8 @@ interface SpinLedgerEntry {
   balanceAfter: number
   featureTriggered: boolean
   footprintCount: number
+  predatorTrackCount: number
+  triggeredFeatureName: string | null
   status: 'base-only' | 'feature-active' | 'complete'
 }
 
@@ -535,6 +582,7 @@ const REEL_SPIN_SYMBOLS: SymbolId[] = [
   'scientist',
   'crate',
   'footprint',
+  'predatorTracks',
   'helicopter',
   'goldenAmber',
   'jeep',
@@ -544,6 +592,10 @@ const REEL_SPIN_SYMBOLS: SymbolId[] = [
 
 function formatCredits(value: number): string {
   return value.toFixed(2)
+}
+
+function isPredatorFeature(feature: FeatureSession | null): boolean {
+  return feature?.profile.theme === 'predator' || feature?.profile.id === 'predator-valley'
 }
 
 function baseWinTier(win: number): WinTier {
@@ -646,9 +698,13 @@ function baseGameMessage(
   winTier: WinTier,
 ): string {
   if (lastFeatureWin !== null) {
-    return `Fossil Valley survey complete · ${lastFeatureWin.toFixed(2)} credits recovered`
+    return `Valley survey complete · ${lastFeatureWin.toFixed(2)} credits recovered`
   }
-  if (spin.featureTriggered) return 'Three Footprints — the hidden valley opens.'
+  if (spin.featureTriggered) {
+    return spin.triggeredFeatureName === 'Predator Valley'
+      ? 'Three Predator Tracks — the warning zone opens.'
+      : 'Three Footprints — the hidden valley opens.'
+  }
   if (spin.fieldNotes.bonus > 0) {
     const milestoneName =
       spin.fieldNotes.milestone === 5
@@ -658,6 +714,9 @@ function baseGameMessage(
           : 'First breakthrough'
     return `FIELD NOTES UPDATED · ${milestoneName} ${spin.fieldNotes.bonus.toFixed(2)} · Total ${spin.baseWin.toFixed(2)}`
   }
+  if (spin.predatorTrackCount === 2) {
+    return 'Two Predator Tracks — one more could locate the hunter.'
+  }
   if (spin.footprintCount === 2) return 'Two trail markers found — one more would reveal the route.'
   if (spin.clusterWin > 0) {
     if (winTier === 'tiny') return `Minor find · ${spin.clusterWin.toFixed(2)} credits`
@@ -666,6 +725,7 @@ function baseGameMessage(
     return `Major expedition find · ${spin.clusterWin.toFixed(2)} credits`
   }
   if (spin.fieldNotes.uniqueEvidence.length > 0) return 'Evidence logged. No payout this time.'
+  if (spin.predatorTrackCount === 1) return 'A warning track cuts across the mud.'
   if (spin.footprintCount === 1) return 'A faint trail mark fades into the brush.'
   return 'No fresh signs in this sector.'
 }
@@ -786,6 +846,7 @@ function App() {
     spinTimers.current.forEach((timer) => window.clearTimeout(timer))
     spinTimers.current = []
     const result = spinBaseGame(config, manualRng.current)
+    const triggeredFeatureProfile = getTriggeredFeatureProfile(config, result)
     const id = nextSpinId.current
     nextSpinId.current += 1
     const balanceAfterBase = balance - bet + result.baseWin
@@ -804,6 +865,8 @@ function App() {
       balanceAfter: balanceAfterBase,
       featureTriggered: result.featureTriggered,
       footprintCount: result.footprintCount,
+      predatorTrackCount: result.predatorTrackCount,
+      triggeredFeatureName: result.triggeredFeatureName,
       status: result.featureTriggered ? 'feature-active' : 'base-only',
     }
 
@@ -824,13 +887,17 @@ function App() {
         ? 760
         : 520
 
-    const footprintsBeforeFinalReel = result.board.reduce(
+    const triggerSymbol = (triggeredFeatureProfile.triggerSymbol ?? 'footprint') as SymbolId
+    const cueCount =
+      triggerSymbol === 'predatorTracks' ? result.predatorTrackCount : result.footprintCount
+    const cuesBeforeFinalReel = result.board.reduce(
       (count, row) =>
-        count + row.slice(0, config.boardSize - 1).filter((symbol) => symbol === 'footprint').length,
+        count +
+        row.slice(0, config.boardSize - 1).filter((symbol) => symbol === triggerSymbol).length,
       0,
     )
     const finalReelAnticipation =
-      footprintsBeforeFinalReel === 2 && result.footprintCount >= 2
+      cuesBeforeFinalReel === 2 && cueCount >= 2
         ? footprintAnticipationDelay
         : 0
     const reelStopTimes = Array.from({ length: config.boardSize }, (_, reelIndex) => {
@@ -866,7 +933,7 @@ function App() {
 
     // Presentation state machine:
     // 1) engine resolves immediately above, but the outcome is visually gated by reels
-    // 2) reels stop left-to-right; exactly two visible Footprints slow only the final reel
+    // 2) reels stop left-to-right; exactly two visible destination cues slow only the final reel
     // 3) the player sees explicit anticipation, win, evidence, credit, and transition phases
     // 4) input unlocks only after the final phase completes
     const finishTimer = window.setTimeout(() => {
@@ -875,17 +942,17 @@ function App() {
       setPresentationPhase('result-evaluation')
 
       const hasWildAssist = result.clusterWins.some((cluster) => cluster.wildAssisted)
-      const phases: Array<{ phase: PresentationPhase; duration: number; onStart?: () => void }> = [
+      const phases: Array<PresentationBeatStep<PresentationPhase>> = [
         { phase: 'result-evaluation', duration: compressed ? 20 : 140 },
       ]
-      if (result.footprintCount > 0) {
+      if (result.footprintCount > 0 || result.predatorTrackCount > 0) {
         phases.push({
           phase: 'trail-marker-resolution',
           duration: compressed
             ? 90
             : result.featureTriggered
               ? 880
-              : result.footprintCount === 2
+              : result.footprintCount === 2 || result.predatorTrackCount === 2
                 ? 560
                 : 260,
         })
@@ -939,15 +1006,11 @@ function App() {
         },
       })
 
-      let elapsed = 0
-      for (const { phase, duration, onStart } of phases) {
-        const phaseTimer = window.setTimeout(() => {
-          setPresentationPhase(phase)
-          onStart?.()
-        }, elapsed)
-        spinTimers.current.push(phaseTimer)
-        elapsed += duration
-      }
+      const elapsed = schedulePresentationSequence({
+        steps: phases,
+        setPhase: setPresentationPhase,
+        collectTimer: (timerId) => spinTimers.current.push(timerId),
+      })
 
       const endPresentationTimer = window.setTimeout(() => {
         if (result.featureTriggered) {
@@ -958,7 +1021,7 @@ function App() {
             nextFeatureSessionId.current += 1
             setFeature(
               createFeatureSession(
-                config.featureProfile,
+                triggeredFeatureProfile,
                 createSeededRng(featureRngSeed),
                 result.featureStartingRespins,
                 {
@@ -1134,6 +1197,10 @@ function App() {
 
           <div
             className={`screen ${triggerTransition ? 'trigger-transition' : ''} ${
+              triggerTransition && spin.triggeredFeatureName === 'Predator Valley'
+                ? 'predator-transition'
+                : ''
+            } ${
               featureEnding ? 'feature-fadeout' : ''
             }`}
           >
@@ -1294,26 +1361,36 @@ function BaseGame({
     presentationBeat === 'credit' ||
     presentationBeat === 'transition' ||
     presentationBeat === 'idle'
-  const twoFootprintSweat = presentationBeat === 'footprint' && spin.footprintCount === 2
+  const activeCueSymbol =
+    spin.predatorTrackCount >= 2 && spin.footprintCount < 2 ? 'predatorTracks' : 'footprint'
+  const activeCueCount =
+    activeCueSymbol === 'predatorTracks' ? spin.predatorTrackCount : spin.footprintCount
+  const activeCueFeature =
+    activeCueSymbol === 'predatorTracks' ? 'Predator Valley' : 'Fossil Valley'
+  const cueSuspense = presentationBeat === 'footprint' && activeCueCount === 2
   return (
     <div
       className={`base-game beat-${presentationBeat} win-tier-${winTier} ${
-        twoFootprintSweat ? 'two-footprint-sweat' : ''
+        cueSuspense ? 'two-footprint-sweat' : ''
+      } ${
+        activeCueSymbol === 'predatorTracks' ? 'predator-cue-active' : ''
       } ${isReeling ? 'reels-active' : ''} ${
         reducedMotion ? 'reduced-motion' : ''
       }`}
     >
       <div className="base-game-layout">
         <LostValleyPanel
-          footprintCount={revealFootprints ? spin.footprintCount : 0}
+          cueSymbol={activeCueSymbol}
+          cueCount={revealFootprints ? activeCueCount : 0}
+          destinationName={activeCueFeature}
           featureTriggered={revealFootprints && spin.featureTriggered}
           active={presentationBeat === 'footprint' || presentationBeat === 'transition'}
-          suspense={twoFootprintSweat}
+          suspense={cueSuspense}
         />
         <div className="reel-stage">
       <div className="game-label">
         <span>Expedition grid</span>
-        <span>{spin.footprintCount}/3 trail markers</span>
+        <span>{spin.footprintCount}/3 fossil · {spin.predatorTrackCount}/3 predator</span>
       </div>
       <div className="symbol-grid">
         {spin.board.flatMap((row, rowIndex) =>
@@ -1346,8 +1423,10 @@ function BaseGame({
                 return (
                   <div
                     className={`symbol reel-${columnIndex} ${
-                      symbol === 'footprint' ? 'scatter' : ''
+                      symbol === 'footprint' || symbol === 'predatorTracks' ? 'scatter' : ''
                     } ${symbol === 'campWild' ? 'wild' : ''} ${
+                      symbol === 'predatorTracks' ? 'predator-track' : ''
+                    } ${
                       symbol === 'goldenAmber' ? 'golden-amber' : ''
                     } ${
                       isEvidenceSymbol ? 'evidence' : ''
@@ -1374,12 +1453,13 @@ function BaseGame({
                     } ${
                   spinning ? 'reel-spinning' : ''
                 } ${isReeling && columnIndex < settledReels ? 'reel-settled' : ''} ${
-                  (triggerTransition || (presentationBeat === 'footprint' && spin.footprintCount >= 2)) && symbol === 'footprint' ? 'trigger-footprint' : ''
+                  (triggerTransition || (presentationBeat === 'footprint' && activeCueCount >= 2)) &&
+                  symbol === activeCueSymbol ? 'trigger-footprint' : ''
                 }`}
                 data-win-key={winning ? winAnimationKey : undefined}
                 key={`${rowIndex}-${columnIndex}`}
                 style={
-                  triggerTransition && symbol === 'footprint'
+                  triggerTransition && symbol === activeCueSymbol
                     ? { animationDelay: `${Math.min(rowIndex + columnIndex, 5) * 110}ms` }
                     : undefined
                 }
@@ -1441,29 +1521,40 @@ function BaseGame({
 }
 
 function LostValleyPanel({
-  footprintCount,
+  cueSymbol,
+  cueCount,
+  destinationName,
   featureTriggered,
   active,
   suspense,
 }: {
-  footprintCount: number
+  cueSymbol: 'footprint' | 'predatorTracks'
+  cueCount: number
+  destinationName: string
   featureTriggered: boolean
   active: boolean
   suspense: boolean
 }) {
-  const found = Math.min(footprintCount, 3)
+  const found = Math.min(cueCount, 3)
+  const predator = cueSymbol === 'predatorTracks'
   return (
     <aside
-      className={`lost-valley-panel ${featureTriggered ? 'trail-complete' : ''} ${
+      className={`lost-valley-panel ${predator ? 'predator-trail-panel' : ''} ${
+        featureTriggered ? 'trail-complete' : ''
+      } ${
         active ? 'trail-active' : ''
       } ${suspense ? 'trail-suspense' : ''}`}
     >
       <div className="lost-valley-heading">
-        <span>Trail markers</span>
+        <span>{predator ? 'Warning signs' : 'Trail markers'}</span>
         <strong>{found}/3</strong>
       </div>
-      <p>Follow Footprints to the Lost Valley.</p>
-      <div className="footprint-track" aria-label={`${found} of 3 Footprints found`}>
+      <p>
+        {predator
+          ? 'Track Predator signs into the danger zone.'
+          : 'Follow Footprints to the Lost Valley.'}
+      </p>
+      <div className="footprint-track" aria-label={`${found} of 3 cues found for ${destinationName}`}>
         {[0, 1, 2].map((index) => (
           <span
             className={index < found ? 'found' : ''}
@@ -1471,7 +1562,7 @@ function LostValleyPanel({
             aria-hidden="true"
             style={index < found ? { animationDelay: `${index * 120}ms` } : undefined}
           >
-            <SymbolIllustration symbol="footprint" />
+            <SymbolIllustration symbol={cueSymbol} />
           </span>
         ))}
       </div>
@@ -1603,13 +1694,13 @@ function FeatureBoard({
   const lastStep = session.steps.at(-1)
   const collectorEvent = lastStep?.reveals.some((reveal) => reveal.tile.kind === 'collector')
   const revealEventByIndex = new Map(revealEvents.map((event) => [event.index, event]))
-  const assembly = session.assembly
-  const completedSections = assembly?.sections.filter((section) => section.completed).length ?? 0
-  const totalSections = assembly?.sections.length ?? 0
-  const assemblyPercent =
-    assembly && totalSections > 0
+  const Progression = session.progression
+  const completedSections = Progression?.sections.filter((section) => section.completed).length ?? 0
+  const totalSections = Progression?.sections.length ?? 0
+  const ProgressionPercent =
+    Progression && totalSections > 0
       ? Math.round(
-          (assembly.sections.reduce(
+          (Progression.sections.reduce(
             (sum, section) => sum + section.piecesFound / section.requiredPieces,
             0,
           ) /
@@ -1617,20 +1708,35 @@ function FeatureBoard({
             100,
         )
       : 0
-  const latestAssemblyEvents = lastStep?.assemblyEvents ?? []
+  const latestProgressionEvents = lastStep?.progressionEvents ?? []
   const latestBonus = lastStep?.bonusAwarded ?? 0
+  const predator = session.profile.theme === 'predator'
+  const progressName = predator ? 'Tracking Confidence' : 'Fossil Assembly'
+  const completeSectionsLabel = predator
+    ? `${completedSections}/${totalSections} trail stages confirmed`
+    : `${completedSections}/${totalSections} body sections identified`
   const surveyBusy =
     presentationPhase === 'feature-survey' || presentationPhase === 'feature-reveal'
   const featureCopy =
     presentationPhase === 'feature-survey'
-      ? 'Fog stirs as the expedition sweeps the valley.'
+      ? predator
+        ? 'Foliage shifts as the tracking team sweeps the warning zone.'
+        : 'Fog stirs as the expedition sweeps the valley.'
       : presentationPhase === 'feature-reveal'
         ? lastStep?.hit
-          ? 'Discovery emerging from the fog.'
-          : 'The sweep turns up no fresh site.'
+          ? predator
+            ? 'A fresh clue breaks the trail open.'
+            : 'Discovery emerging from the fog.'
+          : predator
+            ? 'The trail goes quiet for a moment.'
+            : 'The sweep turns up no fresh site.'
         : session.isComplete
-          ? 'Survey complete.'
-          : 'The expedition awaits your survey.'
+          ? predator
+            ? 'Tracking complete.'
+            : 'Survey complete.'
+          : predator
+            ? 'The team waits for the next tracking sweep.'
+            : 'The expedition awaits your survey.'
   const surveyButtonLabel =
     presentationPhase === 'feature-survey'
       ? 'Surveying...'
@@ -1639,7 +1745,9 @@ function FeatureBoard({
           ? 'Discovery emerging'
           : 'Survey resolving'
         : session.steps.length === 0
-          ? 'Survey valley'
+          ? predator
+            ? 'Track valley'
+            : 'Survey valley'
           : 'Respin'
 
   return (
@@ -1648,13 +1756,13 @@ function FeatureBoard({
         collectorEvent ? 'collector-event' : ''
       } ${lastStep && !lastStep.hit && !session.isComplete ? 'feature-miss' : ''} ${
         session.isComplete ? 'feature-complete' : ''
-      } phase-${presentationPhase}`}
+      } ${predator ? 'predator-feature' : 'fossil-feature'} phase-${presentationPhase}`}
     >
       {introActive && (
         <div className="feature-intro">
           <span className="eyebrow">Valley discovered</span>
           <h2>{session.profile.displayName}</h2>
-          <p>Steady discoveries. Reliable rewards.</p>
+          <p>{predator ? 'The hunt is on.' : 'Steady discoveries. Reliable rewards.'}</p>
         </div>
       )}
       <div className="feature-heading">
@@ -1663,8 +1771,8 @@ function FeatureBoard({
           <h2>{session.profile.displayName}</h2>
         </div>
         <div className="feature-site-stamp" aria-hidden="true">
-          <span>Site FV-01</span>
-          <strong>Excavation Active</strong>
+          <span>{predator ? 'Zone PV-01' : 'Site FV-01'}</span>
+          <strong>{predator ? 'Tracking Active' : 'Excavation Active'}</strong>
         </div>
       </div>
       <p className="feature-copy">
@@ -1673,16 +1781,16 @@ function FeatureBoard({
         {session.respinsRemaining} respins remain.
       </p>
       <div className="excavation-atmosphere" aria-hidden="true">
-        <span className="camp-prop prop-tent">Expedition camp</span>
-        <span className="camp-prop prop-lantern">Lantern grid</span>
-        <span className="camp-prop prop-tools">Dig tools</span>
+        <span className="camp-prop prop-tent">{predator ? 'Warning camp' : 'Expedition camp'}</span>
+        <span className="camp-prop prop-lantern">{predator ? 'Radio watch' : 'Lantern grid'}</span>
+        <span className="camp-prop prop-tools">{predator ? 'Tracking kit' : 'Dig tools'}</span>
       </div>
       <div className="feature-exploration">
         <div className="excavation-site">
           <div className="site-rope site-rope-top" aria-hidden="true" />
           <div className="site-rope site-rope-bottom" aria-hidden="true" />
           <div className="site-sign" aria-hidden="true">
-            <span>Survey grid</span>
+            <span>{predator ? 'Tracking grid' : 'Survey grid'}</span>
             <strong>{discoveries.length}/25</strong>
           </div>
         <div
@@ -1748,21 +1856,21 @@ function FeatureBoard({
         <aside className="feature-sidebar">
           <div className="expedition-dossier">
             <span className="eyebrow">Expedition dossier</span>
-            <strong>Fossil Valley</strong>
+            <strong>{session.profile.displayName}</strong>
             <small>
-              {assembly
-                ? `${completedSections}/${totalSections} body sections identified`
-                : 'Specimen assembly station reserved'}
+              {Progression
+                ? completeSectionsLabel
+                : `${progressName} station reserved`}
             </small>
           </div>
-          <div className="specimen-preview" aria-label="Specimen assembly progress">
-            <span>Specimen assembly</span>
+          <div className="specimen-preview" aria-label={`${progressName} progress`}>
+            <span>{progressName}</span>
             <div
               className={`specimen-silhouette completion-${completedSections}`}
               aria-hidden="true"
-              style={{ '--assembly-progress': `${assemblyPercent}%` } as CSSProperties}
+              style={{ '--Progression-progress': `${ProgressionPercent}%` } as CSSProperties}
             >
-              {assembly?.sections.map((section) => (
+              {Progression?.sections.map((section) => (
                 <i
                   className={`section-${section.id} ${section.completed ? 'complete' : ''}`}
                   key={section.id}
@@ -1776,12 +1884,15 @@ function FeatureBoard({
                 </>
               )}
             </div>
-            <small>{assembly?.classificationName ?? 'Classification pending'}</small>
-            {assembly && (
-              <div className="assembly-sections">
-                {assembly.sections.map((section) => (
+            <small>
+              {Progression?.classificationName ??
+                (predator ? 'Trail status pending' : 'Classification pending')}
+            </small>
+            {Progression && (
+              <div className="Progression-sections">
+                {Progression.sections.map((section) => (
                   <div
-                    className={`assembly-section ${section.completed ? 'complete' : ''}`}
+                    className={`Progression-section ${section.completed ? 'complete' : ''}`}
                     key={section.id}
                   >
                     <span>{section.displayName}</span>
@@ -1793,10 +1904,10 @@ function FeatureBoard({
               </div>
             )}
           </div>
-          {latestAssemblyEvents.length > 0 && (
-            <div className="assembly-event-panel">
-              <span>Assembly update</span>
-              {latestAssemblyEvents.map((event, index) => (
+          {latestProgressionEvents.length > 0 && (
+            <div className="Progression-event-panel">
+              <span>{predator ? 'Tracking update' : 'Assembly update'}</span>
+              {latestProgressionEvents.map((event, index) => (
                 <strong key={`${event.type}-${event.sectionId ?? event.classificationId ?? index}`}>
                   {event.type === 'section-complete'
                     ? `${event.sectionName} complete +${event.bonusAwarded?.toFixed(0)}x`
@@ -1804,15 +1915,19 @@ function FeatureBoard({
                       ? event.bonusAwarded && event.bonusAwarded > 0
                         ? `${event.classificationName} +${event.bonusAwarded.toFixed(0)}x`
                         : `${event.classificationName} identified`
-                      : event.type === 'specimen-complete'
-                        ? `Specimen complete +${event.bonusAwarded?.toFixed(0)}x`
-                        : `${event.sectionName} fragment logged`}
+                      : event.type === 'progression-complete'
+                        ? predator
+                          ? `Predator located +${event.bonusAwarded?.toFixed(0)}x`
+                          : `Specimen complete +${event.bonusAwarded?.toFixed(0)}x`
+                        : predator
+                          ? `${event.sectionName} clue logged`
+                          : `${event.sectionName} fragment logged`}
                 </strong>
               ))}
             </div>
           )}
           <div className="feature-side-stat feature-total">
-            <small>Discovery value</small>
+            <small>{predator ? 'Tracking value' : 'Discovery value'}</small>
             <strong>{session.totalWin.toFixed(2)}</strong>
           </div>
           <div className="feature-side-stat">
@@ -1878,20 +1993,32 @@ function FeatureBoard({
       <div className="feature-footer">
         <span>
           {session.isComplete
-            ? assembly
-              ? `Expedition summary: ${assembly.classificationName} · ${completedSections}/${totalSections} sections complete · ${session.totalWin.toFixed(2)}x`
+            ? Progression
+              ? predator
+                ? `Tracking summary: ${Progression.classificationName} · ${completedSections}/${totalSections} stages confirmed · ${session.totalWin.toFixed(2)}x`
+                : `Expedition summary: ${Progression.classificationName} · ${completedSections}/${totalSections} sections complete · ${session.totalWin.toFixed(2)}x`
               : session.fullyRevealed
                 ? 'The entire valley is revealed'
                 : 'Survey exhausted'
             : lastStep?.hit
               ? latestBonus > 0
-                ? `Specimen breakthrough +${latestBonus.toFixed(0)}x`
-                : latestAssemblyEvents.length > 0
-                  ? 'Fossil evidence added to specimen'
-                  : 'Evidence detected'
+                ? predator
+                  ? `Tracking breakthrough +${latestBonus.toFixed(0)}x`
+                  : `Specimen breakthrough +${latestBonus.toFixed(0)}x`
+                : latestProgressionEvents.length > 0
+                  ? predator
+                    ? 'Clue added to tracking dossier'
+                    : 'Fossil evidence added to specimen'
+                  : predator
+                    ? 'Clue detected'
+                    : 'Evidence detected'
               : lastStep
-                ? 'No discovery — one respin spent'
-                : '25 hidden sites await'}
+                ? predator
+                  ? 'No fresh sign — one respin spent'
+                  : 'No discovery — one respin spent'
+                : predator
+                  ? '25 tracking squares await'
+                  : '25 hidden sites await'}
         </span>
         {session.isComplete ? (
           <button onClick={onLeave} disabled={endingActive}>
@@ -2053,8 +2180,8 @@ function CreditPanel({
                   <strong>
                     {entry.featureTriggered
                       ? entry.status === 'feature-active'
-                        ? 'Feature surveying'
-                        : 'Feature complete'
+                        ? `${entry.triggeredFeatureName ?? 'Feature'} surveying`
+                        : `${entry.triggeredFeatureName ?? 'Feature'} complete`
                       : 'Base spin'}
                   </strong>
                   <small>
@@ -2203,6 +2330,13 @@ function SimulationPanel({
           <Metric label="Evidence RTP" value={formatPercent(result.evidenceRtp)} />
           <Metric label="Feature RTP" value={formatPercent(result.featureRtp)} />
           <Metric label="Total RTP estimate" value={formatPercent(result.totalRtp)} featured />
+          {Object.values(result.featureBreakdown).map((feature) => (
+            <Metric
+              key={feature.id}
+              label={`${feature.displayName} RTP`}
+              value={`${formatPercent(feature.rtp)} · ${formatOdds(feature.triggerFrequency)}`}
+            />
+          ))}
           <Metric label="Wild appearance" value={formatPercent(result.wildAppearanceRate)} />
           <Metric
             label="Wild-assisted clusters"
@@ -2250,6 +2384,16 @@ function TuningWorkspace({
   sweepResults: TuningSweepResult[]
   onApplySweepConfig: (config: GameConfig) => void
 }) {
+  const primaryFeatureProfile = getPrimaryFeatureProfile(config)
+
+  const replacePrimaryFeatureProfile = (updatedProfile: typeof primaryFeatureProfile) => {
+    onConfigChange(
+      updateConfigNumber(config, (draft) => {
+        draft.featureProfiles = withUpdatedFeatureProfile(draft, updatedProfile).featureProfiles
+      }),
+    )
+  }
+
   const setSymbolWeight = (symbol: SymbolId, weight: number) => {
     onConfigChange(
       updateConfigNumber(config, (draft) => {
@@ -2273,31 +2417,32 @@ function TuningWorkspace({
     field: 'rarityWeight' | 'payoutValue',
     value: number,
   ) => {
-    onConfigChange(
-      updateConfigNumber(config, (draft) => {
-        draft.featureProfile.tileTable = draft.featureProfile.tileTable.map((tile) =>
+    replacePrimaryFeatureProfile({
+      ...primaryFeatureProfile,
+      tileTable: primaryFeatureProfile.tileTable.map((tile) =>
           tile.id === tileId ? { ...tile, [field]: value } : tile,
-        )
-      }),
-    )
+      ),
+    })
   }
 
   const setFeatureValue = (
     field: 'hitProbability' | 'multiHitProbability',
     value: number,
   ) => {
-    onConfigChange(
-      updateConfigNumber(config, (draft) => {
-        draft.featureProfile.hitGeneration[field] = value
-      }),
-    )
+    replacePrimaryFeatureProfile({
+      ...primaryFeatureProfile,
+      hitGeneration: {
+        ...primaryFeatureProfile.hitGeneration,
+        [field]: value,
+      },
+    })
   }
 
   return (
     <div className="tuning-workspace">
       <div className="tuning-heading">
         <span>RTP tuning workspace</span>
-        <small>Fossil Valley only</small>
+        <small>{primaryFeatureProfile.displayName}</small>
       </div>
 
       <div className="tuning-section">
@@ -2342,7 +2487,7 @@ function TuningWorkspace({
         <div className="tuning-grid two">
           <NumberControl
             label="Hit probability %"
-            value={config.featureProfile.hitGeneration.hitProbability * 100}
+            value={primaryFeatureProfile.hitGeneration.hitProbability * 100}
             min={0}
             max={100}
             step={0.1}
@@ -2350,7 +2495,7 @@ function TuningWorkspace({
           />
           <NumberControl
             label="Multi-hit probability %"
-            value={config.featureProfile.hitGeneration.multiHitProbability * 100}
+            value={primaryFeatureProfile.hitGeneration.multiHitProbability * 100}
             min={0}
             max={100}
             step={0.1}
@@ -2358,15 +2503,14 @@ function TuningWorkspace({
           />
           <NumberControl
             label="Completion reward"
-            value={config.featureProfile.completionReward}
+            value={primaryFeatureProfile.completionReward}
             min={0}
             step={1}
             onChange={(value) =>
-              onConfigChange(
-                updateConfigNumber(config, (draft) => {
-                  draft.featureProfile.completionReward = value
-                }),
-              )
+              replacePrimaryFeatureProfile({
+                ...primaryFeatureProfile,
+                completionReward: value,
+              })
             }
           />
         </div>
@@ -2375,7 +2519,7 @@ function TuningWorkspace({
       <div className="tuning-section">
         <h3>Tile payouts / weights</h3>
         <div className="tile-editor">
-          {config.featureProfile.tileTable.map((tile) => (
+          {primaryFeatureProfile.tileTable.map((tile) => (
             <div className="tile-tuning-row" key={tile.id}>
               <span>
                 {tile.displayName}
@@ -2609,6 +2753,10 @@ function Diagnostics({
         />
         <Metric label="Golden Amber hit" value={formatPercent(result.goldenAmberHitFrequency)} />
         <Metric label="Two Footprints" value={formatPercent(result.twoFootprintFrequency)} />
+        <Metric
+          label="Two Predator Tracks"
+          value={formatPercent(result.twoPredatorTrackFrequency)}
+        />
         <Metric label="Base wins >10x" value={formatPercent(result.baseWinsOver10Frequency)} />
         <Metric label="Largest base hit" value={result.largestBaseGameHit.toFixed(2)} />
         <Metric label="Base win P95" value={result.baseWinPercentiles.p95.toFixed(2)} />
@@ -2663,8 +2811,23 @@ function Diagnostics({
         <Metric label="Full reveal rate" value={formatPercent(result.fullRevealRate)} />
       </div>
 
+      <div className="diagnostic-summary">
+        {Object.values(result.featureBreakdown).map((feature) => (
+          <div className="metric" key={feature.id}>
+            <span>{feature.displayName}</span>
+            <strong>{formatPercent(feature.rtp)} RTP</strong>
+            <small>
+              {feature.triggers.toLocaleString()} triggers · {formatOdds(feature.triggerFrequency)} ·
+              avg {feature.averageWin.toFixed(2)}x · P50 {feature.percentiles.p50.toFixed(1)}x ·
+              P90 {feature.percentiles.p90.toFixed(1)}x · P99 {feature.percentiles.p99.toFixed(1)}x
+            </small>
+          </div>
+        ))}
+      </div>
+
       <div className="distribution-grid">
         <Distribution title="Footprint count / spin" values={result.footprintDistribution} />
+        <Distribution title="Predator Track count / spin" values={result.predatorTrackDistribution} />
         <Distribution
           title="Unique evidence / spin"
           values={result.evidenceUniqueDistribution}

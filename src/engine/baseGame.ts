@@ -6,8 +6,10 @@ import type {
   GameConfig,
   SymbolId,
 } from './types'
+import type { FeatureProfile } from './featureTypes'
 import type { Rng } from './rng'
 import { calculateClusterWins, EVIDENCE_SYMBOLS } from './payouts'
+import { getFeatureProfiles, getFeatureTriggerSymbol } from './featureProfiles'
 
 function pickSymbol(config: GameConfig, rng: Rng): SymbolId {
   const totalWeight = config.symbolWeights.reduce((sum, item) => sum + item.weight, 0)
@@ -23,6 +25,10 @@ export function countFootprints(board: Board): number {
   return board.flat().filter((symbol) => symbol === 'footprint').length
 }
 
+export function countSymbol(board: Board, symbol: SymbolId): number {
+  return board.flat().filter((cell) => cell === symbol).length
+}
+
 export function isFeatureTriggered(board: Board): boolean {
   return countFootprints(board) >= 3
 }
@@ -31,6 +37,33 @@ export function getFeatureStartingRespins(footprintCount: number, baseRespins: n
   if (footprintCount >= 5) return baseRespins + 2
   if (footprintCount === 4) return baseRespins + 1
   return baseRespins
+}
+
+export function resolveTriggeredFeature(
+  board: Board,
+  config: GameConfig,
+): {
+  triggerCounts: Record<string, number>
+  profile: FeatureProfile | null
+  count: number
+  startingRespins: number
+} {
+  const profiles = getFeatureProfiles(config)
+  const triggerCounts = Object.fromEntries(
+    profiles.map((profile) => [profile.id, countSymbol(board, getFeatureTriggerSymbol(profile))]),
+  )
+
+  const profile =
+    profiles.find((candidate) => triggerCounts[candidate.id] >= 3) ?? null
+  const count = profile ? triggerCounts[profile.id] : 0
+  return {
+    triggerCounts,
+    profile,
+    count,
+    startingRespins: profile
+      ? getFeatureStartingRespins(count, profile.startingRespins)
+      : 0,
+  }
 }
 
 export function calculateFieldNotes(board: Board, config: GameConfig): FieldNotesResult {
@@ -62,17 +95,20 @@ export function spinBaseGame(config: GameConfig, rng: Rng): BaseSpinResult {
     Array.from({ length: config.boardSize }, () => pickSymbol(config, rng)),
   )
   const footprintCount = countFootprints(board)
+  const predatorTrackCount = countSymbol(board, 'predatorTracks')
+  const triggered = resolveTriggeredFeature(board, config)
   const payout = calculateClusterWins(board, config)
   const fieldNotes = calculateFieldNotes(board, config)
 
   return {
     board,
     footprintCount,
-    featureTriggered: footprintCount >= 3,
-    featureStartingRespins: getFeatureStartingRespins(
-      footprintCount,
-      config.featureProfile.startingRespins,
-    ),
+    predatorTrackCount,
+    triggerCounts: triggered.triggerCounts,
+    featureTriggered: triggered.profile !== null,
+    triggeredFeatureId: triggered.profile?.id ?? null,
+    triggeredFeatureName: triggered.profile?.displayName ?? null,
+    featureStartingRespins: triggered.startingRespins,
     clusterWins: payout.wins,
     clusterWin: payout.total,
     fieldNotes,

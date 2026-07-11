@@ -12,6 +12,7 @@ export const SYMBOLS = [
   'map',
   'crate',
   'footprint',
+  'predatorTracks',
 ] as const
 
 export type SymbolId = (typeof SYMBOLS)[number]
@@ -40,7 +41,7 @@ export interface GameConfig {
     goldenAmber: [number, number, number, number, number]
   }
   fieldNotesPays: Record<3 | 4 | 5, number>
-  featureProfile: FeatureProfile
+  featureProfiles: FeatureProfile[]
 }
 
 export interface CellPosition {
@@ -49,7 +50,7 @@ export interface CellPosition {
 }
 
 export interface ClusterWin {
-  symbol: Exclude<SymbolId, 'footprint' | 'campWild'>
+  symbol: Exclude<SymbolId, 'footprint' | 'predatorTracks' | 'campWild'>
   size: number
   cells: CellPosition[]
   payout: number
@@ -69,7 +70,11 @@ export interface FieldNotesResult {
 export interface BaseSpinResult {
   board: Board
   footprintCount: number
+  predatorTrackCount: number
+  triggerCounts: Record<string, number>
   featureTriggered: boolean
+  triggeredFeatureId: string | null
+  triggeredFeatureName: string | null
   featureStartingRespins: number
   clusterWins: ClusterWin[]
   clusterWin: number
@@ -108,10 +113,30 @@ export interface SimulationResult {
   wildAssistedClusterFrequency: number
   goldenAmberHitFrequency: number
   twoFootprintFrequency: number
+  twoPredatorTrackFrequency: number
   baseWinsOver10Frequency: number
   largestBaseGameHit: number
   baseWinPercentiles: {
     p95: number
     p99: number
   }
+  predatorTrackDistribution: Record<string, number>
+  featureBreakdown: Record<
+    string,
+    {
+      id: string
+      displayName: string
+      triggers: number
+      triggerFrequency: number
+      averageWin: number
+      rtp: number
+      percentiles: {
+        p50: number
+        p90: number
+        p99: number
+      }
+      finalRevealDistribution: Record<string, number>
+      fullRevealRate: number
+    }
+  >
 }

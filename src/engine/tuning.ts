@@ -1,4 +1,5 @@
 import { runSimulation } from './simulation'
+import { getPrimaryFeatureProfile, withUpdatedFeatureProfile } from './featureProfiles'
 import type { GameConfig, SimulationResult } from './types'
 
 export interface TargetRange {
@@ -51,10 +52,15 @@ function scaleClusterPays(config: GameConfig, lowScale: number, premiumScale: nu
 }
 
 function scaleTilePayouts(config: GameConfig, scale: number) {
-  config.featureProfile.tileTable = config.featureProfile.tileTable.map((tile) => ({
-    ...tile,
-    payoutValue: Math.max(0, roundTuningValue(tile.payoutValue * scale)),
-  }))
+  const profile = getPrimaryFeatureProfile(config)
+  const updatedProfile = {
+    ...profile,
+    tileTable: profile.tileTable.map((tile) => ({
+      ...tile,
+      payoutValue: Math.max(0, roundTuningValue(tile.payoutValue * scale)),
+    })),
+  }
+  config.featureProfiles = withUpdatedFeatureProfile(config, updatedProfile).featureProfiles
 }
 
 function roundTuningValue(value: number): number {
@@ -93,6 +99,7 @@ export function runTuningSweep(
   spins: number,
   seed: number,
 ): TuningSweepResult[] {
+  const primaryFeatureProfile = getPrimaryFeatureProfile(baseConfig)
   const presets: Array<{
     name: string
     lowScale: number
@@ -110,10 +117,10 @@ export function runTuningSweep(
     premiumScale: 1,
     footprintWeight:
       baseConfig.symbolWeights.find((entry) => entry.symbol === 'footprint')?.weight ?? 1.35,
-    hitProbability: baseConfig.featureProfile.hitGeneration.hitProbability,
-    multiHitProbability: baseConfig.featureProfile.hitGeneration.multiHitProbability,
+    hitProbability: primaryFeatureProfile.hitGeneration.hitProbability,
+    multiHitProbability: primaryFeatureProfile.hitGeneration.multiHitProbability,
     tileScale: 1,
-    completionReward: baseConfig.featureProfile.completionReward,
+    completionReward: primaryFeatureProfile.completionReward,
   })
 
   for (const clusterScale of [0.75, 1, 1.5, 2, 3]) {
@@ -126,9 +133,9 @@ export function runTuningSweep(
               premiumScale: clusterScale,
               footprintWeight,
               hitProbability,
-              multiHitProbability: baseConfig.featureProfile.hitGeneration.multiHitProbability,
+              multiHitProbability: primaryFeatureProfile.hitGeneration.multiHitProbability,
               tileScale,
-              completionReward: baseConfig.featureProfile.completionReward,
+              completionReward: primaryFeatureProfile.completionReward,
             })
         }
       }
@@ -144,9 +151,16 @@ export function runTuningSweep(
           ? { ...entry, weight: Math.max(0.1, roundTuningValue(preset.footprintWeight)) }
           : entry,
       )
-      config.featureProfile.hitGeneration.hitProbability = preset.hitProbability
-      config.featureProfile.hitGeneration.multiHitProbability = preset.multiHitProbability
-      config.featureProfile.completionReward = preset.completionReward
+      const featureProfile = getPrimaryFeatureProfile(config)
+      config.featureProfiles = withUpdatedFeatureProfile(config, {
+        ...featureProfile,
+        hitGeneration: {
+          ...featureProfile.hitGeneration,
+          hitProbability: preset.hitProbability,
+          multiHitProbability: preset.multiHitProbability,
+        },
+        completionReward: preset.completionReward,
+      }).featureProfiles
       scaleTilePayouts(config, preset.tileScale)
 
       const simulation = runSimulation(config, spins, seed + index)

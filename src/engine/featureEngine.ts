@@ -1,6 +1,6 @@
 import type {
-  AssemblyEvent,
-  AssemblyState,
+  ProgressionEvent,
+  ProgressionState,
   CollectorDefinition,
   FeatureProfile,
   FeatureResult,
@@ -41,17 +41,17 @@ function generateStandardTile(
     displayName: definition.displayName,
     payoutValue: definition.payoutValue * profile.payoutRules.tileValueMultiplier,
     discoveryCategory: definition.discoveryCategory,
-    assemblyContribution: definition.assemblyContribution,
+    progressionContribution: definition.progressionContribution,
     classificationTag: definition.classificationTag,
   }
 }
 
-function createAssemblyState(profile: FeatureProfile): AssemblyState | undefined {
-  if (!profile.assembly) return undefined
+function createProgressionState(profile: FeatureProfile): ProgressionState | undefined {
+  if (!profile.progression) return undefined
   return {
-    id: profile.assembly.id,
-    displayName: profile.assembly.displayName,
-    sections: profile.assembly.sections.map((section) => ({
+    id: profile.progression.id,
+    displayName: profile.progression.displayName,
+    sections: profile.progression.sections.map((section) => ({
       id: section.id,
       displayName: section.displayName,
       requiredPieces: section.requiredPieces,
@@ -65,36 +65,36 @@ function createAssemblyState(profile: FeatureProfile): AssemblyState | undefined
     classificationName: 'Unknown Specimen',
     classificationBonus: 0,
     classificationBonusAwarded: false,
-    fullCompletionBonus: profile.assembly.fullCompletionBonus,
+    fullCompletionBonus: profile.progression.fullCompletionBonus,
     fullCompletionBonusAwarded: false,
     notableDiscoveries: [],
   }
 }
 
-function applyAssemblyReveal(
+function applyProgressionReveal(
   profile: FeatureProfile,
-  assembly: AssemblyState | undefined,
+  progression: ProgressionState | undefined,
   tile: RevealedFeatureTile,
-): { assembly?: AssemblyState; events: AssemblyEvent[]; bonus: number } {
-  if (!profile.assembly || !assembly) return { assembly, events: [], bonus: 0 }
+): { progression?: ProgressionState; events: ProgressionEvent[]; bonus: number } {
+  if (!profile.progression || !progression) return { progression, events: [], bonus: 0 }
 
-  const events: AssemblyEvent[] = []
+  const events: ProgressionEvent[] = []
   let bonus = 0
-  let sections = assembly.sections
+  let sections = progression.sections
 
-  if (tile.assemblyContribution) {
+  if (tile.progressionContribution) {
     sections = sections.map((section) => {
-      if (section.id !== tile.assemblyContribution?.sectionId) return section
+      if (section.id !== tile.progressionContribution?.sectionId) return section
       const piecesFound = Math.min(
         section.requiredPieces,
-        section.piecesFound + tile.assemblyContribution.pieces,
+        section.piecesFound + tile.progressionContribution.pieces,
       )
       const completed = piecesFound >= section.requiredPieces
       events.push({
         type: 'piece-found',
         sectionId: section.id,
         sectionName: section.displayName,
-        piecesAdded: tile.assemblyContribution.pieces,
+        piecesAdded: tile.progressionContribution.pieces,
       })
       if (completed && !section.bonusAwarded) {
         bonus += section.completionBonus
@@ -114,21 +114,21 @@ function applyAssemblyReveal(
     })
   }
 
-  let tagsFound = assembly.tagsFound
-  let notableDiscoveries = assembly.notableDiscoveries
+  let tagsFound = progression.tagsFound
+  let notableDiscoveries = progression.notableDiscoveries
   if (tile.classificationTag && !tagsFound.includes(tile.classificationTag)) {
     tagsFound = [...tagsFound, tile.classificationTag]
     notableDiscoveries = [...notableDiscoveries, tile.displayName]
   }
 
-  const eligibleClassifications = profile.assembly.classificationRules.filter((rule) =>
+  const eligibleClassifications = profile.progression.classificationRules.filter((rule) =>
     rule.requiredTags.every((tag) => tagsFound.includes(tag)),
   )
   const bestClassification = eligibleClassifications.at(-1)
-  const classificationId = bestClassification?.id ?? assembly.classificationId
-  const classificationName = bestClassification?.displayName ?? assembly.classificationName
-  const classificationBonus = bestClassification?.bonus ?? assembly.classificationBonus
-  if (bestClassification && bestClassification.id !== assembly.classificationId) {
+  const classificationId = bestClassification?.id ?? progression.classificationId
+  const classificationName = bestClassification?.displayName ?? progression.classificationName
+  const classificationBonus = bestClassification?.bonus ?? progression.classificationBonus
+  if (bestClassification && bestClassification.id !== progression.classificationId) {
     events.push({
       type: 'classification-upgrade',
       classificationId,
@@ -137,8 +137,8 @@ function applyAssemblyReveal(
   }
 
   return {
-    assembly: {
-      ...assembly,
+    progression: {
+      ...progression,
       sections,
       tagsFound,
       classificationId,
@@ -151,38 +151,38 @@ function applyAssemblyReveal(
   }
 }
 
-function finalizeAssembly(
-  assembly: AssemblyState | undefined,
-): { assembly?: AssemblyState; events: AssemblyEvent[]; bonus: number } {
-  if (!assembly) return { assembly, events: [], bonus: 0 }
-  const events: AssemblyEvent[] = []
+function finalizeProgression(
+  progression: ProgressionState | undefined,
+): { progression?: ProgressionState; events: ProgressionEvent[]; bonus: number } {
+  if (!progression) return { progression, events: [], bonus: 0 }
+  const events: ProgressionEvent[] = []
   let bonus = 0
-  const specimenComplete = assembly.sections.every((section) => section.completed)
-  let fullCompletionBonusAwarded = assembly.fullCompletionBonusAwarded
-  if (specimenComplete && !assembly.fullCompletionBonusAwarded) {
-    bonus += assembly.fullCompletionBonus
+  const progressionComplete = progression.sections.every((section) => section.completed)
+  let fullCompletionBonusAwarded = progression.fullCompletionBonusAwarded
+  if (progressionComplete && !progression.fullCompletionBonusAwarded) {
+    bonus += progression.fullCompletionBonus
     fullCompletionBonusAwarded = true
     events.push({
-      type: 'specimen-complete',
-      bonusAwarded: assembly.fullCompletionBonus,
+      type: 'progression-complete',
+      bonusAwarded: progression.fullCompletionBonus,
     })
   }
 
-  let classificationBonusAwarded = assembly.classificationBonusAwarded
-  if (assembly.classificationBonus > 0 && !assembly.classificationBonusAwarded) {
-    bonus += assembly.classificationBonus
+  let classificationBonusAwarded = progression.classificationBonusAwarded
+  if (progression.classificationBonus > 0 && !progression.classificationBonusAwarded) {
+    bonus += progression.classificationBonus
     classificationBonusAwarded = true
     events.push({
       type: 'classification-upgrade',
-      classificationId: assembly.classificationId,
-      classificationName: assembly.classificationName,
-      bonusAwarded: assembly.classificationBonus,
+      classificationId: progression.classificationId,
+      classificationName: progression.classificationName,
+      bonusAwarded: progression.classificationBonus,
     })
   }
 
   return {
-    assembly: {
-      ...assembly,
+    progression: {
+      ...progression,
       fullCompletionBonusAwarded,
       classificationBonusAwarded,
     },
@@ -298,7 +298,7 @@ export function createFeatureSession(
     startingRespins,
     respinsRemaining: startingRespins,
     completionReward: 0,
-    assembly: createAssemblyState(profile),
+    progression: createProgressionState(profile),
     totalWin: 0,
     fullyRevealed: false,
     isComplete: false,
@@ -315,7 +315,7 @@ export function stepFeatureSession(session: FeatureSession): FeatureSession {
 
   if (!hit) {
     const respinsRemaining = session.respinsRemaining - 1
-    const finalAssembly = respinsRemaining === 0 ? finalizeAssembly(session.assembly) : undefined
+    const finalProgression = respinsRemaining === 0 ? finalizeProgression(session.progression) : undefined
     return {
       ...session,
       tiles,
@@ -325,13 +325,13 @@ export function stepFeatureSession(session: FeatureSession): FeatureSession {
           hit: false,
           respinsRemaining,
           reveals: [],
-          assemblyEvents: finalAssembly?.events,
-          bonusAwarded: finalAssembly?.bonus,
+          progressionEvents: finalProgression?.events,
+          bonusAwarded: finalProgression?.bonus,
         },
       ],
-      assembly: finalAssembly?.assembly ?? session.assembly,
+      progression: finalProgression?.progression ?? session.progression,
       respinsRemaining,
-      totalWin: session.totalWin + (finalAssembly?.bonus ?? 0),
+      totalWin: session.totalWin + (finalProgression?.bonus ?? 0),
       isComplete: respinsRemaining === 0,
     }
   }
@@ -351,9 +351,9 @@ export function stepFeatureSession(session: FeatureSession): FeatureSession {
 
   const reveals = []
   let revealPayout = 0
-  let assembly = session.assembly
-  let assemblyBonus = 0
-  const assemblyEvents: AssemblyEvent[] = []
+  let progression = session.progression
+  let progressionBonus = 0
+  const progressionEvents: ProgressionEvent[] = []
   for (let revealIndex = 0; revealIndex < revealsThisHit; revealIndex += 1) {
     const hiddenIndices = tiles
       .map((value, index) => (value === null ? index : -1))
@@ -363,16 +363,16 @@ export function stepFeatureSession(session: FeatureSession): FeatureSession {
     tiles[index] = tile
     revealPayout += tile.payoutValue
     reveals.push({ index, tile })
-    const assemblyUpdate = applyAssemblyReveal(profile, assembly, tile)
-    assembly = assemblyUpdate.assembly
-    assemblyBonus += assemblyUpdate.bonus
-    assemblyEvents.push(...assemblyUpdate.events)
+    const progressionUpdate = applyProgressionReveal(profile, progression, tile)
+    progression = progressionUpdate.progression
+    progressionBonus += progressionUpdate.bonus
+    progressionEvents.push(...progressionUpdate.events)
   }
 
   const fullyRevealed = tiles.every((tile) => tile !== null)
   const completionReward = fullyRevealed ? profile.completionReward : 0
-  const finalAssembly = fullyRevealed ? finalizeAssembly(assembly) : undefined
-  const bonusAwarded = assemblyBonus + (finalAssembly?.bonus ?? 0)
+  const finalProgression = fullyRevealed ? finalizeProgression(progression) : undefined
+  const bonusAwarded = progressionBonus + (finalProgression?.bonus ?? 0)
   const respinsRemaining = profile.payoutRules.hitResetsRespinsTo
   return {
     ...session,
@@ -383,14 +383,14 @@ export function stepFeatureSession(session: FeatureSession): FeatureSession {
         hit: true,
         respinsRemaining,
         reveals,
-        assemblyEvents: [...assemblyEvents, ...(finalAssembly?.events ?? [])],
+        progressionEvents: [...progressionEvents, ...(finalProgression?.events ?? [])],
         bonusAwarded,
       },
     ],
     respinsRemaining,
     completionReward,
-    assembly: finalAssembly?.assembly ?? assembly,
-    totalWin: session.totalWin + revealPayout + assemblyBonus + (finalAssembly?.bonus ?? 0) + completionReward,
+    progression: finalProgression?.progression ?? progression,
+    totalWin: session.totalWin + revealPayout + progressionBonus + (finalProgression?.bonus ?? 0) + completionReward,
     fullyRevealed,
     isComplete: fullyRevealed,
   }
@@ -406,7 +406,7 @@ export function featureSessionToResult(session: FeatureSession): FeatureResult {
     steps: session.steps,
     startingRespins: session.startingRespins,
     completionReward: session.completionReward,
-    assembly: session.assembly,
+    progression: session.progression,
     totalWin: session.totalWin,
     fullyRevealed: session.fullyRevealed,
   }

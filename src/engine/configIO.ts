@@ -3,6 +3,11 @@ import type { FeatureProfile } from './featureTypes'
 
 const SCHEMA_VERSION = 6
 
+type LegacyGameConfig = Partial<GameConfig> & {
+  featureProfile?: FeatureProfile
+  featureProfiles?: FeatureProfile[]
+}
+
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value)
 }
@@ -24,6 +29,20 @@ function validateFeatureProfile(profile: Partial<FeatureProfile> | undefined): v
     profile.boardHeight! < 1
   ) {
     throw new Error('Feature identity, board dimensions, or starting respins are invalid.')
+  }
+
+  if (
+    profile.triggerSymbol !== undefined &&
+    !SYMBOLS.includes(profile.triggerSymbol as (typeof SYMBOLS)[number])
+  ) {
+    throw new Error('Feature trigger symbol is invalid.')
+  }
+
+  if (
+    profile.triggerDisplayName !== undefined &&
+    typeof profile.triggerDisplayName !== 'string'
+  ) {
+    throw new Error('Feature trigger display name is invalid.')
   }
 
   const hits = profile.hitGeneration
@@ -82,24 +101,24 @@ function validateFeatureProfile(profile: Partial<FeatureProfile> | undefined): v
         tile.rarityWeight <= 0 ||
         !isFiniteNumber(tile.payoutValue) ||
         tile.payoutValue < 0 ||
-        (tile.assemblyContribution !== undefined &&
-          (typeof tile.assemblyContribution.sectionId !== 'string' ||
-            !isFiniteNumber(tile.assemblyContribution.pieces) ||
-            tile.assemblyContribution.pieces <= 0)) ||
+        (tile.progressionContribution !== undefined &&
+          (typeof tile.progressionContribution.sectionId !== 'string' ||
+            !isFiniteNumber(tile.progressionContribution.pieces) ||
+            tile.progressionContribution.pieces <= 0)) ||
         (tile.classificationTag !== undefined && typeof tile.classificationTag !== 'string'),
     )
   ) {
     throw new Error('Feature tile table is invalid.')
   }
 
-  if (profile.assembly !== undefined) {
-    const assembly = profile.assembly
+  if (profile.progression !== undefined) {
+    const progression = profile.progression
     if (
-      typeof assembly.id !== 'string' ||
-      typeof assembly.displayName !== 'string' ||
-      !Array.isArray(assembly.sections) ||
-      assembly.sections.length === 0 ||
-      assembly.sections.some(
+      typeof progression.id !== 'string' ||
+      typeof progression.displayName !== 'string' ||
+      !Array.isArray(progression.sections) ||
+      progression.sections.length === 0 ||
+      progression.sections.some(
         (section) =>
           typeof section.id !== 'string' ||
           typeof section.displayName !== 'string' ||
@@ -108,10 +127,10 @@ function validateFeatureProfile(profile: Partial<FeatureProfile> | undefined): v
           !isFiniteNumber(section.completionBonus) ||
           section.completionBonus < 0,
       ) ||
-      !isFiniteNumber(assembly.fullCompletionBonus) ||
-      assembly.fullCompletionBonus < 0 ||
-      !Array.isArray(assembly.classificationRules) ||
-      assembly.classificationRules.some(
+      !isFiniteNumber(progression.fullCompletionBonus) ||
+      progression.fullCompletionBonus < 0 ||
+      !Array.isArray(progression.classificationRules) ||
+      progression.classificationRules.some(
         (rule) =>
           typeof rule.id !== 'string' ||
           typeof rule.displayName !== 'string' ||
@@ -121,7 +140,7 @@ function validateFeatureProfile(profile: Partial<FeatureProfile> | undefined): v
           rule.bonus < 0,
       )
     ) {
-      throw new Error('Feature assembly settings are invalid.')
+      throw new Error('Feature progression settings are invalid.')
     }
   }
 
@@ -155,7 +174,7 @@ export function parseConfig(json: string): GameConfig {
     throw new Error(`Unsupported config schema. Expected version ${SCHEMA_VERSION}.`)
   }
 
-  const config = envelope.config as Partial<GameConfig> | undefined
+  const config = envelope.config as LegacyGameConfig | undefined
   if (
     !config ||
     !Number.isInteger(config.boardSize) ||
@@ -208,7 +227,17 @@ export function parseConfig(json: string): GameConfig {
     throw new Error('Field Notes payouts need non-negative scaling values for 3, 4, and 5 evidence.')
   }
 
-  validateFeatureProfile(config.featureProfile)
+  if (config.featureProfiles !== undefined) {
+    if (!Array.isArray(config.featureProfiles) || config.featureProfiles.length === 0) {
+      throw new Error('Feature profiles must be a non-empty array when supplied.')
+    }
+  } else if (config.featureProfile !== undefined) {
+    config.featureProfiles = [config.featureProfile]
+  } else {
+    throw new Error('Config must define at least one feature profile.')
+  }
+  config.featureProfiles.forEach(validateFeatureProfile)
+  delete config.featureProfile
 
   return config as GameConfig
 }

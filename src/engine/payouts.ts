@@ -9,8 +9,8 @@ import type {
 
 function isPayingSymbol(
   symbol: SymbolId,
-): symbol is Exclude<SymbolId, 'footprint' | 'campWild'> {
-  return symbol !== 'footprint' && symbol !== 'campWild'
+): symbol is Exclude<SymbolId, 'footprint' | 'predatorTracks' | 'campWild'> {
+  return symbol !== 'footprint' && symbol !== 'predatorTracks' && symbol !== 'campWild'
 }
 
 function isWild(symbol: SymbolId): boolean {
@@ -37,7 +37,7 @@ const DIRECTIONS = [
 ] as const
 
 function paytableForSymbol(
-  symbol: Exclude<SymbolId, 'footprint' | 'campWild'>,
+  symbol: Exclude<SymbolId, 'footprint' | 'predatorTracks' | 'campWild'>,
   config: GameConfig,
 ): [number, number, number, number, number] {
   if (EVIDENCE_SYMBOL_SET.has(symbol)) return config.clusterPays.low

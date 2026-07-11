@@ -1,3 +1,5 @@
+import type { Rng } from './rng'
+
 export type TileRarity = 'common' | 'uncommon' | 'rare' | 'legendary'
 
 export interface TileDefinition {
@@ -7,14 +9,14 @@ export interface TileDefinition {
   rarityWeight: number
   payoutValue: number
   discoveryCategory?: string
-  assemblyContribution?: {
+  progressionContribution?: {
     sectionId: string
     pieces: number
   }
   classificationTag?: string
 }
 
-export interface AssemblySectionDefinition {
+export interface ProgressionSectionDefinition {
   id: string
   displayName: string
   requiredPieces: number
@@ -28,10 +30,10 @@ export interface ClassificationRule {
   bonus: number
 }
 
-export interface AssemblyProfile {
+export interface ProgressionProfile {
   id: string
   displayName: string
-  sections: AssemblySectionDefinition[]
+  sections: ProgressionSectionDefinition[]
   fullCompletionBonus: number
   classificationRules: ClassificationRule[]
 }
@@ -53,6 +55,9 @@ export interface JackpotDefinition {
 export interface FeatureProfile {
   id: string
   displayName: string
+  triggerSymbol?: string
+  triggerDisplayName?: string
+  theme?: 'fossil' | 'predator'
   startingRespins: number
   boardWidth: number
   boardHeight: number
@@ -66,7 +71,7 @@ export interface FeatureProfile {
   jackpotProbability: number
   jackpotWeights: JackpotDefinition[]
   tileTable: TileDefinition[]
-  assembly?: AssemblyProfile
+  progression?: ProgressionProfile
   payoutRules: {
     tileValueMultiplier: number
     collectorCollectsExistingTiles: boolean
@@ -81,7 +86,7 @@ export interface RevealedFeatureTile {
   displayName: string
   payoutValue: number
   discoveryCategory?: string
-  assemblyContribution?: {
+  progressionContribution?: {
     sectionId: string
     pieces: number
   }
@@ -93,7 +98,7 @@ export interface FeatureReveal {
   tile: RevealedFeatureTile
 }
 
-export interface AssemblySectionState {
+export interface ProgressionSectionState {
   id: string
   displayName: string
   requiredPieces: number
@@ -103,8 +108,8 @@ export interface AssemblySectionState {
   bonusAwarded: boolean
 }
 
-export interface AssemblyEvent {
-  type: 'piece-found' | 'section-complete' | 'classification-upgrade' | 'specimen-complete'
+export interface ProgressionEvent {
+  type: 'piece-found' | 'section-complete' | 'classification-upgrade' | 'progression-complete'
   sectionId?: string
   sectionName?: string
   piecesAdded?: number
@@ -113,10 +118,10 @@ export interface AssemblyEvent {
   classificationName?: string
 }
 
-export interface AssemblyState {
+export interface ProgressionState {
   id: string
   displayName: string
-  sections: AssemblySectionState[]
+  sections: ProgressionSectionState[]
   tagsFound: string[]
   classificationId: string
   classificationName: string
@@ -131,7 +136,7 @@ export interface FeatureStep {
   hit: boolean
   respinsRemaining: number
   reveals: FeatureReveal[]
-  assemblyEvents?: AssemblyEvent[]
+  progressionEvents?: ProgressionEvent[]
   bonusAwarded?: number
 }
 
@@ -144,7 +149,7 @@ export interface FeatureResult {
   steps: FeatureStep[]
   startingRespins: number
   completionReward: number
-  assembly?: AssemblyState
+  progression?: ProgressionState
   totalWin: number
   fullyRevealed: boolean
 }
@@ -164,9 +169,8 @@ export interface FeatureSession {
   startingRespins: number
   respinsRemaining: number
   completionReward: number
-  assembly?: AssemblyState
+  progression?: ProgressionState
   totalWin: number
   fullyRevealed: boolean
   isComplete: boolean
 }
-import type { Rng } from './rng'
