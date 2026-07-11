@@ -622,15 +622,15 @@ function presentationDurationForTier(tier: WinTier, compressed: boolean): number
   if (compressed) return tier === 'dead' ? 40 : 90
   switch (tier) {
     case 'dead':
-      return 180
+      return 90
     case 'tiny':
-      return 140
+      return 110
     case 'small':
-      return 320
+      return 220
     case 'medium':
-      return 680
+      return 420
     case 'large':
-      return 1050
+      return 700
   }
 }
 
@@ -951,10 +951,10 @@ function App() {
           duration: compressed
             ? 90
             : result.featureTriggered
-              ? 880
+              ? 640
               : result.footprintCount === 2 || result.predatorTrackCount === 2
-                ? 560
-                : 260,
+                ? 360
+                : 180,
         })
       }
       if (result.clusterWins.length > 0) {
@@ -971,13 +971,13 @@ function App() {
       if (hasWildAssist) {
         phases.push({
           phase: 'wild-resolution',
-          duration: compressed ? 80 : winTier === 'large' ? 720 : 460,
+          duration: compressed ? 60 : winTier === 'large' ? 420 : 260,
         })
       }
       if (hasGoldenAmber) {
         phases.push({
           phase: 'golden-amber-resolution',
-          duration: compressed ? 90 : winTier === 'large' ? 980 : 680,
+          duration: compressed ? 70 : winTier === 'large' ? 520 : 320,
         })
       }
       if (result.fieldNotes.uniqueEvidence.length > 0) {
@@ -986,14 +986,14 @@ function App() {
           duration: compressed
             ? 90
             : result.fieldNotes.milestone === 5
-              ? 1100
+              ? 720
               : result.fieldNotes.milestone === 4
-                ? 860
+                ? 560
                 : result.fieldNotes.bonus > 0
-                  ? 680
+                  ? 420
                   : result.fieldNotes.uniqueEvidence.length >= 4
-                    ? 540
-                    : 380,
+                    ? 320
+                    : 220,
         })
       }
       phases.push({
@@ -1167,13 +1167,13 @@ function App() {
         compressed
           ? 80
           : latestReveals.length > 0
-            ? 420 + latestReveals.length * 160
-            : 320
+            ? 340 + latestReveals.length * 110
+            : 240
       const readyTimer = window.setTimeout(() => {
         setPresentationPhase(next.isComplete ? 'feature-complete' : 'input-ready')
       }, revealDuration)
       spinTimers.current.push(readyTimer)
-    }, compressed ? 40 : 360)
+    }, compressed ? 40 : 260)
     spinTimers.current.push(surveyTimer)
   }
 
@@ -1475,7 +1475,7 @@ function BaseGame({
                     <small>{display.label}</small>
                   </>
                 )}
-                {winning && !isReeling && (
+                {winning && !isReeling && presentationBeat === 'cluster' && (
                   <span className="dust-burst" aria-hidden="true">
                     <i />
                     <i />
