@@ -1214,6 +1214,7 @@ function App() {
                 winAnimationKey={winAnimationKey}
                 triggerTransition={triggerTransition}
                 presentationBeat={presentationBeat}
+                inputReady={!inputLocked}
                 winTier={currentWinTier}
                 reducedMotion={reducedMotion || skipAnimations}
               />
@@ -1325,6 +1326,7 @@ function BaseGame({
   winAnimationKey,
   triggerTransition,
   presentationBeat,
+  inputReady,
   winTier,
   reducedMotion,
 }: {
@@ -1335,6 +1337,7 @@ function BaseGame({
   winAnimationKey: number
   triggerTransition: boolean
   presentationBeat: PresentationBeat
+  inputReady: boolean
   winTier: WinTier
   reducedMotion: boolean
 }) {
@@ -1344,12 +1347,12 @@ function BaseGame({
     (presentationBeat === 'cluster' ||
       presentationBeat === 'evidence' ||
       presentationBeat === 'credit' ||
-      presentationBeat === 'idle')
+      (presentationBeat === 'idle' && inputReady))
   const evidenceResolved =
     !spin.featureTriggered &&
     (presentationBeat === 'evidence' ||
       presentationBeat === 'credit' ||
-      presentationBeat === 'idle')
+      (presentationBeat === 'idle' && inputReady))
   const revealEvidence =
     evidenceResolved
   const revealFootprints =
@@ -1359,7 +1362,7 @@ function BaseGame({
     clusterResolved ||
     presentationBeat === 'evidence' ||
     presentationBeat === 'credit' ||
-    presentationBeat === 'idle'
+    (presentationBeat === 'idle' && inputReady)
   const activeCueSymbol =
     spin.predatorTrackCount >= 2 && spin.footprintCount < 2 ? 'predatorTracks' : 'footprint'
   const activeCueCount =
