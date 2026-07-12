@@ -897,15 +897,19 @@ function App() {
     const reelStart = compressed ? 60 : 420
     const reelDelay = compressed ? 0 : 75
     const reelSettle = compressed ? 80 : 250
-    const footprintAnticipationDelay = compressed
+    const oneCueAnticipationDelay = compressed ? 0 : 340
+    const twoCueAnticipationDelay = compressed
       ? 0
       : result.featureTriggered
-        ? 860
-        : 620
+        ? 980
+        : 820
+    const finalReelCueBonus = compressed ? 0 : 280
+    const finalReelSweatBonus = compressed ? 0 : 420
 
     const cueCount = result.footprintCount + result.predatorTrackCount
     const anticipationForReel = (reelIndex: number) => {
       if (reelIndex === 0 || cueCount === 0) return 0
+      const finalReel = reelIndex === config.boardSize - 1
       const fossilCuesBeforeReel = result.board.reduce(
         (count, row) =>
           count + row.slice(0, reelIndex).filter((symbol) => symbol === 'footprint').length,
@@ -917,8 +921,20 @@ function App() {
         0,
       )
       const strongestCueChain = Math.max(fossilCuesBeforeReel, predatorCuesBeforeReel)
-      if (strongestCueChain >= 2) return footprintAnticipationDelay
-      if (strongestCueChain === 1) return Math.round(footprintAnticipationDelay * 0.45)
+      if (strongestCueChain >= 2) {
+        return (
+          twoCueAnticipationDelay +
+          reelIndex * 45 +
+          (finalReel ? finalReelSweatBonus : 0)
+        )
+      }
+      if (strongestCueChain === 1) {
+        return (
+          oneCueAnticipationDelay +
+          reelIndex * 35 +
+          (finalReel ? finalReelCueBonus : 0)
+        )
+      }
       return 0
     }
     const reelStopTimes = Array.from({ length: config.boardSize }, (_, reelIndex) => {

@@ -7,6 +7,7 @@ Brief summaries of significant project changes. Version numbers are prototype mi
 - Reworked the left Trail Markers panel into a stable Destination Cues tracker that shows Fossil Footprints and Predator Tracks at the same time.
 - Updated reel anticipation timing so later reels linger after either valley cue family appears, with stronger suspense when a matching cue count reaches two.
 - Added a lightweight procedural Web Audio layer for jungle ambience, reel motion, result hits, valley triggers, and feature survey/reveal feedback.
+- Strengthened destination-cue reel slowdown so one cue is noticeable, two cues create a heavier final-reel sweat moment, and feature-trigger spins hold longest.
 
 ## v0.56 - Fossil Assembly Progression
 
