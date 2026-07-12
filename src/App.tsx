@@ -884,8 +884,8 @@ function App() {
     const footprintAnticipationDelay = compressed
       ? 0
       : result.featureTriggered
-        ? 760
-        : 520
+        ? 860
+        : 620
 
     const triggerSymbol = (triggeredFeatureProfile.triggerSymbol ?? 'footprint') as SymbolId
     const cueCount =
@@ -897,8 +897,10 @@ function App() {
       0,
     )
     const finalReelAnticipation =
-      cuesBeforeFinalReel === 2 && cueCount >= 2
-        ? footprintAnticipationDelay
+      cuesBeforeFinalReel > 0 && cueCount > 0
+        ? cuesBeforeFinalReel >= 2
+          ? footprintAnticipationDelay
+          : Math.round(footprintAnticipationDelay * 0.55)
         : 0
     const reelStopTimes = Array.from({ length: config.boardSize }, (_, reelIndex) => {
       const finalReelDelay = reelIndex === config.boardSize - 1 ? finalReelAnticipation : 0
@@ -941,7 +943,6 @@ function App() {
       setWinAnimationKey((key) => key + 1)
       setPresentationPhase('result-evaluation')
 
-      const hasWildAssist = result.clusterWins.some((cluster) => cluster.wildAssisted)
       const phases: Array<PresentationBeatStep<PresentationPhase>> = [
         { phase: 'result-evaluation', duration: compressed ? 20 : 140 },
       ]
@@ -957,44 +958,34 @@ function App() {
                 : 180,
         })
       }
-      if (result.clusterWins.length > 0) {
-        phases.push({
-          phase: 'cluster-resolution',
-          duration: presentationDurationForTier(winTier, compressed),
-        })
-      } else if (!compressed) {
-        phases.push({
-          phase: 'cluster-resolution',
-          duration: presentationDurationForTier('dead', compressed),
-        })
-      }
-      if (hasWildAssist) {
-        phases.push({
-          phase: 'wild-resolution',
-          duration: compressed ? 60 : winTier === 'large' ? 420 : 260,
-        })
-      }
-      if (hasGoldenAmber) {
-        phases.push({
-          phase: 'golden-amber-resolution',
-          duration: compressed ? 70 : winTier === 'large' ? 520 : 320,
-        })
-      }
-      if (result.fieldNotes.uniqueEvidence.length > 0) {
-        phases.push({
-          phase: 'evidence-resolution',
-          duration: compressed
-            ? 90
-            : result.fieldNotes.milestone === 5
-              ? 720
-              : result.fieldNotes.milestone === 4
-                ? 560
-                : result.fieldNotes.bonus > 0
-                  ? 420
-                  : result.fieldNotes.uniqueEvidence.length >= 4
-                    ? 320
-                    : 220,
-        })
+      if (!result.featureTriggered) {
+        if (result.clusterWins.length > 0) {
+          phases.push({
+            phase: 'cluster-resolution',
+            duration: presentationDurationForTier(winTier, compressed),
+          })
+        } else if (!compressed) {
+          phases.push({
+            phase: 'cluster-resolution',
+            duration: presentationDurationForTier('dead', compressed),
+          })
+        }
+        if (result.fieldNotes.uniqueEvidence.length > 0) {
+          phases.push({
+            phase: 'evidence-resolution',
+            duration: compressed
+              ? 90
+              : result.fieldNotes.milestone === 5
+                ? 720
+                : result.fieldNotes.milestone === 4
+                  ? 560
+                  : result.fieldNotes.bonus > 0
+                    ? 420
+                    : result.fieldNotes.uniqueEvidence.length >= 4
+                      ? 320
+                      : 220,
+          })
+        }
       }
       phases.push({
         phase: 'credit-award',
@@ -1347,19 +1338,27 @@ function BaseGame({
   winTier: WinTier
   reducedMotion: boolean
 }) {
+  const clusterResolved =
+    !spin.featureTriggered &&
+    !isReeling &&
+    (presentationBeat === 'cluster' ||
+      presentationBeat === 'evidence' ||
+      presentationBeat === 'credit' ||
+      presentationBeat === 'idle')
+  const evidenceResolved =
+    !spin.featureTriggered &&
+    (presentationBeat === 'evidence' ||
+      presentationBeat === 'credit' ||
+      presentationBeat === 'idle')
   const revealEvidence =
-    presentationBeat === 'evidence' ||
-    presentationBeat === 'credit' ||
-    presentationBeat === 'transition' ||
-    presentationBeat === 'idle'
+    evidenceResolved
   const revealFootprints =
     presentationBeat === 'footprint' ||
-    presentationBeat === 'cluster' ||
-    presentationBeat === 'wild' ||
-    presentationBeat === 'golden' ||
+    presentationBeat === 'transition' ||
+    spin.featureTriggered ||
+    clusterResolved ||
     presentationBeat === 'evidence' ||
     presentationBeat === 'credit' ||
-    presentationBeat === 'transition' ||
     presentationBeat === 'idle'
   const activeCueSymbol =
     spin.predatorTrackCount >= 2 && spin.footprintCount < 2 ? 'predatorTracks' : 'footprint'
@@ -1431,25 +1430,26 @@ function BaseGame({
                     } ${
                       isEvidenceSymbol ? 'evidence' : ''
                     } ${
-                      isEvidenceSymbol && presentationBeat === 'evidence' ? 'evidence-discovery' : ''
+                      isEvidenceSymbol && evidenceResolved ? 'evidence-discovery' : ''
+                    } ${
+                      isEvidenceSymbol && presentationBeat === 'evidence' ? 'evidence-animate' : ''
                     } ${
                       wildAssistedPaying &&
-                      !isReeling &&
-                      (presentationBeat === 'wild' || presentationBeat === 'idle')
+                      clusterResolved
                         ? 'wild-assisted'
                         : ''
                     } ${
                       goldenAmberPaying &&
-                      !isReeling &&
-                      (presentationBeat === 'golden' || presentationBeat === 'idle')
+                      clusterResolved
                         ? 'golden-paying'
                         : ''
                     } ${
                       winning &&
-                      !isReeling &&
-                      (presentationBeat === 'cluster' || presentationBeat === 'idle')
+                      clusterResolved
                         ? 'winning'
                         : ''
+                    } ${
+                      winning && presentationBeat === 'cluster' ? 'winning-animate' : ''
                     } ${
                   spinning ? 'reel-spinning' : ''
                 } ${isReeling && columnIndex < settledReels ? 'reel-settled' : ''} ${
@@ -1613,7 +1613,9 @@ function FieldNotesPanel({
           : 'No milestone'
   return (
     <aside
-      className={`field-notes ${reveal && spin.fieldNotes.bonus > 0 ? 'bonus-hit' : ''} ${
+      className={`field-notes ${reveal && spin.fieldNotes.bonus > 0 ? 'bonus-earned' : ''} ${
+        active && reveal && spin.fieldNotes.bonus > 0 ? 'bonus-hit' : ''
+      } ${
         active ? 'notes-active' : ''
       } evidence-count-${visibleCount} milestone-${milestone ?? 0}`}
       key={spin.board.flat().join('-')}
@@ -1635,7 +1637,7 @@ function FieldNotesPanel({
             <li
               className={isFound ? 'found' : ''}
               key={symbol}
-              style={isFound ? { animationDelay: `${index * 90}ms` } : undefined}
+              style={active && isFound ? { animationDelay: `${index * 90}ms` } : undefined}
             >
               <span className="note-check">{isFound ? '✓' : ''}</span>
               <span className="note-art">

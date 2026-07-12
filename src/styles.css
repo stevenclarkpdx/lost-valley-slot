@@ -616,13 +616,13 @@ button {
     0 0 8px rgba(214,154,58,.12);
 }
 
-.base-game.beat-cluster .symbol.winning {
+.symbol.winning-animate {
   outline-color: rgba(224, 168, 77, .84);
   animation: cluster-win-pulse 520ms cubic-bezier(.2, .7, .2, 1) both;
 }
 
-.base-game.win-tier-dead.beat-cluster .symbol.winning,
-.base-game.win-tier-tiny.beat-cluster .symbol.winning {
+.base-game.win-tier-dead .symbol.winning-animate,
+.base-game.win-tier-tiny .symbol.winning-animate {
   outline-color: rgba(137, 159, 96, .58);
   animation: tiny-win-tap 260ms ease-out both;
   box-shadow:
@@ -630,12 +630,12 @@ button {
     0 0 6px rgba(214,154,58,.12);
 }
 
-.base-game.win-tier-small.beat-cluster .symbol.winning {
+.base-game.win-tier-small .symbol.winning-animate {
   outline-color: #a8b86b;
   animation: cluster-win-pulse 520ms cubic-bezier(.2, .7, .2, 1) both;
 }
 
-.base-game.win-tier-medium.beat-cluster .symbol.winning {
+.base-game.win-tier-medium .symbol.winning-animate {
   outline-color: #e0a84d;
   animation: medium-win-pulse 620ms ease-out both;
   box-shadow:
@@ -644,7 +644,7 @@ button {
     0 0 35px rgba(214,154,58,.12);
 }
 
-.base-game.win-tier-large.beat-cluster .symbol.winning {
+.base-game.win-tier-large .symbol.winning-animate {
   z-index: 4;
   outline-color: #ffd076;
   animation: large-win-pulse 780ms cubic-bezier(.17, .75, .2, 1) both;
@@ -666,22 +666,13 @@ button {
     0 0 8px rgba(215, 153, 58, .14);
 }
 
-.base-game.beat-wild .symbol.wild-assisted {
-  animation: wild-assisted-pulse 560ms ease-out both;
-}
-
-.base-game.beat-wild .symbol.wild {
-  animation: camp-landing-flicker 520ms ease-out both;
-}
-
-.base-game.beat-wild .symbol.wild-assisted::after {
+.symbol.wild-assisted::after {
   content: '';
   position: absolute;
   inset: -4px;
   pointer-events: none;
   border: 1px dashed rgba(240, 189, 98, .42);
   border-radius: 8px;
-  animation: wild-link-line 560ms ease-out both;
 }
 
 .symbol.golden-paying {
@@ -691,23 +682,21 @@ button {
     0 0 10px rgba(255, 208, 118, .18);
 }
 
-.base-game.beat-golden .symbol.golden-paying {
-  animation: golden-amber-event 620ms ease-out both;
-}
-
-.base-game.beat-golden .symbol.golden-paying .concept-art {
-  animation: golden-internal-shimmer 620ms ease-out both;
-}
-
-.base-game.beat-evidence .symbol.evidence-discovery {
+.symbol.evidence-discovery {
   z-index: 4;
-  outline: 2px solid rgba(176, 198, 122, .82);
+  outline: 2px solid rgba(176, 198, 122, .52);
   outline-offset: -3px;
-  animation: evidence-artifact-focus 620ms ease-out both;
   box-shadow:
     inset 0 0 14px #080b09,
-    0 0 16px rgba(128, 180, 91, .28),
-    0 0 30px rgba(214, 154, 58, .1);
+    0 0 8px rgba(128, 180, 91, .16);
+}
+
+.symbol.evidence-animate {
+  outline-color: rgba(176, 198, 122, .82);
+  animation: evidence-artifact-focus 520ms ease-out both;
+  box-shadow:
+    inset 0 0 14px #080b09,
+    0 0 14px rgba(128, 180, 91, .24);
 }
 
 .base-game.beat-credit .reel-stage {
@@ -1120,11 +1109,10 @@ button {
 .field-notes li.found {
   border-left-color: #d0a054;
   color: #e4d29d;
-  animation: field-note-check 420ms ease-out both;
 }
 
 .field-notes.notes-active {
-  animation: journal-page-settle 520ms ease-out both;
+  animation: journal-page-settle 420ms ease-out both;
 }
 
 .field-notes.notes-active .note-check {
@@ -1134,10 +1122,11 @@ button {
 }
 
 .field-notes.bonus-hit li.found {
-  animation-name: field-note-entry-reward;
-  animation-duration: 720ms;
-  animation-timing-function: ease-out;
-  animation-fill-mode: both;
+  animation: field-note-entry-reward 520ms ease-out both;
+}
+
+.field-notes.notes-active li.found {
+  animation: field-note-check 360ms ease-out both;
 }
 
 .field-notes.notes-active li.found:nth-child(1) {
@@ -1231,21 +1220,27 @@ button {
   line-height: 1.25;
 }
 
-.field-notes.bonus-hit .field-notes-bonus {
+.field-notes.bonus-earned .field-notes-bonus {
   color: #1a1309;
   background:
     linear-gradient(rgba(255,255,255,.16), transparent),
     linear-gradient(#e2b964, #9a6627);
-  animation: field-note-bonus 960ms ease-out 420ms both;
+}
+
+.field-notes.bonus-earned .field-notes-bonus strong {
+  color: #201408;
+}
+
+.field-notes.bonus-earned .field-notes-bonus small {
+  color: #2d1e0d;
+}
+
+.field-notes.bonus-hit .field-notes-bonus {
+  animation: field-note-bonus 620ms ease-out 180ms both;
 }
 
 .field-notes.bonus-hit .field-notes-bonus strong {
-  color: #201408;
-  animation: total-count-emphasis 900ms ease-out both;
-}
-
-.field-notes.bonus-hit .field-notes-bonus small {
-  color: #2d1e0d;
+  animation: total-count-emphasis 620ms ease-out both;
 }
 
 .field-notes.notes-active.evidence-count-4,
@@ -4090,7 +4085,7 @@ footer {
   .screen.trigger-transition::after,
   .base-game.two-footprint-sweat::before,
   .base-game.beat-credit .reel-stage,
-  .base-game.beat-evidence .symbol.evidence-discovery,
+  .symbol.evidence-animate,
   .Progression-event-panel,
   .camp-prop::before,
   .feature-screen::after,
