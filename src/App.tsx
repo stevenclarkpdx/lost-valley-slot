@@ -34,6 +34,7 @@ import type {
   TileRarity,
 } from './engine/featureTypes'
 import { schedulePresentationSequence, type PresentationBeatStep } from './presentation/sequenceRunner'
+import { LostValleyAudio } from './audio'
 
 const SYMBOL_DISPLAY: Record<string, { icon: string; label: string }> = {
   trexTooth: { icon: '', label: 'T-Rex Tooth' },
@@ -735,6 +736,7 @@ function App() {
   const nextSpinId = useRef(1)
   const nextFeatureSessionId = useRef(1)
   const spinTimers = useRef<number[]>([])
+  const audio = useRef<LostValleyAudio | null>(null)
   const [config, setConfig] = useState<GameConfig>(() =>
     JSON.parse(JSON.stringify(DEFAULT_CONFIG)),
   )
@@ -757,6 +759,7 @@ function App() {
   const [presentationPhase, setPresentationPhase] = useState<PresentationPhase>('input-ready')
   const [reducedMotion, setReducedMotion] = useState(false)
   const [skipAnimations, setSkipAnimations] = useState(false)
+  const [audioMuted, setAudioMuted] = useState(false)
   const [simulation, setSimulation] = useState<SimulationResult | null>(null)
   const [isSimulating, setIsSimulating] = useState(false)
   const [isTuning, setIsTuning] = useState(false)
@@ -769,6 +772,10 @@ function App() {
   const isReeling = isReelPhase(presentationPhase)
   const triggerTransition = presentationPhase === 'feature-transition'
   const inputLocked = feature !== null || balance < bet || !phaseAllowsBaseInput(presentationPhase)
+
+  if (!audio.current && typeof window !== 'undefined') {
+    audio.current = new LostValleyAudio()
+  }
 
   useEffect(() => {
     for (const src of [
@@ -787,6 +794,14 @@ function App() {
     update()
     media.addEventListener('change', update)
     return () => media.removeEventListener('change', update)
+  }, [])
+
+  useEffect(() => {
+    audio.current?.setMuted(audioMuted)
+  }, [audioMuted])
+
+  useEffect(() => {
+    return () => audio.current?.dispose()
   }, [])
 
   useEffect(() => {
@@ -843,6 +858,7 @@ function App() {
 
   const handleSpin = () => {
     if (inputLocked) return
+    void audio.current?.unlock().then(() => audio.current?.spinStart())
     spinTimers.current.forEach((timer) => window.clearTimeout(timer))
     spinTimers.current = []
     const result = spinBaseGame(config, manualRng.current)
@@ -925,7 +941,10 @@ function App() {
     }))
     if (largestAnticipationDelay > 0) {
       const anticipationTimer = window.setTimeout(
-        () => setPresentationPhase('anticipation'),
+        () => {
+          setPresentationPhase('anticipation')
+          audio.current?.anticipation()
+        },
         Math.max(0, reelStopTimes[config.boardSize - 1] - largestAnticipationDelay),
       )
       spinTimers.current.push(anticipationTimer)
@@ -934,6 +953,7 @@ function App() {
     reelStopTimes.forEach((stopTime, reelIndex) => {
       const timer = window.setTimeout(() => {
         setSettledReels(reelIndex + 1)
+        audio.current?.reelStop(reelIndex)
       }, stopTime)
       spinTimers.current.push(timer)
       return timer
@@ -969,6 +989,7 @@ function App() {
           phases.push({
             phase: 'cluster-resolution',
             duration: presentationDurationForTier(winTier, compressed),
+            onStart: () => audio.current?.clusterWin(winTier),
           })
         } else if (!compressed) {
           phases.push({
@@ -990,6 +1011,11 @@ function App() {
                     : result.fieldNotes.uniqueEvidence.length >= 4
                       ? 320
                       : 220,
+            onStart: () =>
+              audio.current?.evidence(
+                result.fieldNotes.uniqueEvidence.length,
+                result.fieldNotes.bonus,
+              ),
           })
         }
       }
@@ -1012,6 +1038,7 @@ function App() {
       const endPresentationTimer = window.setTimeout(() => {
         if (result.featureTriggered) {
           setPresentationPhase('feature-transition')
+          audio.current?.featureTrigger(result.triggeredFeatureName === 'Predator Valley')
           const featureTimer = window.setTimeout(() => {
             const featureRngSeed = manualRng.current.int(1, 0x7fffffff)
             const featureSessionId = nextFeatureSessionId.current
@@ -1106,6 +1133,7 @@ function App() {
     const featureWin = feature?.totalWin ?? 0
     setPresentationPhase('return-to-base')
     setFeatureEnding(true)
+    audio.current?.featureComplete()
     window.setTimeout(() => {
       setCurrentWinTier(baseWinTier(featureWin))
       setLastFeatureWin(featureWin)
@@ -1150,6 +1178,7 @@ function App() {
       return
     }
     const compressed = reducedMotion || skipAnimations
+    void audio.current?.unlock().then(() => audio.current?.featureSurvey())
     setPresentationPhase('feature-survey')
     setFeatureRevealEvents([])
 
@@ -1157,8 +1186,20 @@ function App() {
       const next = stepFeatureSession(feature)
       const latestReveals = next.steps.at(-1)?.reveals ?? []
       setFeature(next)
-      setFeatureRevealEvents(toFeatureRevealEvents(latestReveals, next))
+      const revealEvents = toFeatureRevealEvents(latestReveals, next)
+      setFeatureRevealEvents(revealEvents)
       setPresentationPhase('feature-reveal')
+      if (revealEvents.length > 0) {
+        revealEvents.forEach((event, index) => {
+          const soundTimer = window.setTimeout(
+            () => audio.current?.featureReveal(event.rarity),
+            compressed ? 0 : index * 110,
+          )
+          spinTimers.current.push(soundTimer)
+        })
+      } else {
+        audio.current?.featureMiss()
+      }
 
       const revealDuration =
         compressed
@@ -1270,6 +1311,18 @@ function App() {
                   onChange={(event) => setSkipAnimations(event.target.checked)}
                 />
                 Skip anim
+              </label>
+              <label className="motion-toggle audio-toggle">
+                <input
+                  type="checkbox"
+                  checked={!audioMuted}
+                  onChange={(event) => {
+                    const muted = !event.target.checked
+                    setAudioMuted(muted)
+                    if (!muted) void audio.current?.unlock()
+                  }}
+                />
+                Sound
               </label>
             </div>
           )}

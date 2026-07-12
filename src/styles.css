@@ -1313,7 +1313,7 @@ button {
 
 .controls {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 150px 76px;
+  grid-template-columns: 1fr 1fr 1fr 142px 72px 68px;
   gap: 8px;
   align-items: center;
   margin-top: 6px;
@@ -1335,6 +1335,10 @@ button {
   font-size: 9px;
   letter-spacing: .04em;
   text-transform: uppercase;
+}
+
+.audio-toggle {
+  color: #b49a67;
 }
 
 .motion-toggle input {
