@@ -11,6 +11,8 @@ Brief summaries of significant project changes. Version numbers are prototype mi
 - Locked feature screens to the cabinet viewport by compacting the feature board/sidebar/footer layout and making the Field Log the primary scrollable region.
 - Retuned valley trigger symbol weights upward and scaled feature tile values down so valley discovery lands closer to a 50-75 spin cadence while preserving the 94-97% RTP target.
 - Expanded the metrics report script to include per-valley feature breakdowns and Predator two-track anticipation frequency.
+- Minimized base-game resolution flow by removing separate Field Notes, trail-marker, and credit presentation beats; clusters now animate once and resolved panel states hold quietly.
+- Disabled Field Notes, Destination Cues, and secondary feature survey idle animations to create a simpler foundation for future intentional animation rebuilds.
 
 ## v0.56 - Fossil Assembly Progression
 

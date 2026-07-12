@@ -518,11 +518,6 @@ type PresentationBeat =
   | 'idle'
   | 'reeling'
   | 'cluster'
-  | 'wild'
-  | 'golden'
-  | 'evidence'
-  | 'footprint'
-  | 'credit'
   | 'transition'
 
 type PresentationPhase =
@@ -533,11 +528,6 @@ type PresentationPhase =
   | 'anticipation'
   | 'result-evaluation'
   | 'cluster-resolution'
-  | 'wild-resolution'
-  | 'golden-amber-resolution'
-  | 'credit-award'
-  | 'evidence-resolution'
-  | 'trail-marker-resolution'
   | 'feature-transition'
   | 'feature-survey'
   | 'feature-reveal'
@@ -644,16 +634,6 @@ function beatForPhase(phase: PresentationPhase): PresentationBeat {
       return 'reeling'
     case 'cluster-resolution':
       return 'cluster'
-    case 'credit-award':
-      return 'credit'
-    case 'wild-resolution':
-      return 'wild'
-    case 'golden-amber-resolution':
-      return 'golden'
-    case 'evidence-resolution':
-      return 'evidence'
-    case 'trail-marker-resolution':
-      return 'footprint'
     case 'feature-transition':
       return 'transition'
     default:
@@ -975,31 +955,28 @@ function App() {
       return timer
     })
 
-    // Presentation state machine:
+    // Simplified presentation flow:
     // 1) engine resolves immediately above, but the outcome is visually gated by reels
-    // 2) reels stop left-to-right; exactly two visible destination cues slow only the final reel
-    // 3) the player sees explicit anticipation, win, evidence, credit, and transition phases
-    // 4) input unlocks only after the final phase completes
+    // 2) reels stop left-to-right, retaining destination-cue anticipation timing
+    // 3) after reels finish, bookkeeping updates once
+    // 4) non-feature spins get one optional cluster beat, then input returns
+    // 5) feature spins skip secondary base-game beats and go straight to transition
     const finishTimer = window.setTimeout(() => {
       setSettledReels(config.boardSize)
       setWinAnimationKey((key) => key + 1)
       setPresentationPhase('result-evaluation')
 
       const phases: Array<PresentationBeatStep<PresentationPhase>> = [
-        { phase: 'result-evaluation', duration: compressed ? 20 : 140 },
+        {
+          phase: 'result-evaluation',
+          duration: compressed ? 20 : 100,
+          onStart: () => {
+            setBalance(balanceAfterBase)
+            setLastSpinSummary(entry)
+            setSpinHistory((history) => [entry, ...history].slice(0, 25))
+          },
+        },
       ]
-      if (result.footprintCount > 0 || result.predatorTrackCount > 0) {
-        phases.push({
-          phase: 'trail-marker-resolution',
-          duration: compressed
-            ? 90
-            : result.featureTriggered
-              ? 640
-              : result.footprintCount === 2 || result.predatorTrackCount === 2
-                ? 360
-                : 180,
-        })
-      }
       if (!result.featureTriggered) {
         if (result.clusterWins.length > 0) {
           phases.push({
@@ -1013,37 +990,7 @@ function App() {
             duration: presentationDurationForTier('dead', compressed),
           })
         }
-        if (result.fieldNotes.uniqueEvidence.length > 0) {
-          phases.push({
-            phase: 'evidence-resolution',
-            duration: compressed
-              ? 90
-              : result.fieldNotes.milestone === 5
-                ? 720
-                : result.fieldNotes.milestone === 4
-                  ? 560
-                  : result.fieldNotes.bonus > 0
-                    ? 420
-                    : result.fieldNotes.uniqueEvidence.length >= 4
-                      ? 320
-                      : 220,
-            onStart: () =>
-              audio.current?.evidence(
-                result.fieldNotes.uniqueEvidence.length,
-                result.fieldNotes.bonus,
-              ),
-          })
-        }
       }
-      phases.push({
-        phase: 'credit-award',
-        duration: compressed ? 60 : Math.max(220, balanceCountDurationForTier(winTier)),
-        onStart: () => {
-          setBalance(balanceAfterBase)
-          setLastSpinSummary(entry)
-          setSpinHistory((history) => [entry, ...history].slice(0, 25))
-        },
-      })
 
       const elapsed = schedulePresentationSequence({
         steps: phases,
@@ -1307,14 +1254,10 @@ function App() {
                 <span>
                   {triggerTransition
                     ? 'Valley opens'
-                    : presentationPhase === 'credit-award'
-                      ? 'Counting win'
-                      : presentationPhase === 'evidence-resolution'
-                        ? 'Updating notes'
-                        : presentationPhase === 'trail-marker-resolution'
-                          ? 'Reading trail'
                     : isReeling
                       ? 'Reels turning'
+                      : presentationPhase === 'cluster-resolution'
+                        ? 'Resolving win'
                       : balance >= bet
                         ? 'Begin survey'
                         : 'Reset credits'}
@@ -1416,35 +1359,19 @@ function BaseGame({
   winTier: WinTier
   reducedMotion: boolean
 }) {
+  const resultVisible = !isReeling && presentationBeat !== 'reeling'
   const clusterResolved =
     !spin.featureTriggered &&
-    !isReeling &&
+    resultVisible &&
     (presentationBeat === 'cluster' ||
-      presentationBeat === 'evidence' ||
-      presentationBeat === 'credit' ||
       (presentationBeat === 'idle' && inputReady))
-  const evidenceResolved =
-    !spin.featureTriggered &&
-    (presentationBeat === 'evidence' ||
-      presentationBeat === 'credit' ||
-      (presentationBeat === 'idle' && inputReady))
-  const revealEvidence =
-    evidenceResolved
-  const revealFootprints =
-    presentationBeat === 'footprint' ||
-    presentationBeat === 'transition' ||
-    spin.featureTriggered ||
-    clusterResolved ||
-    presentationBeat === 'evidence' ||
-    presentationBeat === 'credit' ||
-    (presentationBeat === 'idle' && inputReady)
+  const revealEvidence = resultVisible
+  const revealFootprints = resultVisible
   const triggeredCueSymbol = spin.triggeredFeatureName === 'Predator Valley'
     ? 'predatorTracks'
     : 'footprint'
-  const cueSuspense =
-    presentationBeat === 'footprint' &&
-    (spin.footprintCount === 2 || spin.predatorTrackCount === 2)
-  const trailActive = presentationBeat === 'footprint' || presentationBeat === 'transition'
+  const cueSuspense = false
+  const trailActive = false
   return (
     <div
       className={`base-game beat-${presentationBeat} win-tier-${winTier} ${
@@ -1506,9 +1433,7 @@ function BaseGame({
                     } ${
                       isEvidenceSymbol ? 'evidence' : ''
                     } ${
-                      isEvidenceSymbol && evidenceResolved ? 'evidence-discovery' : ''
-                    } ${
-                      isEvidenceSymbol && presentationBeat === 'evidence' ? 'evidence-animate' : ''
+                      isEvidenceSymbol && resultVisible ? 'evidence-discovery' : ''
                     } ${
                       wildAssistedPaying &&
                       clusterResolved
@@ -1529,10 +1454,7 @@ function BaseGame({
                     } ${
                   spinning ? 'reel-spinning' : ''
                 } ${isReeling && columnIndex < settledReels ? 'reel-settled' : ''} ${
-                  ((triggerTransition && symbol === triggeredCueSymbol) ||
-                    (presentationBeat === 'footprint' &&
-                      ((symbol === 'footprint' && spin.footprintCount >= 2) ||
-                        (symbol === 'predatorTracks' && spin.predatorTrackCount >= 2))))
+                  (triggerTransition && symbol === triggeredCueSymbol)
                     ? 'trigger-footprint'
                     : ''
                 }`}
@@ -1593,7 +1515,7 @@ function BaseGame({
       </details>
         </div>
         <div className="base-field-notes">
-          <FieldNotesPanel spin={spin} reveal={revealEvidence} active={presentationBeat === 'evidence'} />
+          <FieldNotesPanel spin={spin} reveal={revealEvidence} active={false} />
         </div>
       </div>
     </div>
