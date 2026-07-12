@@ -22,6 +22,13 @@ import type { Board } from './types'
 import { runSimulation } from './simulation'
 
 const fossilProfile = getPrimaryFeatureProfile(DEFAULT_CONFIG)
+const unscaledFossilProfile: FeatureProfile = {
+  ...fossilProfile,
+  payoutRules: {
+    ...fossilProfile.payoutRules,
+    tileValueMultiplier: 1,
+  },
+}
 
 describe('seeded RNG', () => {
   it('produces the same sequence for the same seed', () => {
@@ -324,7 +331,7 @@ describe('FeatureEngine', () => {
 
   it('awards section completion bonuses once when Progression sections complete', () => {
     const rng: Rng = { next: () => 0, int: (min) => min }
-    let session = createFeatureSession(fossilProfile, rng)
+    let session = createFeatureSession(unscaledFossilProfile, rng)
     session = stepFeatureSession(session)
     session = stepFeatureSession(session)
     session = stepFeatureSession(session)
@@ -346,6 +353,10 @@ describe('FeatureEngine', () => {
       ...fossilProfile,
       boardWidth: 1,
       boardHeight: 1,
+      payoutRules: {
+        ...fossilProfile.payoutRules,
+        tileValueMultiplier: 1,
+      },
       hitGeneration: {
         hitProbability: 1,
         multiHitProbability: 0,
@@ -562,32 +573,32 @@ describe('simulation diagnostics', () => {
 
   it('preserves the tuned two-valley payout stream', () => {
     const result = runSimulation(DEFAULT_CONFIG, 10_000, 123)
-    expect(result.baseRtp).toBeCloseTo(0.278966, 4)
-    expect(result.evidenceRtp).toBeCloseTo(0.19753, 4)
-    expect(result.evidenceRtpByMilestone['3']).toBeCloseTo(0.14688, 4)
-    expect(result.evidenceRtpByMilestone['4']).toBeCloseTo(0.03565, 4)
-    expect(result.evidenceRtpByMilestone['5']).toBeCloseTo(0.015, 4)
+    expect(result.baseRtp).toBeCloseTo(0.278995, 4)
+    expect(result.evidenceRtp).toBeCloseTo(0.20057, 4)
+    expect(result.evidenceRtpByMilestone['3']).toBeCloseTo(0.14592, 4)
+    expect(result.evidenceRtpByMilestone['4']).toBeCloseTo(0.04715, 4)
+    expect(result.evidenceRtpByMilestone['5']).toBeCloseTo(0.0075, 4)
     expect(result.featureRtp).toBeGreaterThan(0.45)
     expect(result.featureRtp).toBeLessThan(0.55)
     expect(result.totalRtp).toBeGreaterThan(0.94)
     expect(result.totalRtp).toBeLessThan(0.98)
-    expect(result.triggerFrequency).toBeCloseTo(0.0093, 4)
-    expect(result.averageFeatureWin).toBeGreaterThan(48)
-    expect(result.averageFeatureWin).toBeLessThan(60)
-    expect(result.evidenceBonusFrequency).toBeCloseTo(0.0492, 4)
-    expect(result.evidenceMilestoneFrequency['3']).toBeCloseTo(0.0459, 4)
-    expect(result.evidenceMilestoneFrequency['4']).toBeCloseTo(0.0031, 4)
-    expect(result.evidenceMilestoneFrequency['5']).toBeCloseTo(0.0002, 4)
-    expect(result.wildAppearanceRate).toBeCloseTo(0.012404, 4)
-    expect(result.wildAssistedClusterFrequency).toBeCloseTo(0.1243, 4)
-    expect(result.goldenAmberHitFrequency).toBeCloseTo(0.0266, 4)
-    expect(result.twoFootprintFrequency).toBeCloseTo(0.0351, 4)
-    expect(result.twoPredatorTrackFrequency).toBeCloseTo(0.0367, 4)
-    expect(result.baseWinsOver10Frequency).toBeCloseTo(0.004, 4)
+    expect(result.triggerFrequency).toBeCloseTo(0.0138, 4)
+    expect(result.averageFeatureWin).toBeGreaterThan(34)
+    expect(result.averageFeatureWin).toBeLessThan(38)
+    expect(result.evidenceBonusFrequency).toBeCloseTo(0.0498, 4)
+    expect(result.evidenceMilestoneFrequency['3']).toBeCloseTo(0.0456, 4)
+    expect(result.evidenceMilestoneFrequency['4']).toBeCloseTo(0.0041, 4)
+    expect(result.evidenceMilestoneFrequency['5']).toBeCloseTo(0.0001, 4)
+    expect(result.wildAppearanceRate).toBeCloseTo(0.01224, 4)
+    expect(result.wildAssistedClusterFrequency).toBeCloseTo(0.1221, 4)
+    expect(result.goldenAmberHitFrequency).toBeCloseTo(0.0246, 4)
+    expect(result.twoFootprintFrequency).toBeCloseTo(0.0517, 4)
+    expect(result.twoPredatorTrackFrequency).toBeCloseTo(0.0522, 4)
+    expect(result.baseWinsOver10Frequency).toBeCloseTo(0.0047, 4)
     expect(result.predatorTrackDistribution['2']).toBeGreaterThan(0)
-    expect(result.featureBreakdown['fossil-valley'].triggerFrequency).toBeCloseTo(0.0045, 4)
-    expect(result.featureBreakdown['predator-valley'].triggerFrequency).toBeCloseTo(0.0048, 4)
-    expect(result.featureBreakdown['fossil-valley'].rtp).toBeCloseTo(0.2224, 4)
-    expect(result.featureBreakdown['predator-valley'].rtp).toBeCloseTo(0.2579, 4)
+    expect(result.featureBreakdown['fossil-valley'].triggerFrequency).toBeCloseTo(0.0056, 4)
+    expect(result.featureBreakdown['predator-valley'].triggerFrequency).toBeCloseTo(0.0082, 4)
+    expect(result.featureBreakdown['fossil-valley'].rtp).toBeCloseTo(0.21048, 4)
+    expect(result.featureBreakdown['predator-valley'].rtp).toBeCloseTo(0.285804, 4)
   })
 })

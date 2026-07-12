@@ -8,6 +8,9 @@ Brief summaries of significant project changes. Version numbers are prototype mi
 - Updated reel anticipation timing so later reels linger after either valley cue family appears, with stronger suspense when a matching cue count reaches two.
 - Added a lightweight procedural Web Audio layer for jungle ambience, reel motion, result hits, valley triggers, and feature survey/reveal feedback.
 - Strengthened destination-cue reel slowdown so one cue is noticeable, two cues create a heavier final-reel sweat moment, and feature-trigger spins hold longest.
+- Locked feature screens to the cabinet viewport by compacting the feature board/sidebar/footer layout and making the Field Log the primary scrollable region.
+- Retuned valley trigger symbol weights upward and scaled feature tile values down so valley discovery lands closer to a 50-75 spin cadence while preserving the 94-97% RTP target.
+- Expanded the metrics report script to include per-valley feature breakdowns and Predator two-track anticipation frequency.
 
 ## v0.56 - Fossil Assembly Progression
 

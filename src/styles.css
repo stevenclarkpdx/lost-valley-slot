@@ -1407,6 +1407,7 @@ button {
   min-height: 0;
   display: flex;
   flex-direction: column;
+  gap: 7px;
 }
 
 .feature-screen::before,
@@ -1487,7 +1488,7 @@ button {
   flex: 0 0 auto;
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   align-items: start;
 }
 
@@ -1540,18 +1541,19 @@ button {
 
 .feature-copy {
   flex: 0 0 auto;
-  margin: 6px 0 10px;
+  margin: 0;
   color: #879385;
   font-family: Georgia, serif;
   font-size: 12px;
+  line-height: 1.25;
 }
 
 .excavation-atmosphere {
   flex: 0 0 auto;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin: 0 0 10px;
+  gap: 6px;
+  margin: 0;
   color: #6c725f;
   text-transform: uppercase;
   letter-spacing: .08em;
@@ -1559,8 +1561,8 @@ button {
 }
 
 .camp-prop {
-  min-height: 28px;
-  padding: 7px 8px 6px 28px;
+  min-height: 20px;
+  padding: 5px 7px 4px 25px;
   border: 1px solid rgba(151, 121, 69, .22);
   background:
     radial-gradient(circle at 17px 50%, rgba(215, 159, 67, .28), transparent 16px),
@@ -1594,9 +1596,10 @@ button {
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 3.15fr) minmax(190px, .9fr);
-  gap: 14px;
+  grid-template-columns: minmax(0, 3fr) 190px;
+  gap: 10px;
   align-items: stretch;
+  overflow: hidden;
 }
 
 .excavation-site {
@@ -1605,7 +1608,7 @@ button {
   min-height: 0;
   display: grid;
   place-items: center;
-  padding: 30px 26px 24px;
+  padding: 22px 20px 18px;
   border: 1px solid rgba(97, 79, 50, .66);
   background:
     radial-gradient(circle at 48% 45%, rgba(167, 123, 70, .22), transparent 44%),
@@ -1640,8 +1643,8 @@ button {
 .site-rope {
   position: absolute;
   z-index: 3;
-  left: 18px;
-  right: 18px;
+  left: 16px;
+  right: 16px;
   height: 8px;
   border-top: 2px solid rgba(137, 91, 42, .78);
   border-radius: 50%;
@@ -1668,19 +1671,19 @@ button {
 }
 
 .site-rope-top {
-  top: 14px;
+  top: 10px;
 }
 
 .site-rope-bottom {
-  bottom: 10px;
+  bottom: 8px;
   transform: rotate(180deg);
 }
 
 .site-sign {
   position: absolute;
   z-index: 4;
-  right: 20px;
-  top: 18px;
+  right: 14px;
+  top: 12px;
   min-width: 76px;
   padding: 6px 7px;
   border: 1px solid rgba(132, 93, 45, .7);
@@ -1709,12 +1712,12 @@ button {
 .excavation-grid {
   position: relative;
   z-index: 2;
-  width: min(100%, 430px);
-  height: min(100%, 430px);
+  width: min(100%, 370px);
+  height: min(100%, 370px);
   aspect-ratio: 1;
   grid-template-rows: repeat(5, minmax(0, 1fr));
-  gap: 7px;
-  padding: 12px;
+  gap: 5px;
+  padding: 9px;
   border: 1px solid rgba(75, 58, 35, .78);
   background:
     linear-gradient(rgba(96, 72, 43, .34), rgba(24, 23, 16, .54)),
@@ -1726,12 +1729,13 @@ button {
 }
 
 .feature-sidebar {
-  display: grid;
-  grid-template-rows: auto auto auto auto auto minmax(0, 1fr);
-  gap: 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   min-width: 0;
   min-height: 0;
-  padding: 10px;
+  overflow: hidden;
+  padding: 8px;
   border: 1px solid rgba(87, 69, 40, .74);
   background:
     linear-gradient(rgba(26, 31, 22, .88), rgba(8, 12, 8, .94)),
@@ -1753,7 +1757,7 @@ button {
 }
 
 .expedition-dossier {
-  padding: 9px 10px;
+  padding: 7px 8px;
 }
 
 .expedition-dossier strong,
@@ -1776,7 +1780,7 @@ button {
 }
 
 .specimen-preview {
-  padding: 8px;
+  padding: 6px;
   text-align: center;
   text-transform: uppercase;
 }
@@ -1791,8 +1795,8 @@ button {
 
 .specimen-silhouette {
   position: relative;
-  height: 54px;
-  margin: 7px 0;
+  height: 34px;
+  margin: 5px 0;
   border: 1px dashed rgba(151, 121, 69, .28);
   background:
     radial-gradient(ellipse at 54% 52%, rgba(208, 184, 123, .08), transparent 48%),
@@ -1914,7 +1918,11 @@ button {
 }
 
 .feature-side-stat {
-  padding: 8px 9px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 7px;
   border: 1px solid rgba(151, 121, 69, .34);
   background:
     linear-gradient(rgba(11, 16, 11, .82), rgba(5, 8, 6, .86)),
@@ -1933,13 +1941,16 @@ button {
 }
 
 .feature-side-stat strong {
-  margin-top: 2px;
+  margin-top: 0;
   color: #e0ad55;
   font-family: Consolas, monospace;
-  font-size: 18px;
+  font-size: 15px;
 }
 
 .feature-debug-panel {
+  flex: 0 0 auto;
+  max-height: 74px;
+  overflow: auto;
   padding: 7px 8px;
   border: 1px dashed rgba(151, 121, 69, .38);
   color: #8f927d;
@@ -2158,8 +2169,8 @@ button {
   z-index: 1;
   display: grid;
   place-items: center;
-  width: clamp(54px, 7.4vw, 88px);
-  height: clamp(36px, 5vw, 58px);
+  width: clamp(38px, 5.4vw, 54px);
+  height: clamp(26px, 3.8vw, 38px);
   margin: 0 auto;
   line-height: 1;
   color: currentColor;
@@ -2196,7 +2207,7 @@ button {
 .discovery-card > strong {
   z-index: 1;
   max-width: 100%;
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 400;
   letter-spacing: .04em;
   line-height: 1.05;
@@ -2207,7 +2218,7 @@ button {
   z-index: 1;
   color: #7e887d;
   font-family: Consolas, monospace;
-  font-size: 7px;
+  font-size: 6px;
   text-transform: uppercase;
 }
 
@@ -2350,6 +2361,7 @@ button {
 }
 
 .discovery-log {
+  flex: 1 1 78px;
   min-height: 0;
   max-height: none;
   overflow: auto;
@@ -2364,7 +2376,7 @@ button {
   top: 0;
   display: flex;
   justify-content: space-between;
-  padding: 9px 10px;
+  padding: 6px 8px;
   border-bottom: 1px solid #354037;
   color: #a29d88;
   background: #101712;
@@ -2379,7 +2391,7 @@ button {
 
 .discovery-log p {
   margin: 0;
-  padding: 18px 10px;
+  padding: 12px 8px;
   color: #59645b;
   font-family: Georgia, serif;
   font-size: 11px;
@@ -2399,10 +2411,10 @@ button {
 .discovery-log li {
   counter-increment: discovery;
   display: grid;
-  grid-template-columns: 24px 1fr auto;
-  gap: 6px;
+  grid-template-columns: 20px 1fr auto;
+  gap: 5px;
   align-items: center;
-  padding: 5px;
+  padding: 4px;
   border-left: 2px solid #485849;
   color: #a9ac98;
   background:
@@ -2414,15 +2426,15 @@ button {
 .log-icon {
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   text-align: center;
 }
 
 .log-icon .symbol-svg,
 .log-icon .discovery-svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   stroke-width: 4;
 }
 
@@ -3299,16 +3311,17 @@ button {
 
 .feature-footer {
   flex: 0 0 auto;
-  min-height: 52px;
-  margin-top: 18px;
+  min-height: 44px;
+  margin-top: 0;
   color: #9b9d88;
   text-transform: uppercase;
   letter-spacing: .08em;
+  gap: 10px;
 }
 
 .feature-footer button,
 .simulate-button {
-  padding: 10px 13px;
+  padding: 9px 12px;
   box-shadow: inset 0 1px #f4cc84, 0 3px 0 #583812;
 }
 

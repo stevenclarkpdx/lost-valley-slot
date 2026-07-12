@@ -17,8 +17,8 @@ export const DEFAULT_CONFIG: GameConfig = {
     { symbol: 'scientist', weight: 15.72 },
     { symbol: 'map', weight: 15.72 },
     { symbol: 'crate', weight: 15.72 },
-    { symbol: 'footprint', weight: 1.25 },
-    { symbol: 'predatorTracks', weight: 1.25 },
+    { symbol: 'footprint', weight: 1.5 },
+    { symbol: 'predatorTracks', weight: 1.5 },
   ],
   clusterPays: {
     low: [0.237, 0.463, 0.927, 1.864, 3.729],

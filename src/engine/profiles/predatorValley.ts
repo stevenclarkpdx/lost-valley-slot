@@ -161,7 +161,7 @@ export const PREDATOR_VALLEY_PROFILE: FeatureProfile = {
     ],
   },
   payoutRules: {
-    tileValueMultiplier: 1,
+    tileValueMultiplier: 0.56,
     collectorCollectsExistingTiles: true,
     hitResetsRespinsTo: 3,
   },
