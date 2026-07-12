@@ -717,6 +717,7 @@ function App() {
   const nextFeatureSessionId = useRef(1)
   const spinTimers = useRef<number[]>([])
   const audio = useRef<LostValleyAudio | null>(null)
+  const cabinetRef = useRef<HTMLElement | null>(null)
   const [config, setConfig] = useState<GameConfig>(() =>
     JSON.parse(JSON.stringify(DEFAULT_CONFIG)),
   )
@@ -783,6 +784,11 @@ function App() {
   useEffect(() => {
     return () => audio.current?.dispose()
   }, [])
+
+  useEffect(() => {
+    if (!feature) return
+    cabinetRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+  }, [feature?.debug?.sessionId])
 
   useEffect(() => {
     if (reducedMotion || skipAnimations) {
@@ -1187,7 +1193,7 @@ function App() {
       </header>
 
       <div className="workbench">
-        <section className="cabinet" aria-label="Lost Valley slot cabinet">
+        <section className="cabinet" aria-label="Lost Valley slot cabinet" ref={cabinetRef}>
           <div className="cabinet-top">
             <span>Base Camp</span>
             <span className={`cabinet-balance win-tier-${currentWinTier} phase-${presentationPhase}`}>

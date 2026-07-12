@@ -4,6 +4,8 @@ Brief summaries of significant project changes. Version numbers are prototype mi
 
 ## Unreleased
 
+- Tightened main and feature screen presentation so symbols, feature grid rows, sidebar stats, and field logs fit more cleanly before alpha publishing.
+- Replaced the muddy Fossil Footprint crop with a clearer blue fossil-track symbol for better scatter readability.
 - Integrated the latest main-screen art sheet across reel symbols and side panels while preserving the existing cabinet layout.
 - Replaced Satellite Map with Compass and Mining Pick as active cluster symbols.
 - Converted cluster payouts to a color-tier hierarchy: gray, brown, green, blue, and Golden Amber.
