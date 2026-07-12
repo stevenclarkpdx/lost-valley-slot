@@ -887,24 +887,26 @@ function App() {
         ? 860
         : 620
 
-    const triggerSymbol = (triggeredFeatureProfile.triggerSymbol ?? 'footprint') as SymbolId
-    const cueCount =
-      triggerSymbol === 'predatorTracks' ? result.predatorTrackCount : result.footprintCount
-    const cuesBeforeFinalReel = result.board.reduce(
-      (count, row) =>
-        count +
-        row.slice(0, config.boardSize - 1).filter((symbol) => symbol === triggerSymbol).length,
-      0,
-    )
-    const finalReelAnticipation =
-      cuesBeforeFinalReel > 0 && cueCount > 0
-        ? cuesBeforeFinalReel >= 2
-          ? footprintAnticipationDelay
-          : Math.round(footprintAnticipationDelay * 0.55)
-        : 0
+    const cueCount = result.footprintCount + result.predatorTrackCount
+    const anticipationForReel = (reelIndex: number) => {
+      if (reelIndex === 0 || cueCount === 0) return 0
+      const fossilCuesBeforeReel = result.board.reduce(
+        (count, row) =>
+          count + row.slice(0, reelIndex).filter((symbol) => symbol === 'footprint').length,
+        0,
+      )
+      const predatorCuesBeforeReel = result.board.reduce(
+        (count, row) =>
+          count + row.slice(0, reelIndex).filter((symbol) => symbol === 'predatorTracks').length,
+        0,
+      )
+      const strongestCueChain = Math.max(fossilCuesBeforeReel, predatorCuesBeforeReel)
+      if (strongestCueChain >= 2) return footprintAnticipationDelay
+      if (strongestCueChain === 1) return Math.round(footprintAnticipationDelay * 0.45)
+      return 0
+    }
     const reelStopTimes = Array.from({ length: config.boardSize }, (_, reelIndex) => {
-      const finalReelDelay = reelIndex === config.boardSize - 1 ? finalReelAnticipation : 0
-      return reelStart + reelIndex * reelDelay + finalReelDelay
+      return reelStart + reelIndex * reelDelay + anticipationForReel(reelIndex)
     })
 
     const spinStartedTimer = window.setTimeout(
@@ -917,10 +919,14 @@ function App() {
       reelStart,
     )
     spinTimers.current.push(stopSequenceTimer)
-    if (finalReelAnticipation > 0) {
+    const largestAnticipationDelay = Math.max(...reelStopTimes.map((stopTime, reelIndex) => {
+      const baseStopTime = reelStart + reelIndex * reelDelay
+      return Math.max(0, stopTime - baseStopTime)
+    }))
+    if (largestAnticipationDelay > 0) {
       const anticipationTimer = window.setTimeout(
         () => setPresentationPhase('anticipation'),
-        Math.max(0, reelStopTimes[config.boardSize - 1] - finalReelAnticipation),
+        Math.max(0, reelStopTimes[config.boardSize - 1] - largestAnticipationDelay),
       )
       spinTimers.current.push(anticipationTimer)
     }
@@ -1363,30 +1369,28 @@ function BaseGame({
     presentationBeat === 'evidence' ||
     presentationBeat === 'credit' ||
     (presentationBeat === 'idle' && inputReady)
-  const activeCueSymbol =
-    spin.predatorTrackCount >= 2 && spin.footprintCount < 2 ? 'predatorTracks' : 'footprint'
-  const activeCueCount =
-    activeCueSymbol === 'predatorTracks' ? spin.predatorTrackCount : spin.footprintCount
-  const activeCueFeature =
-    activeCueSymbol === 'predatorTracks' ? 'Predator Valley' : 'Fossil Valley'
-  const cueSuspense = presentationBeat === 'footprint' && activeCueCount === 2
+  const triggeredCueSymbol = spin.triggeredFeatureName === 'Predator Valley'
+    ? 'predatorTracks'
+    : 'footprint'
+  const cueSuspense =
+    presentationBeat === 'footprint' &&
+    (spin.footprintCount === 2 || spin.predatorTrackCount === 2)
+  const trailActive = presentationBeat === 'footprint' || presentationBeat === 'transition'
   return (
     <div
       className={`base-game beat-${presentationBeat} win-tier-${winTier} ${
         cueSuspense ? 'two-footprint-sweat' : ''
-      } ${
-        activeCueSymbol === 'predatorTracks' ? 'predator-cue-active' : ''
       } ${isReeling ? 'reels-active' : ''} ${
         reducedMotion ? 'reduced-motion' : ''
       }`}
     >
       <div className="base-game-layout">
         <LostValleyPanel
-          cueSymbol={activeCueSymbol}
-          cueCount={revealFootprints ? activeCueCount : 0}
-          destinationName={activeCueFeature}
+          footprintCount={revealFootprints ? spin.footprintCount : 0}
+          predatorTrackCount={revealFootprints ? spin.predatorTrackCount : 0}
+          triggeredFeatureName={revealFootprints ? spin.triggeredFeatureName : null}
           featureTriggered={revealFootprints && spin.featureTriggered}
-          active={presentationBeat === 'footprint' || presentationBeat === 'transition'}
+          active={trailActive}
           suspense={cueSuspense}
         />
         <div className="reel-stage">
@@ -1456,13 +1460,17 @@ function BaseGame({
                     } ${
                   spinning ? 'reel-spinning' : ''
                 } ${isReeling && columnIndex < settledReels ? 'reel-settled' : ''} ${
-                  (triggerTransition || (presentationBeat === 'footprint' && activeCueCount >= 2)) &&
-                  symbol === activeCueSymbol ? 'trigger-footprint' : ''
+                  ((triggerTransition && symbol === triggeredCueSymbol) ||
+                    (presentationBeat === 'footprint' &&
+                      ((symbol === 'footprint' && spin.footprintCount >= 2) ||
+                        (symbol === 'predatorTracks' && spin.predatorTrackCount >= 2))))
+                    ? 'trigger-footprint'
+                    : ''
                 }`}
                 data-win-key={winning ? winAnimationKey : undefined}
                 key={`${rowIndex}-${columnIndex}`}
                 style={
-                  triggerTransition && symbol === activeCueSymbol
+                  triggerTransition && symbol === triggeredCueSymbol
                     ? { animationDelay: `${Math.min(rowIndex + columnIndex, 5) * 110}ms` }
                     : undefined
                 }
@@ -1524,50 +1532,71 @@ function BaseGame({
 }
 
 function LostValleyPanel({
-  cueSymbol,
-  cueCount,
-  destinationName,
+  footprintCount,
+  predatorTrackCount,
+  triggeredFeatureName,
   featureTriggered,
   active,
   suspense,
 }: {
-  cueSymbol: 'footprint' | 'predatorTracks'
-  cueCount: number
-  destinationName: string
+  footprintCount: number
+  predatorTrackCount: number
+  triggeredFeatureName: string | null
   featureTriggered: boolean
   active: boolean
   suspense: boolean
 }) {
-  const found = Math.min(cueCount, 3)
-  const predator = cueSymbol === 'predatorTracks'
+  const fossilFound = Math.min(footprintCount, 3)
+  const predatorFound = Math.min(predatorTrackCount, 3)
+  const destinationName =
+    triggeredFeatureName ??
+    (predatorFound >= 3 ? 'Predator Valley' : fossilFound >= 3 ? 'Fossil Valley' : 'Lost Valley')
+  const renderCueTrack = (
+    cueSymbol: 'footprint' | 'predatorTracks',
+    found: number,
+    label: string,
+    destination: string,
+  ) => (
+    <div
+      className={`cue-track ${
+        cueSymbol === 'predatorTracks' ? 'predator-cue-track' : 'fossil-cue-track'
+      } ${found >= 3 ? 'cue-complete' : ''}`}
+      aria-label={`${found} of 3 cues found for ${destination}`}
+    >
+      <div className="cue-track-label">
+        <span>{label}</span>
+        <strong>{found}/3</strong>
+      </div>
+      <div className="footprint-track">
+        {[0, 1, 2].map((index) => (
+          <span
+            className={index < found ? 'found' : ''}
+            key={index}
+            aria-hidden="true"
+            style={active && index < found ? { animationDelay: `${index * 120}ms` } : undefined}
+          >
+            <SymbolIllustration symbol={cueSymbol} />
+          </span>
+        ))}
+      </div>
+    </div>
+  )
   return (
     <aside
-      className={`lost-valley-panel ${predator ? 'predator-trail-panel' : ''} ${
+      className={`lost-valley-panel multi-trail-panel ${
         featureTriggered ? 'trail-complete' : ''
       } ${
         active ? 'trail-active' : ''
       } ${suspense ? 'trail-suspense' : ''}`}
     >
       <div className="lost-valley-heading">
-        <span>{predator ? 'Warning signs' : 'Trail markers'}</span>
-        <strong>{found}/3</strong>
+        <span>Destination cues</span>
+        <strong>{featureTriggered ? destinationName : `${fossilFound + predatorFound}/6`}</strong>
       </div>
-      <p>
-        {predator
-          ? 'Track Predator signs into the danger zone.'
-          : 'Follow Footprints to the Lost Valley.'}
-      </p>
-      <div className="footprint-track" aria-label={`${found} of 3 cues found for ${destinationName}`}>
-        {[0, 1, 2].map((index) => (
-          <span
-            className={index < found ? 'found' : ''}
-            key={index}
-            aria-hidden="true"
-            style={index < found ? { animationDelay: `${index * 120}ms` } : undefined}
-          >
-            <SymbolIllustration symbol={cueSymbol} />
-          </span>
-        ))}
+      <p>Follow expedition signs. Three matching cues reveal a valley destination.</p>
+      <div className="cue-track-list">
+        {renderCueTrack('footprint', fossilFound, 'Fossil Footprints', 'Fossil Valley')}
+        {renderCueTrack('predatorTracks', predatorFound, 'Predator Tracks', 'Predator Valley')}
       </div>
       <div className="lost-valley-card" aria-hidden="true" />
     </aside>

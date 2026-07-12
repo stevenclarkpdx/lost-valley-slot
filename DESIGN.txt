@@ -46,3 +46,6 @@ Valley variants:
 Visual target:
 Gritty, cinematic, dark jungle / excavation / fossil UI. Commercial slot readability, but less bouncy and toy-like.
 Avoid generic coins/treasure where possible.
+
+Presentation principle:
+The left destination-cue panel should be stable across spins and valley types. It should track all visible valley-trigger cues at once (currently Fossil Footprints and Predator Tracks) instead of swapping identity when one cue family appears. This keeps anticipation readable and gives future valleys a natural home in the same panel.

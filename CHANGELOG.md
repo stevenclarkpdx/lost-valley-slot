@@ -2,6 +2,11 @@
 
 Brief summaries of significant project changes. Version numbers are prototype milestones, not release tags unless later matched to commits.
 
+## Unreleased
+
+- Reworked the left Trail Markers panel into a stable Destination Cues tracker that shows Fossil Footprints and Predator Tracks at the same time.
+- Updated reel anticipation timing so later reels linger after either valley cue family appears, with stronger suspense when a matching cue count reaches two.
+
 ## v0.56 - Fossil Assembly Progression
 
 - Added configurable Fossil Assembly support to the generic feature engine without hard-coding Fossil Valley-specific logic.
