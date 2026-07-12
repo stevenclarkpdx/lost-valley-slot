@@ -1,11 +1,15 @@
 import { SYMBOLS, type GameConfig } from './types'
 import type { FeatureProfile } from './featureTypes'
 
-const SCHEMA_VERSION = 6
+const SCHEMA_VERSION = 7
 
 type LegacyGameConfig = Partial<GameConfig> & {
   featureProfile?: FeatureProfile
   featureProfiles?: FeatureProfile[]
+  clusterPays?: Partial<GameConfig['clusterPays']> & {
+    low?: [number, number, number, number, number]
+    premium?: [number, number, number, number, number]
+  }
 }
 
 function isFiniteNumber(value: unknown): value is number {
@@ -163,6 +167,39 @@ export function serializeConfig(config: GameConfig): string {
   return JSON.stringify({ schemaVersion: SCHEMA_VERSION, config }, null, 2)
 }
 
+function migrateConfig(config: LegacyGameConfig, schemaVersion: number): LegacyGameConfig {
+  if (schemaVersion >= SCHEMA_VERSION) return config
+
+  if (schemaVersion === 6) {
+    const oldMapWeight = config.symbolWeights?.find(
+      (item) => item?.symbol === ('map' as never),
+    )?.weight
+    const symbolWeights = (config.symbolWeights ?? [])
+      .filter((item) => item?.symbol !== ('map' as never))
+
+    if (!symbolWeights.some((item) => item?.symbol === 'compass')) {
+      symbolWeights.push({ symbol: 'compass', weight: oldMapWeight ?? 1 })
+    }
+    if (!symbolWeights.some((item) => item?.symbol === 'pickaxe')) {
+      symbolWeights.push({ symbol: 'pickaxe', weight: oldMapWeight ?? 1 })
+    }
+
+    const low = config.clusterPays?.low
+    const premium = config.clusterPays?.premium
+    config.symbolWeights = symbolWeights
+    config.clusterPays = {
+      gray: config.clusterPays?.gray ?? premium,
+      brown: config.clusterPays?.brown ?? low,
+      green: config.clusterPays?.green ?? premium,
+      blue: config.clusterPays?.blue ?? premium,
+      goldenAmber: config.clusterPays?.goldenAmber,
+    } as GameConfig['clusterPays']
+    return config
+  }
+
+  throw new Error(`Unsupported config schema. Expected version ${SCHEMA_VERSION}.`)
+}
+
 export function parseConfig(json: string): GameConfig {
   const parsed: unknown = JSON.parse(json)
   if (typeof parsed !== 'object' || parsed === null) {
@@ -170,11 +207,14 @@ export function parseConfig(json: string): GameConfig {
   }
 
   const envelope = parsed as { schemaVersion?: unknown; config?: unknown }
-  if (envelope.schemaVersion !== SCHEMA_VERSION) {
+  if (!Number.isInteger(envelope.schemaVersion)) {
     throw new Error(`Unsupported config schema. Expected version ${SCHEMA_VERSION}.`)
   }
 
-  const config = envelope.config as LegacyGameConfig | undefined
+  const config =
+    envelope.config && typeof envelope.config === 'object'
+      ? migrateConfig(envelope.config as LegacyGameConfig, envelope.schemaVersion as number)
+      : undefined
   if (
     !config ||
     !Number.isInteger(config.boardSize) ||
@@ -197,21 +237,29 @@ export function parseConfig(json: string): GameConfig {
     throw new Error('Every known symbol needs one positive numeric weight.')
   }
 
-  const lowPays = config.clusterPays?.low
-  const premiumPays = config.clusterPays?.premium
+  const grayPays = config.clusterPays?.gray
+  const brownPays = config.clusterPays?.brown
+  const greenPays = config.clusterPays?.green
+  const bluePays = config.clusterPays?.blue
   const goldenAmberPays = config.clusterPays?.goldenAmber
   if (
-    !Array.isArray(lowPays) ||
-    lowPays.length !== 5 ||
-    !lowPays.every((value) => isFiniteNumber(value) && value >= 0) ||
-    !Array.isArray(premiumPays) ||
-    premiumPays.length !== 5 ||
-    !premiumPays.every((value) => isFiniteNumber(value) && value >= 0) ||
+    !Array.isArray(grayPays) ||
+    grayPays.length !== 5 ||
+    !grayPays.every((value) => isFiniteNumber(value) && value >= 0) ||
+    !Array.isArray(brownPays) ||
+    brownPays.length !== 5 ||
+    !brownPays.every((value) => isFiniteNumber(value) && value >= 0) ||
+    !Array.isArray(greenPays) ||
+    greenPays.length !== 5 ||
+    !greenPays.every((value) => isFiniteNumber(value) && value >= 0) ||
+    !Array.isArray(bluePays) ||
+    bluePays.length !== 5 ||
+    !bluePays.every((value) => isFiniteNumber(value) && value >= 0) ||
     !Array.isArray(goldenAmberPays) ||
     goldenAmberPays.length !== 5 ||
     !goldenAmberPays.every((value) => isFiniteNumber(value) && value >= 0)
   ) {
-    throw new Error('Low, premium, and Golden Amber cluster paytables need five non-negative values.')
+    throw new Error('Gray, brown, green, blue, and Golden Amber cluster paytables need five non-negative values.')
   }
 
   const fieldNotesPays = config.fieldNotesPays

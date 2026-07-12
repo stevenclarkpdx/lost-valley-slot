@@ -3,6 +3,7 @@ import { runSimulation } from '../src/engine/simulation'
 
 const spins = Number(process.argv[2] ?? 100000)
 const seed = Number(process.argv[3] ?? 424242)
+const mode = process.argv[4] ?? 'full'
 const result = runSimulation(DEFAULT_CONFIG, spins, seed)
 
 console.log(
@@ -32,7 +33,7 @@ console.log(
       featureP50: result.percentiles.p50,
       featureP90: result.percentiles.p90,
       featureP99: result.percentiles.p99,
-      featureBreakdown: result.featureBreakdown,
+      ...(mode === 'summary' ? {} : { featureBreakdown: result.featureBreakdown }),
     },
     null,
     2,

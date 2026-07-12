@@ -40,12 +40,18 @@ function cloneConfig(config: GameConfig): GameConfig {
 }
 
 function scaleClusterPays(config: GameConfig, lowScale: number, premiumScale: number) {
-  config.clusterPays.low = config.clusterPays.low.map((value) =>
+  config.clusterPays.gray = config.clusterPays.gray.map((value) =>
     roundTuningValue(value * lowScale),
-  ) as GameConfig['clusterPays']['low']
-  config.clusterPays.premium = config.clusterPays.premium.map((value) =>
+  ) as GameConfig['clusterPays']['gray']
+  config.clusterPays.brown = config.clusterPays.brown.map((value) =>
+    roundTuningValue(value * lowScale),
+  ) as GameConfig['clusterPays']['brown']
+  config.clusterPays.green = config.clusterPays.green.map((value) =>
     roundTuningValue(value * premiumScale),
-  ) as GameConfig['clusterPays']['premium']
+  ) as GameConfig['clusterPays']['green']
+  config.clusterPays.blue = config.clusterPays.blue.map((value) =>
+    roundTuningValue(value * premiumScale),
+  ) as GameConfig['clusterPays']['blue']
   config.clusterPays.goldenAmber = config.clusterPays.goldenAmber.map((value) =>
     roundTuningValue(value * premiumScale),
   ) as GameConfig['clusterPays']['goldenAmber']

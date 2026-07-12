@@ -29,6 +29,10 @@ export const EVIDENCE_SYMBOL_SET = new Set<SymbolId>([
   ...EVIDENCE_SYMBOLS,
 ])
 
+const GRAY_CLUSTER_SYMBOLS = new Set<SymbolId>(['compass', 'pickaxe', 'crate'])
+const GREEN_CLUSTER_SYMBOLS = new Set<SymbolId>(['jeep', 'scientist'])
+const BLUE_CLUSTER_SYMBOLS = new Set<SymbolId>(['helicopter'])
+
 const DIRECTIONS = [
   [-1, 0],
   [1, 0],
@@ -40,9 +44,12 @@ function paytableForSymbol(
   symbol: Exclude<SymbolId, 'footprint' | 'predatorTracks' | 'campWild'>,
   config: GameConfig,
 ): [number, number, number, number, number] {
-  if (EVIDENCE_SYMBOL_SET.has(symbol)) return config.clusterPays.low
+  if (GRAY_CLUSTER_SYMBOLS.has(symbol)) return config.clusterPays.gray
+  if (EVIDENCE_SYMBOL_SET.has(symbol)) return config.clusterPays.brown
+  if (GREEN_CLUSTER_SYMBOLS.has(symbol)) return config.clusterPays.green
+  if (BLUE_CLUSTER_SYMBOLS.has(symbol)) return config.clusterPays.blue
   if (symbol === 'goldenAmber') return config.clusterPays.goldenAmber
-  return config.clusterPays.premium
+  return config.clusterPays.gray
 }
 
 export function calculateClusterWins(

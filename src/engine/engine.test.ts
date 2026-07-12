@@ -403,26 +403,26 @@ describe('payout calculation', () => {
       ['trexTooth', 'campWild', 'raptorClaw', 'crate', 'crate'],
       ['trexTooth', 'raptorClaw', 'raptorClaw', 'footprint', 'footprint'],
       ['jeep', 'scientist', 'raptorClaw', 'footprint', 'footprint'],
-      ['helicopter', 'scientist', 'map', 'crate', 'footprint'],
+      ['helicopter', 'scientist', 'compass', 'crate', 'footprint'],
     ]
     const result = calculateClusterWins(board, DEFAULT_CONFIG)
     expect(result.wins.map((win) => [win.symbol, win.size, win.payout])).toEqual([
-      ['trexTooth', 5, 0.463],
-      ['raptorClaw', 6, 0.927],
-      ['crate', 4, 0.124],
+      ['trexTooth', 5, 0.512],
+      ['raptorClaw', 6, 1.281],
+      ['crate', 4, 0.146],
     ])
     expect(result.wins.some((win) => win.symbol === 'trexTooth' && win.wildAssisted)).toBe(
       true,
     )
-    expect(result.total).toBeCloseTo(1.514)
+    expect(result.total).toBeCloseTo(1.939)
   })
 
   it('uses Expedition Camp Wild as a substitute for premium clusters', () => {
     const board: Board = [
       ['jeep', 'campWild', 'jeep', 'jeep', 'footprint'],
-      ['crate', 'helicopter', 'scientist', 'map', 'footprint'],
+      ['crate', 'helicopter', 'scientist', 'compass', 'footprint'],
       ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
-      ['crate', 'helicopter', 'scientist', 'map', 'footprint'],
+      ['crate', 'helicopter', 'scientist', 'compass', 'footprint'],
       ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
     ]
     const result = calculateClusterWins(board, DEFAULT_CONFIG)
@@ -435,7 +435,7 @@ describe('payout calculation', () => {
         { row: 0, column: 2 },
         { row: 0, column: 3 },
       ],
-      payout: 0.124,
+      payout: 0.268,
       wildAssisted: true,
     })
   })
@@ -443,9 +443,9 @@ describe('payout calculation', () => {
   it('does not let Expedition Camp Wild substitute for Footprints', () => {
     const board: Board = [
       ['footprint', 'campWild', 'footprint', 'footprint', 'crate'],
-      ['jeep', 'helicopter', 'scientist', 'map', 'crate'],
+      ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
       ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
-      ['jeep', 'helicopter', 'scientist', 'map', 'crate'],
+      ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
       ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
     ]
     expect(calculateClusterWins(board, DEFAULT_CONFIG).wins).toHaveLength(0)
@@ -453,9 +453,9 @@ describe('payout calculation', () => {
 
     const twoFootprintsAndWild: Board = [
       ['footprint', 'campWild', 'footprint', 'crate', 'crate'],
-      ['jeep', 'helicopter', 'scientist', 'map', 'crate'],
+      ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
       ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
-      ['jeep', 'helicopter', 'scientist', 'map', 'crate'],
+      ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
       ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
     ]
     expect(isFeatureTriggered(twoFootprintsAndWild)).toBe(false)
@@ -464,9 +464,9 @@ describe('payout calculation', () => {
   it('does not let Expedition Camp Wild substitute for Predator Tracks', () => {
     const board: Board = [
       ['predatorTracks', 'campWild', 'predatorTracks', 'predatorTracks', 'crate'],
-      ['jeep', 'helicopter', 'scientist', 'map', 'crate'],
+      ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
       ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
-      ['jeep', 'helicopter', 'scientist', 'map', 'crate'],
+      ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
       ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
     ]
     const trigger = resolveTriggeredFeature(board, DEFAULT_CONFIG)
@@ -475,9 +475,9 @@ describe('payout calculation', () => {
 
     const twoTracksAndWild: Board = [
       ['predatorTracks', 'campWild', 'predatorTracks', 'crate', 'crate'],
-      ['jeep', 'helicopter', 'scientist', 'map', 'crate'],
+      ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
       ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
-      ['jeep', 'helicopter', 'scientist', 'map', 'crate'],
+      ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
       ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
     ]
     expect(resolveTriggeredFeature(twoTracksAndWild, DEFAULT_CONFIG).profile).toBeNull()
@@ -486,9 +486,9 @@ describe('payout calculation', () => {
   it("uses Golden Amber's dedicated paytable", () => {
     const board: Board = [
       ['goldenAmber', 'goldenAmber', 'goldenAmber', 'goldenAmber', 'crate'],
-      ['jeep', 'helicopter', 'scientist', 'map', 'crate'],
+      ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
       ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
-      ['jeep', 'helicopter', 'scientist', 'map', 'crate'],
+      ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
       ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
     ]
     expect(calculateClusterWins(board, DEFAULT_CONFIG).wins).toContainEqual({
@@ -500,7 +500,7 @@ describe('payout calculation', () => {
         { row: 0, column: 2 },
         { row: 0, column: 3 },
       ],
-      payout: 0.904,
+      payout: 1.103,
       wildAssisted: false,
     })
   })
@@ -519,10 +519,10 @@ describe('payout calculation', () => {
   it('awards Field Notes only for unique natural evidence symbols', () => {
     const board: Board = [
       ['trexTooth', 'trexTooth', 'campWild', 'jeep', 'crate'],
-      ['raptorClaw', 'jeep', 'crate', 'scientist', 'map'],
-      ['triceratopsEggshell', 'jeep', 'crate', 'scientist', 'map'],
-      ['footprint', 'helicopter', 'crate', 'scientist', 'map'],
-      ['footprint', 'helicopter', 'crate', 'scientist', 'map'],
+      ['raptorClaw', 'jeep', 'crate', 'scientist', 'compass'],
+      ['triceratopsEggshell', 'jeep', 'crate', 'scientist', 'compass'],
+      ['footprint', 'helicopter', 'crate', 'scientist', 'compass'],
+      ['footprint', 'helicopter', 'crate', 'scientist', 'compass'],
     ]
     expect(calculateFieldNotes(board, DEFAULT_CONFIG)).toEqual({
       uniqueEvidence: ['trexTooth', 'raptorClaw', 'triceratopsEggshell'],
@@ -538,10 +538,10 @@ describe('payout calculation', () => {
   it('does not count wilds, footprints, Predator Tracks, or premium symbols as Field Notes evidence', () => {
     const board: Board = [
       ['campWild', 'campWild', 'footprint', 'predatorTracks', 'crate'],
-      ['helicopter', 'scientist', 'map', 'crate', 'jeep'],
-      ['crate', 'jeep', 'map', 'scientist', 'helicopter'],
-      ['footprint', 'campWild', 'crate', 'scientist', 'map'],
-      ['jeep', 'helicopter', 'crate', 'scientist', 'map'],
+      ['helicopter', 'scientist', 'compass', 'crate', 'jeep'],
+      ['crate', 'jeep', 'pickaxe', 'scientist', 'helicopter'],
+      ['footprint', 'campWild', 'crate', 'scientist', 'compass'],
+      ['jeep', 'helicopter', 'crate', 'scientist', 'pickaxe'],
     ]
     expect(calculateFieldNotes(board, DEFAULT_CONFIG)).toEqual({
       uniqueEvidence: [],
@@ -573,7 +573,7 @@ describe('simulation diagnostics', () => {
 
   it('preserves the tuned two-valley payout stream', () => {
     const result = runSimulation(DEFAULT_CONFIG, 10_000, 123)
-    expect(result.baseRtp).toBeCloseTo(0.278995, 4)
+    expect(result.baseRtp).toBeCloseTo(0.2725984, 4)
     expect(result.evidenceRtp).toBeCloseTo(0.20057, 4)
     expect(result.evidenceRtpByMilestone['3']).toBeCloseTo(0.14592, 4)
     expect(result.evidenceRtpByMilestone['4']).toBeCloseTo(0.04715, 4)
@@ -590,11 +590,11 @@ describe('simulation diagnostics', () => {
     expect(result.evidenceMilestoneFrequency['4']).toBeCloseTo(0.0041, 4)
     expect(result.evidenceMilestoneFrequency['5']).toBeCloseTo(0.0001, 4)
     expect(result.wildAppearanceRate).toBeCloseTo(0.01224, 4)
-    expect(result.wildAssistedClusterFrequency).toBeCloseTo(0.1221, 4)
+    expect(result.wildAssistedClusterFrequency).toBeCloseTo(0.1024, 4)
     expect(result.goldenAmberHitFrequency).toBeCloseTo(0.0246, 4)
     expect(result.twoFootprintFrequency).toBeCloseTo(0.0517, 4)
     expect(result.twoPredatorTrackFrequency).toBeCloseTo(0.0522, 4)
-    expect(result.baseWinsOver10Frequency).toBeCloseTo(0.0047, 4)
+    expect(result.baseWinsOver10Frequency).toBeCloseTo(0.0063, 4)
     expect(result.predatorTrackDistribution['2']).toBeGreaterThan(0)
     expect(result.featureBreakdown['fossil-valley'].triggerFrequency).toBeCloseTo(0.0056, 4)
     expect(result.featureBreakdown['predator-valley'].triggerFrequency).toBeCloseTo(0.0082, 4)

@@ -6,10 +6,11 @@ export const SYMBOLS = [
   'sauropodHorn',
   'campWild',
   'goldenAmber',
+  'compass',
+  'pickaxe',
   'jeep',
   'helicopter',
   'scientist',
-  'map',
   'crate',
   'footprint',
   'predatorTracks',
@@ -36,8 +37,10 @@ export interface GameConfig {
   boardSize: number
   symbolWeights: WeightedSymbol[]
   clusterPays: {
-    low: [number, number, number, number, number]
-    premium: [number, number, number, number, number]
+    gray: [number, number, number, number, number]
+    brown: [number, number, number, number, number]
+    green: [number, number, number, number, number]
+    blue: [number, number, number, number, number]
     goldenAmber: [number, number, number, number, number]
   }
   fieldNotesPays: Record<3 | 4 | 5, number>

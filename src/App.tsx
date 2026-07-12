@@ -47,12 +47,11 @@ const SYMBOL_DISPLAY: Record<string, { icon: string; label: string }> = {
   compass: { icon: '⌖', label: 'Compass' },
   brush: { icon: '╱', label: 'Brush' },
   journal: { icon: '▤', label: 'Journal' },
-  pickaxe: { icon: '⚒', label: 'Pickaxe' },
+  pickaxe: { icon: '⚒', label: 'Mining Pick' },
   canteen: { icon: '◉', label: 'Canteen' },
   jeep: { icon: '▣', label: 'Jeep' },
   helicopter: { icon: '✣', label: 'Helicopter' },
   scientist: { icon: '♟', label: 'Scientist' },
-  map: { icon: '◇', label: 'Satellite Map' },
   crate: { icon: '▦', label: 'Supply Crate' },
   footprint: { icon: '♣', label: 'Footprint' },
   predatorTracks: { icon: '!', label: 'Predator Tracks' },
@@ -115,6 +114,14 @@ const FIELD_NOTE_SYMBOLS = [
   'sauropodHorn',
 ] as const
 
+function symbolColorTier(symbol: SymbolId): 'gray' | 'brown' | 'green' | 'blue' | null {
+  if (symbol === 'compass' || symbol === 'pickaxe' || symbol === 'crate') return 'gray'
+  if (FIELD_NOTE_SYMBOLS.includes(symbol as (typeof FIELD_NOTE_SYMBOLS)[number])) return 'brown'
+  if (symbol === 'jeep' || symbol === 'scientist') return 'green'
+  if (symbol === 'helicopter') return 'blue'
+  return null
+}
+
 const CONCEPT_SYMBOL_ASSETS: Record<string, string> = {
   compass: new URL('./assets/concept/compass.png', import.meta.url).href,
   brush: new URL('./assets/concept/brush.png', import.meta.url).href,
@@ -124,7 +131,6 @@ const CONCEPT_SYMBOL_ASSETS: Record<string, string> = {
   jeep: new URL('./assets/concept/jeep.png', import.meta.url).href,
   helicopter: new URL('./assets/concept/helicopter.png', import.meta.url).href,
   scientist: new URL('./assets/concept/scientist.png', import.meta.url).href,
-  map: new URL('./assets/concept/map.png', import.meta.url).href,
   crate: new URL('./assets/concept/crate.png', import.meta.url).href,
   footprint: new URL('./assets/concept/footprint.png', import.meta.url).href,
   predatorTracks: new URL('./assets/concept/predatorTracks.png', import.meta.url).href,
@@ -318,13 +324,6 @@ function SymbolIllustration({ symbol }: { symbol: string }) {
           <circle className="filled" cx="32" cy="17" r="9" />
           <path d="M20 55 25 29h14l5 26" />
           <path d="M25 35h14M22 20h20M31 29l-7 26M33 29l7 26" />
-        </svg>
-      )
-    case 'map':
-      return (
-        <svg {...shared} className="symbol-svg symbol-map">
-          <path className="filled" d="M10 17 24 11l16 6 14-5v35l-14 6-16-6-14 5z" />
-          <path d="M24 11v36M40 17v36M16 24c8 4 16 5 28 0M17 40c9-4 18-3 29 1" />
         </svg>
       )
     case 'crate':
@@ -578,7 +577,8 @@ const REEL_SPIN_SYMBOLS: SymbolId[] = [
   'goldenAmber',
   'jeep',
   'campWild',
-  'map',
+  'compass',
+  'pickaxe',
 ]
 
 function formatCredits(value: number): string {
@@ -1398,6 +1398,7 @@ function BaseGame({
         {spin.board.flatMap((row, rowIndex) =>
           row.map((symbol, columnIndex) => {
             const display = SYMBOL_DISPLAY[symbol]
+            const colorTier = symbolColorTier(symbol)
             const spinning = isReeling && columnIndex >= settledReels
             const isEvidenceSymbol = FIELD_NOTE_SYMBOLS.includes(
               symbol as (typeof FIELD_NOTE_SYMBOLS)[number],
@@ -1425,6 +1426,8 @@ function BaseGame({
                 return (
                   <div
                     className={`symbol reel-${columnIndex} ${
+                      colorTier ? `tier-${colorTier}` : ''
+                    } ${
                       symbol === 'footprint' || symbol === 'predatorTracks' ? 'scatter' : ''
                     } ${symbol === 'campWild' ? 'wild' : ''} ${
                       symbol === 'predatorTracks' ? 'predator-track' : ''
@@ -2429,7 +2432,11 @@ function TuningWorkspace({
     )
   }
 
-  const setClusterPay = (table: 'low' | 'premium', index: number, value: number) => {
+  const setClusterPay = (
+    table: keyof GameConfig['clusterPays'],
+    index: number,
+    value: number,
+  ) => {
     onConfigChange(
       updateConfigNumber(config, (draft) => {
         draft.clusterPays[table][index] = value
@@ -2489,9 +2496,9 @@ function TuningWorkspace({
       <div className="tuning-section">
         <h3>Cluster paytables</h3>
         <div className="paytable-editor">
-          {(['low', 'premium'] as const).map((table) => (
+          {(['gray', 'brown', 'green', 'blue', 'goldenAmber'] as const).map((table) => (
             <div key={table}>
-              <strong>{table}</strong>
+              <strong>{table === 'goldenAmber' ? 'Golden Amber' : table}</strong>
               {config.clusterPays[table].map((value, index) => (
                 <NumberControl
                   key={`${table}-${index}`}

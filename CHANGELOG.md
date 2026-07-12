@@ -4,6 +4,10 @@ Brief summaries of significant project changes. Version numbers are prototype mi
 
 ## Unreleased
 
+- Integrated the latest main-screen art sheet across reel symbols and side panels while preserving the existing cabinet layout.
+- Replaced Satellite Map with Compass and Mining Pick as active cluster symbols.
+- Converted cluster payouts to a color-tier hierarchy: gray, brown, green, blue, and Golden Amber.
+- Retuned color-tier cluster paytables to keep the combined two-valley build inside the current 94-97% RTP target.
 - Reworked the left Trail Markers panel into a stable Destination Cues tracker that shows Fossil Footprints and Predator Tracks at the same time.
 - Updated reel anticipation timing so later reels linger after either valley cue family appears, with stronger suspense when a matching cue count reaches two.
 - Added a lightweight procedural Web Audio layer for jungle ambience, reel motion, result hits, valley triggers, and feature survey/reveal feedback.
