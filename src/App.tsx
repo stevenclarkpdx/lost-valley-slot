@@ -55,6 +55,7 @@ const SYMBOL_DISPLAY: Record<string, { icon: string; label: string }> = {
   crate: { icon: '▦', label: 'Supply Crate' },
   footprint: { icon: '♣', label: 'Footprint' },
   predatorTracks: { icon: '!', label: 'Predator Tracks' },
+  nestingEggs: { icon: '◯', label: 'Nesting Eggs' },
 }
 
 const DISCOVERY_PRESENTATION: Record<
@@ -94,6 +95,11 @@ const DISCOVERY_PRESENTATION: Record<
     icon: '!',
     rarity: 'legendary',
   },
+  egg: { displayName: 'Egg', icon: '◯', rarity: 'common' },
+  hatchling: { displayName: 'Hatchling', icon: '◢', rarity: 'uncommon' },
+  'family-nest': { displayName: 'Family Nest', icon: '⌁', rarity: 'uncommon' },
+  'juvenile-dinosaur': { displayName: 'Juvenile Dinosaur', icon: '◢', rarity: 'rare' },
+  'nesting-colony': { displayName: 'Nesting Colony', icon: '★', rarity: 'legendary' },
 }
 
 function discoveryPresentation(tile: RevealedFeatureTile) {
@@ -134,6 +140,7 @@ const CONCEPT_SYMBOL_ASSETS: Record<string, string> = {
   crate: new URL('./assets/concept/crate.png', import.meta.url).href,
   footprint: new URL('./assets/concept/footprint.png', import.meta.url).href,
   predatorTracks: new URL('./assets/concept/predatorTracks.png', import.meta.url).href,
+  nestingEggs: new URL('./assets/concept/dinosaur-egg.png', import.meta.url).href,
   campWild: new URL('./assets/concept/campWild.png', import.meta.url).href,
   goldenAmber: new URL('./assets/concept/goldenAmber.png', import.meta.url).href,
   trexTooth: new URL('./assets/concept/trexTooth.png', import.meta.url).href,
@@ -184,6 +191,11 @@ const CONCEPT_DISCOVERY_ASSETS: Record<string, string> = {
     './assets/concept/predator-encounter.png',
     import.meta.url,
   ).href,
+  egg: new URL('./assets/concept/dinosaur-egg.png', import.meta.url).href,
+  hatchling: new URL('./assets/concept/living-specimen.png', import.meta.url).href,
+  'family-nest': new URL('./assets/concept/dinosaur-egg.png', import.meta.url).href,
+  'juvenile-dinosaur': new URL('./assets/concept/living-specimen.png', import.meta.url).href,
+  'nesting-colony': new URL('./assets/concept/living-specimen.png', import.meta.url).href,
 }
 
 function ConceptImage({
@@ -509,6 +521,7 @@ interface SpinLedgerEntry {
   featureTriggered: boolean
   footprintCount: number
   predatorTrackCount: number
+  nestingEggCount: number
   triggeredFeatureName: string | null
   status: 'base-only' | 'feature-active' | 'complete'
 }
@@ -573,6 +586,7 @@ const REEL_SPIN_SYMBOLS: SymbolId[] = [
   'crate',
   'footprint',
   'predatorTracks',
+  'nestingEggs',
   'helicopter',
   'goldenAmber',
   'jeep',
@@ -682,9 +696,13 @@ function baseGameMessage(
     return `Valley survey complete · ${lastFeatureWin.toFixed(2)} credits recovered`
   }
   if (spin.featureTriggered) {
-    return spin.triggeredFeatureName === 'Predator Valley'
-      ? 'Three Predator Tracks — the warning zone opens.'
-      : 'Three Footprints — the hidden valley opens.'
+    if (spin.triggeredFeatureName === 'Predator Valley') {
+      return 'Three Predator Tracks — the warning zone opens.'
+    }
+    if (spin.triggeredFeatureName === 'Nesting Grounds') {
+      return 'Three Nesting Eggs — active grounds discovered.'
+    }
+    return 'Three Footprints — the hidden valley opens.'
   }
   if (spin.fieldNotes.bonus > 0) {
     const milestoneName =
@@ -698,6 +716,9 @@ function baseGameMessage(
   if (spin.predatorTrackCount === 2) {
     return 'Two Predator Tracks — one more could locate the hunter.'
   }
+  if (spin.nestingEggCount === 2) {
+    return 'Two Nesting Eggs — one more could reveal active grounds.'
+  }
   if (spin.footprintCount === 2) return 'Two trail markers found — one more would reveal the route.'
   if (spin.clusterWin > 0) {
     if (winTier === 'tiny') return `Minor find · ${spin.clusterWin.toFixed(2)} credits`
@@ -707,6 +728,7 @@ function baseGameMessage(
   }
   if (spin.fieldNotes.uniqueEvidence.length > 0) return 'Evidence logged. No payout this time.'
   if (spin.predatorTrackCount === 1) return 'A warning track cuts across the mud.'
+  if (spin.nestingEggCount === 1) return 'A warm nesting sign appears in the brush.'
   if (spin.footprintCount === 1) return 'A faint trail mark fades into the brush.'
   return 'No fresh signs in this sector.'
 }
@@ -868,6 +890,7 @@ function App() {
       featureTriggered: result.featureTriggered,
       footprintCount: result.footprintCount,
       predatorTrackCount: result.predatorTrackCount,
+      nestingEggCount: result.nestingEggCount,
       triggeredFeatureName: result.triggeredFeatureName,
       status: result.featureTriggered ? 'feature-active' : 'base-only',
     }
@@ -892,7 +915,7 @@ function App() {
     const finalReelCueBonus = compressed ? 0 : 280
     const finalReelSweatBonus = compressed ? 0 : 420
 
-    const cueCount = result.footprintCount + result.predatorTrackCount
+    const cueCount = result.footprintCount + result.predatorTrackCount + result.nestingEggCount
     const anticipationForReel = (reelIndex: number) => {
       if (reelIndex === 0 || cueCount === 0) return 0
       const finalReel = reelIndex === config.boardSize - 1
@@ -906,7 +929,16 @@ function App() {
           count + row.slice(0, reelIndex).filter((symbol) => symbol === 'predatorTracks').length,
         0,
       )
-      const strongestCueChain = Math.max(fossilCuesBeforeReel, predatorCuesBeforeReel)
+      const nestingCuesBeforeReel = result.board.reduce(
+        (count, row) =>
+          count + row.slice(0, reelIndex).filter((symbol) => symbol === 'nestingEggs').length,
+        0,
+      )
+      const strongestCueChain = Math.max(
+        fossilCuesBeforeReel,
+        predatorCuesBeforeReel,
+        nestingCuesBeforeReel,
+      )
       if (strongestCueChain >= 2) {
         return (
           twoCueAnticipationDelay +
@@ -1373,9 +1405,12 @@ function BaseGame({
       (presentationBeat === 'idle' && inputReady))
   const revealEvidence = resultVisible
   const revealFootprints = resultVisible
-  const triggeredCueSymbol = spin.triggeredFeatureName === 'Predator Valley'
-    ? 'predatorTracks'
-    : 'footprint'
+  const triggeredCueSymbol =
+    spin.triggeredFeatureName === 'Predator Valley'
+      ? 'predatorTracks'
+      : spin.triggeredFeatureName === 'Nesting Grounds'
+        ? 'nestingEggs'
+        : 'footprint'
   const cueSuspense = false
   const trailActive = false
   return (
@@ -1390,6 +1425,7 @@ function BaseGame({
         <LostValleyPanel
           footprintCount={revealFootprints ? spin.footprintCount : 0}
           predatorTrackCount={revealFootprints ? spin.predatorTrackCount : 0}
+          nestingEggCount={revealFootprints ? spin.nestingEggCount : 0}
           triggeredFeatureName={revealFootprints ? spin.triggeredFeatureName : null}
           featureTriggered={revealFootprints && spin.featureTriggered}
           active={trailActive}
@@ -1398,7 +1434,10 @@ function BaseGame({
         <div className="reel-stage">
       <div className="game-label">
         <span>Expedition grid</span>
-        <span>{spin.footprintCount}/3 fossil · {spin.predatorTrackCount}/3 predator</span>
+        <span>
+          {spin.footprintCount}/3 fossil · {spin.predatorTrackCount}/3 predator ·{' '}
+          {spin.nestingEggCount}/3 nesting
+        </span>
       </div>
       <div className="symbol-grid">
         {spin.board.flatMap((row, rowIndex) =>
@@ -1434,9 +1473,15 @@ function BaseGame({
                     className={`symbol reel-${columnIndex} ${
                       colorTier ? `tier-${colorTier}` : ''
                     } ${
-                      symbol === 'footprint' || symbol === 'predatorTracks' ? 'scatter' : ''
+                      symbol === 'footprint' ||
+                      symbol === 'predatorTracks' ||
+                      symbol === 'nestingEggs'
+                        ? 'scatter'
+                        : ''
                     } ${symbol === 'campWild' ? 'wild' : ''} ${
                       symbol === 'predatorTracks' ? 'predator-track' : ''
+                    } ${
+                      symbol === 'nestingEggs' ? 'nesting-eggs' : ''
                     } ${
                       symbol === 'goldenAmber' ? 'golden-amber' : ''
                     } ${
@@ -1534,6 +1579,7 @@ function BaseGame({
 function LostValleyPanel({
   footprintCount,
   predatorTrackCount,
+  nestingEggCount,
   triggeredFeatureName,
   featureTriggered,
   active,
@@ -1541,6 +1587,7 @@ function LostValleyPanel({
 }: {
   footprintCount: number
   predatorTrackCount: number
+  nestingEggCount: number
   triggeredFeatureName: string | null
   featureTriggered: boolean
   active: boolean
@@ -1548,18 +1595,29 @@ function LostValleyPanel({
 }) {
   const fossilFound = Math.min(footprintCount, 3)
   const predatorFound = Math.min(predatorTrackCount, 3)
+  const nestingFound = Math.min(nestingEggCount, 3)
   const destinationName =
     triggeredFeatureName ??
-    (predatorFound >= 3 ? 'Predator Valley' : fossilFound >= 3 ? 'Fossil Valley' : 'Lost Valley')
+    (predatorFound >= 3
+      ? 'Predator Valley'
+      : nestingFound >= 3
+        ? 'Nesting Grounds'
+        : fossilFound >= 3
+          ? 'Fossil Valley'
+          : 'Lost Valley')
   const renderCueTrack = (
-    cueSymbol: 'footprint' | 'predatorTracks',
+    cueSymbol: 'footprint' | 'predatorTracks' | 'nestingEggs',
     found: number,
     label: string,
     destination: string,
   ) => (
     <div
       className={`cue-track ${
-        cueSymbol === 'predatorTracks' ? 'predator-cue-track' : 'fossil-cue-track'
+        cueSymbol === 'predatorTracks'
+          ? 'predator-cue-track'
+          : cueSymbol === 'nestingEggs'
+            ? 'nesting-cue-track'
+            : 'fossil-cue-track'
       } ${found >= 3 ? 'cue-complete' : ''}`}
       aria-label={`${found} of 3 cues found for ${destination}`}
     >
@@ -1591,12 +1649,15 @@ function LostValleyPanel({
     >
       <div className="lost-valley-heading">
         <span>Destination cues</span>
-        <strong>{featureTriggered ? destinationName : `${fossilFound + predatorFound}/6`}</strong>
+        <strong>
+          {featureTriggered ? destinationName : `${fossilFound + predatorFound + nestingFound}/9`}
+        </strong>
       </div>
       <p>Follow expedition signs. Three matching cues reveal a valley destination.</p>
       <div className="cue-track-list">
         {renderCueTrack('footprint', fossilFound, 'Fossil Footprints', 'Fossil Valley')}
         {renderCueTrack('predatorTracks', predatorFound, 'Predator Tracks', 'Predator Valley')}
+        {renderCueTrack('nestingEggs', nestingFound, 'Nesting Eggs', 'Nesting Grounds')}
       </div>
       <div className="lost-valley-card" aria-hidden="true" />
     </aside>
@@ -1728,6 +1789,9 @@ function FeatureBoard({
   const lastStep = session.steps.at(-1)
   const collectorEvent = lastStep?.reveals.some((reveal) => reveal.tile.kind === 'collector')
   const revealEventByIndex = new Map(revealEvents.map((event) => [event.index, event]))
+  const evolutionEventByIndex = new Map(
+    lastStep?.evolutionEvents?.map((event) => [event.index, event]) ?? [],
+  )
   const Progression = session.progression
   const completedSections = Progression?.sections.filter((section) => section.completed).length ?? 0
   const totalSections = Progression?.sections.length ?? 0
@@ -1743,34 +1807,54 @@ function FeatureBoard({
         )
       : 0
   const latestProgressionEvents = lastStep?.progressionEvents ?? []
+  const latestEvolutionEvents = lastStep?.evolutionEvents ?? []
   const latestBonus = lastStep?.bonusAwarded ?? 0
   const predator = session.profile.theme === 'predator'
-  const progressName = predator ? 'Tracking Confidence' : 'Fossil Assembly'
+  const nesting = session.profile.theme === 'nesting'
+  const progressName = predator
+    ? 'Tracking Confidence'
+    : nesting
+      ? 'Life Cycle'
+      : 'Fossil Assembly'
   const completeSectionsLabel = predator
     ? `${completedSections}/${totalSections} trail stages confirmed`
-    : `${completedSections}/${totalSections} body sections identified`
+    : nesting
+      ? `${completedSections}/${totalSections} nesting stages observed`
+      : `${completedSections}/${totalSections} body sections identified`
   const surveyBusy =
     presentationPhase === 'feature-survey' || presentationPhase === 'feature-reveal'
   const featureCopy =
     presentationPhase === 'feature-survey'
       ? predator
         ? 'Foliage shifts as the tracking team sweeps the warning zone.'
-        : 'Fog stirs as the expedition sweeps the valley.'
+        : nesting
+          ? 'Leaves rustle as the expedition watches the nesting ground.'
+          : 'Fog stirs as the expedition sweeps the valley.'
       : presentationPhase === 'feature-reveal'
         ? lastStep?.hit
-          ? predator
+          ? latestEvolutionEvents.length > 0
+            ? `${latestEvolutionEvents.length} egg${latestEvolutionEvents.length === 1 ? '' : 's'} hatched.`
+            : predator
             ? 'A fresh clue breaks the trail open.'
-            : 'Discovery emerging from the fog.'
+            : nesting
+              ? 'New life stirs in the nesting ground.'
+              : 'Discovery emerging from the fog.'
           : predator
             ? 'The trail goes quiet for a moment.'
-            : 'The sweep turns up no fresh site.'
+            : nesting
+              ? 'The nests go quiet for a moment.'
+              : 'The sweep turns up no fresh site.'
         : session.isComplete
           ? predator
             ? 'Tracking complete.'
-            : 'Survey complete.'
+            : nesting
+              ? 'Nesting watch complete.'
+              : 'Survey complete.'
           : predator
             ? 'The team waits for the next tracking sweep.'
-            : 'The expedition awaits your survey.'
+            : nesting
+              ? 'The team waits quietly beside the nests.'
+              : 'The expedition awaits your survey.'
   const surveyButtonLabel =
     presentationPhase === 'feature-survey'
       ? 'Surveying...'
@@ -1781,7 +1865,9 @@ function FeatureBoard({
         : session.steps.length === 0
           ? predator
             ? 'Track valley'
-            : 'Survey valley'
+            : nesting
+              ? 'Watch nests'
+              : 'Survey valley'
           : 'Respin'
 
   return (
@@ -1790,13 +1876,19 @@ function FeatureBoard({
         collectorEvent ? 'collector-event' : ''
       } ${lastStep && !lastStep.hit && !session.isComplete ? 'feature-miss' : ''} ${
         session.isComplete ? 'feature-complete' : ''
-      } ${predator ? 'predator-feature' : 'fossil-feature'} phase-${presentationPhase}`}
+      } ${predator ? 'predator-feature' : nesting ? 'nesting-feature' : 'fossil-feature'} phase-${presentationPhase}`}
     >
       {introActive && (
         <div className="feature-intro">
           <span className="eyebrow">Valley discovered</span>
           <h2>{session.profile.displayName}</h2>
-          <p>{predator ? 'The hunt is on.' : 'Steady discoveries. Reliable rewards.'}</p>
+          <p>
+            {predator
+              ? 'The hunt is on.'
+              : nesting
+                ? 'Life spreads through the valley.'
+                : 'Steady discoveries. Reliable rewards.'}
+          </p>
         </div>
       )}
       <div className="feature-heading">
@@ -1805,8 +1897,10 @@ function FeatureBoard({
           <h2>{session.profile.displayName}</h2>
         </div>
         <div className="feature-site-stamp" aria-hidden="true">
-          <span>{predator ? 'Zone PV-01' : 'Site FV-01'}</span>
-          <strong>{predator ? 'Tracking Active' : 'Excavation Active'}</strong>
+          <span>{predator ? 'Zone PV-01' : nesting ? 'Ground NG-01' : 'Site FV-01'}</span>
+          <strong>
+            {predator ? 'Tracking Active' : nesting ? 'Nest Watch Active' : 'Excavation Active'}
+          </strong>
         </div>
       </div>
       <p className="feature-copy">
@@ -1815,16 +1909,22 @@ function FeatureBoard({
         {session.respinsRemaining} respins remain.
       </p>
       <div className="excavation-atmosphere" aria-hidden="true">
-        <span className="camp-prop prop-tent">{predator ? 'Warning camp' : 'Expedition camp'}</span>
-        <span className="camp-prop prop-lantern">{predator ? 'Radio watch' : 'Lantern grid'}</span>
-        <span className="camp-prop prop-tools">{predator ? 'Tracking kit' : 'Dig tools'}</span>
+        <span className="camp-prop prop-tent">
+          {predator ? 'Warning camp' : nesting ? 'Quiet blind' : 'Expedition camp'}
+        </span>
+        <span className="camp-prop prop-lantern">
+          {predator ? 'Radio watch' : nesting ? 'Nest watch' : 'Lantern grid'}
+        </span>
+        <span className="camp-prop prop-tools">
+          {predator ? 'Tracking kit' : nesting ? 'Field lenses' : 'Dig tools'}
+        </span>
       </div>
       <div className="feature-exploration">
         <div className="excavation-site">
           <div className="site-rope site-rope-top" aria-hidden="true" />
           <div className="site-rope site-rope-bottom" aria-hidden="true" />
           <div className="site-sign" aria-hidden="true">
-            <span>{predator ? 'Tracking grid' : 'Survey grid'}</span>
+            <span>{predator ? 'Tracking grid' : nesting ? 'Nest grid' : 'Survey grid'}</span>
             <strong>{discoveries.length}/25</strong>
           </div>
         <div
@@ -1841,6 +1941,8 @@ function FeatureBoard({
                     ? 'fog-tile survey-square'
                     : `fog-tile discovery-card kind-${tile.kind} rarity-${presentation!.rarity} discovery-${tile.id} ${
                         revealEvent !== undefined ? 'newly-revealed' : ''
+                      } ${
+                        evolutionEventByIndex.has(index) ? 'newly-evolved' : ''
                       } survey-square`
                 }
                 key={index}
@@ -1940,7 +2042,7 @@ function FeatureBoard({
           </div>
           {latestProgressionEvents.length > 0 && (
             <div className="Progression-event-panel">
-              <span>{predator ? 'Tracking update' : 'Assembly update'}</span>
+              <span>{predator ? 'Tracking update' : nesting ? 'Life-cycle update' : 'Assembly update'}</span>
               {latestProgressionEvents.map((event, index) => (
                 <strong key={`${event.type}-${event.sectionId ?? event.classificationId ?? index}`}>
                   {event.type === 'section-complete'
@@ -1952,16 +2054,20 @@ function FeatureBoard({
                       : event.type === 'progression-complete'
                         ? predator
                           ? `Predator located +${event.bonusAwarded?.toFixed(0)}x`
-                          : `Specimen complete +${event.bonusAwarded?.toFixed(0)}x`
+                          : nesting
+                            ? `Colony confirmed +${event.bonusAwarded?.toFixed(0)}x`
+                            : `Specimen complete +${event.bonusAwarded?.toFixed(0)}x`
                         : predator
                           ? `${event.sectionName} clue logged`
-                          : `${event.sectionName} fragment logged`}
+                          : nesting
+                            ? `${event.sectionName} observed`
+                            : `${event.sectionName} fragment logged`}
                 </strong>
               ))}
             </div>
           )}
           <div className="feature-side-stat feature-total">
-            <small>{predator ? 'Tracking value' : 'Discovery value'}</small>
+            <small>{predator ? 'Tracking value' : nesting ? 'Nesting value' : 'Discovery value'}</small>
             <strong>{session.totalWin.toFixed(2)}</strong>
           </div>
           <div className="feature-side-stat">
@@ -2030,29 +2136,45 @@ function FeatureBoard({
             ? Progression
               ? predator
                 ? `Tracking summary: ${Progression.classificationName} · ${completedSections}/${totalSections} stages confirmed · ${session.totalWin.toFixed(2)}x`
-                : `Expedition summary: ${Progression.classificationName} · ${completedSections}/${totalSections} sections complete · ${session.totalWin.toFixed(2)}x`
+                : nesting
+                  ? `Nesting summary: ${Progression.classificationName} · ${completedSections}/${totalSections} stages observed · ${session.totalWin.toFixed(2)}x`
+                  : `Expedition summary: ${Progression.classificationName} · ${completedSections}/${totalSections} sections complete · ${session.totalWin.toFixed(2)}x`
               : session.fullyRevealed
                 ? 'The entire valley is revealed'
                 : 'Survey exhausted'
             : lastStep?.hit
-              ? latestBonus > 0
+              ? latestEvolutionEvents.length > 0
+                ? `${latestEvolutionEvents.length} egg${latestEvolutionEvents.length === 1 ? '' : 's'} hatched +${latestEvolutionEvents
+                    .reduce((sum, event) => sum + event.payoutIncrease, 0)
+                    .toFixed(2)}x`
+                : latestBonus > 0
                 ? predator
                   ? `Tracking breakthrough +${latestBonus.toFixed(0)}x`
-                  : `Specimen breakthrough +${latestBonus.toFixed(0)}x`
+                  : nesting
+                    ? `Nesting breakthrough +${latestBonus.toFixed(0)}x`
+                    : `Specimen breakthrough +${latestBonus.toFixed(0)}x`
                 : latestProgressionEvents.length > 0
                   ? predator
                     ? 'Clue added to tracking dossier'
-                    : 'Fossil evidence added to specimen'
+                    : nesting
+                      ? 'Nesting activity recorded'
+                      : 'Fossil evidence added to specimen'
                   : predator
                     ? 'Clue detected'
-                    : 'Evidence detected'
+                    : nesting
+                      ? 'Nest activity detected'
+                      : 'Evidence detected'
               : lastStep
                 ? predator
                   ? 'No fresh sign — one respin spent'
-                  : 'No discovery — one respin spent'
+                  : nesting
+                    ? 'No movement — one respin spent'
+                    : 'No discovery — one respin spent'
                 : predator
                   ? '25 tracking squares await'
-                  : '25 hidden sites await'}
+                  : nesting
+                    ? '25 quiet nests await'
+                    : '25 hidden sites await'}
         </span>
         {session.isComplete ? (
           <button onClick={onLeave} disabled={endingActive}>

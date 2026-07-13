@@ -17,6 +17,7 @@ Core files:
   lookup.
 - `src/engine/profiles/fossilValley.ts` describes Fossil Valley.
 - `src/engine/profiles/predatorValley.ts` describes Predator Valley.
+- `src/engine/profiles/nestingGrounds.ts` describes Nesting Grounds.
 - `src/engine/simulation.ts` runs the production engine headlessly and reports
   combined plus per-feature diagnostics.
 
@@ -33,17 +34,20 @@ A `FeatureProfile` describes:
 - starting respins and hit-reset respins;
 - hit probability, multi-hit probability, and max tiles per hit;
 - weighted reveal tiles;
+- optional generic tile evolution rules;
 - optional collectors and jackpots;
 - payout rules and completion reward;
 - optional generic `progression` configuration.
 
 The engine does not know about Fossil Assembly, Tracking Confidence, dinosaurs,
-or predators. It only understands reveal boards, respins, hits, tile generation,
-payouts, and generic progression events. Presentation maps those generic events
-into theme-specific language:
+predators, or nesting grounds. It only understands reveal boards, respins, hits,
+tile generation, profile-driven tile evolution, payouts, and generic progression
+events. Presentation maps those generic events into theme-specific language:
 
 - Fossil Valley presents progression as Fossil Assembly.
 - Predator Valley presents progression as Tracking Confidence.
+- Nesting Grounds presents progression as a Nesting Life Cycle, with Eggs
+  hatching into Hatchlings via generic tile evolution.
 
 ## Runtime APIs
 
@@ -61,7 +65,8 @@ To add a fourth feature profile without modifying engine code:
 
 1. Create `src/engine/profiles/newValley.ts`.
 2. Export a `FeatureProfile` with a unique `id`, `triggerSymbol`, weighted tiles,
-   hit settings, payout rules, and optional `progression`.
+   hit settings, payout rules, optional `progression`, and optional
+   `tileEvolution`.
 3. Add the profile to `DEFAULT_CONFIG.featureProfiles`.
 4. Add or import presentation assets for that profile in React.
 5. Add tests for trigger routing, deterministic stepping, and profile-specific

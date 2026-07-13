@@ -29,8 +29,24 @@ export function runSimulation(
   const featureFullRevealsById = Object.fromEntries(
     config.featureProfiles.map((profile) => [profile.id, 0]),
   )
+  const featureSourceTilesCreatedById = Object.fromEntries(
+    config.featureProfiles.map((profile) => [profile.id, 0]),
+  )
+  const featureEvolvedTilesById = Object.fromEntries(
+    config.featureProfiles.map((profile) => [profile.id, 0]),
+  )
+  const featureEvolutionValueById = Object.fromEntries(
+    config.featureProfiles.map((profile) => [profile.id, 0]),
+  )
+  const featureLargestEvolutionChainById = Object.fromEntries(
+    config.featureProfiles.map((profile) => [profile.id, 0]),
+  )
+  const featureRevealTotalById = Object.fromEntries(
+    config.featureProfiles.map((profile) => [profile.id, 0]),
+  )
   const footprintCounts = { '0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5+': 0 }
   const predatorTrackCounts = { '0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5+': 0 }
+  const nestingEggCounts = { '0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5+': 0 }
   const clusterCounts: Record<string, number> = {}
   const clusterSizes = { '4': 0, '5': 0, '6': 0, '7': 0, '8+': 0 }
   const symbolCounts = Object.fromEntries(
@@ -51,6 +67,7 @@ export function runSimulation(
   let goldenAmberClusterHits = 0
   let twoFootprintHits = 0
   let twoPredatorTrackHits = 0
+  let twoNestingEggHits = 0
   let baseWinsOver10 = 0
   let largestBaseGameHit = 0
 
@@ -75,8 +92,12 @@ export function runSimulation(
     const predatorTrackBucket =
       base.predatorTrackCount >= 5 ? '5+' : String(base.predatorTrackCount)
     predatorTrackCounts[predatorTrackBucket as keyof typeof predatorTrackCounts] += 1
+    const nestingEggBucket =
+      base.nestingEggCount >= 5 ? '5+' : String(base.nestingEggCount)
+    nestingEggCounts[nestingEggBucket as keyof typeof nestingEggCounts] += 1
     if (base.footprintCount === 2) twoFootprintHits += 1
     if (base.predatorTrackCount === 2) twoPredatorTrackHits += 1
+    if (base.nestingEggCount === 2) twoNestingEggHits += 1
     const clusterCountBucket = String(base.clusterWins.length)
     clusterCounts[clusterCountBucket] = (clusterCounts[clusterCountBucket] ?? 0) + 1
     totalClusters += base.clusterWins.length
@@ -107,6 +128,8 @@ export function runSimulation(
       featurePaidById[featureProfile.id] = (featurePaidById[featureProfile.id] ?? 0) + feature.totalWin
       featurePaid += feature.totalWin
       const revealed = feature.tiles.filter((tile) => tile !== null).length
+      featureRevealTotalById[featureProfile.id] =
+        (featureRevealTotalById[featureProfile.id] ?? 0) + revealed
       revealCounts[String(revealed)] = (revealCounts[String(revealed)] ?? 0) + 1
       const featureRevealCounts = featureRevealCountsById[featureProfile.id] ?? {}
       featureRevealCounts[String(revealed)] = (featureRevealCounts[String(revealed)] ?? 0) + 1
@@ -116,6 +139,26 @@ export function runSimulation(
         featureFullRevealsById[featureProfile.id] =
           (featureFullRevealsById[featureProfile.id] ?? 0) + 1
       }
+      const sourceTileIds = new Set(
+        featureProfile.tileEvolution?.map((rule) => rule.fromTileId) ?? [],
+      )
+      let largestEvolutionChain = 0
+      for (const step of feature.steps) {
+        featureSourceTilesCreatedById[featureProfile.id] =
+          (featureSourceTilesCreatedById[featureProfile.id] ?? 0) +
+          step.reveals.filter((reveal) => sourceTileIds.has(reveal.tile.id)).length
+        const evolvedThisStep = step.evolutionEvents?.length ?? 0
+        largestEvolutionChain = Math.max(largestEvolutionChain, evolvedThisStep)
+        featureEvolvedTilesById[featureProfile.id] =
+          (featureEvolvedTilesById[featureProfile.id] ?? 0) + evolvedThisStep
+        featureEvolutionValueById[featureProfile.id] =
+          (featureEvolutionValueById[featureProfile.id] ?? 0) +
+          (step.evolutionEvents?.reduce((sum, event) => sum + event.payoutIncrease, 0) ?? 0)
+      }
+      featureLargestEvolutionChainById[featureProfile.id] = Math.max(
+        featureLargestEvolutionChainById[featureProfile.id] ?? 0,
+        largestEvolutionChain,
+      )
     }
   }
 
@@ -167,6 +210,25 @@ export function runSimulation(
             triggersForProfile === 0
               ? 0
               : (featureFullRevealsById[profile.id] ?? 0) / triggersForProfile,
+          evolutionDiagnostics: {
+            averageSourceTilesCreated:
+              triggersForProfile === 0
+                ? 0
+                : (featureSourceTilesCreatedById[profile.id] ?? 0) / triggersForProfile,
+            averageEvolvedTiles:
+              triggersForProfile === 0
+                ? 0
+                : (featureEvolvedTilesById[profile.id] ?? 0) / triggersForProfile,
+            averageEvolutionValue:
+              triggersForProfile === 0
+                ? 0
+                : (featureEvolutionValueById[profile.id] ?? 0) / triggersForProfile,
+            largestEvolutionChain: featureLargestEvolutionChainById[profile.id] ?? 0,
+            averageReveals:
+              triggersForProfile === 0
+                ? 0
+                : (featureRevealTotalById[profile.id] ?? 0) / triggersForProfile,
+          },
         },
       ]
     }),
@@ -205,6 +267,7 @@ export function runSimulation(
     },
     footprintDistribution: normalize(footprintCounts, spins),
     predatorTrackDistribution: normalize(predatorTrackCounts, spins),
+    nestingEggDistribution: normalize(nestingEggCounts, spins),
     clusterCountDistribution: normalize(clusterCounts, spins),
     clusterSizeDistribution: normalize(clusterSizes, totalClusters),
     symbolFrequencyDistribution: normalize(
@@ -219,6 +282,7 @@ export function runSimulation(
     goldenAmberHitFrequency: goldenAmberClusterHits / spins,
     twoFootprintFrequency: twoFootprintHits / spins,
     twoPredatorTrackFrequency: twoPredatorTrackHits / spins,
+    twoNestingEggFrequency: twoNestingEggHits / spins,
     baseWinsOver10Frequency: baseWinsOver10 / spins,
     largestBaseGameHit,
     baseWinPercentiles: {

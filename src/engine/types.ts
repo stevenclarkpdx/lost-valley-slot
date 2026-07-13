@@ -14,6 +14,7 @@ export const SYMBOLS = [
   'crate',
   'footprint',
   'predatorTracks',
+  'nestingEggs',
 ] as const
 
 export type SymbolId = (typeof SYMBOLS)[number]
@@ -53,7 +54,7 @@ export interface CellPosition {
 }
 
 export interface ClusterWin {
-  symbol: Exclude<SymbolId, 'footprint' | 'predatorTracks' | 'campWild'>
+  symbol: Exclude<SymbolId, 'footprint' | 'predatorTracks' | 'nestingEggs' | 'campWild'>
   size: number
   cells: CellPosition[]
   payout: number
@@ -74,6 +75,7 @@ export interface BaseSpinResult {
   board: Board
   footprintCount: number
   predatorTrackCount: number
+  nestingEggCount: number
   triggerCounts: Record<string, number>
   featureTriggered: boolean
   triggeredFeatureId: string | null
@@ -117,6 +119,8 @@ export interface SimulationResult {
   goldenAmberHitFrequency: number
   twoFootprintFrequency: number
   twoPredatorTrackFrequency: number
+  nestingEggDistribution: Record<string, number>
+  twoNestingEggFrequency: number
   baseWinsOver10Frequency: number
   largestBaseGameHit: number
   baseWinPercentiles: {
@@ -140,6 +144,13 @@ export interface SimulationResult {
       }
       finalRevealDistribution: Record<string, number>
       fullRevealRate: number
+      evolutionDiagnostics?: {
+        averageSourceTilesCreated: number
+        averageEvolvedTiles: number
+        averageEvolutionValue: number
+        largestEvolutionChain: number
+        averageReveals: number
+      }
     }
   >
 }

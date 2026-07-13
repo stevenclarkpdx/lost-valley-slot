@@ -4,6 +4,12 @@ Brief summaries of significant project changes. Version numbers are prototype mi
 
 ## Unreleased
 
+- Added Nesting Grounds as the third major valley profile, triggered by Nesting Eggs.
+- Added generic profile-driven tile evolution so revealed Eggs can hatch into Hatchlings without valley-name branching in the feature engine.
+- Tuned Nesting Grounds toward high hit frequency, higher reveal counts, lower tile values, and hatch-chain momentum while keeping total RTP in the current 94-97% target band.
+- Added Nesting-specific simulation diagnostics for eggs created, eggs hatched, hatch value, hatch chains, reveal count, and per-feature RTP/percentiles.
+- Updated the base destination-cue panel, reel anticipation, feature screen language, and discovery presentation to support Fossil Valley, Predator Valley, and Nesting Grounds.
+- Added tests for Nesting trigger routing, Nesting Eggs exclusion from cluster/evidence/wild behavior, generic tile evolution, and the new three-valley deterministic simulation baseline.
 - Tightened main and feature screen presentation so symbols, feature grid rows, sidebar stats, and field logs fit more cleanly before alpha publishing.
 - Replaced the muddy Fossil Footprint crop with a clearer blue fossil-track symbol for better scatter readability.
 - Integrated the latest main-screen art sheet across reel symbols and side panels while preserving the existing cabinet layout.

@@ -2,6 +2,7 @@ import type {
   ProgressionEvent,
   ProgressionState,
   CollectorDefinition,
+  FeatureEvolutionEvent,
   FeatureProfile,
   FeatureResult,
   FeatureSession,
@@ -26,15 +27,10 @@ function pickWeighted<T>(
   return entries[entries.length - 1]
 }
 
-function generateStandardTile(
+function tileFromDefinition(
   profile: FeatureProfile,
-  rng: Rng,
+  definition: TileDefinition,
 ): RevealedFeatureTile {
-  const definition = pickWeighted<TileDefinition>(
-    profile.tileTable,
-    (tile) => tile.rarityWeight,
-    rng,
-  )
   return {
     kind: 'tile',
     id: definition.id,
@@ -44,6 +40,18 @@ function generateStandardTile(
     progressionContribution: definition.progressionContribution,
     classificationTag: definition.classificationTag,
   }
+}
+
+function generateStandardTile(
+  profile: FeatureProfile,
+  rng: Rng,
+): RevealedFeatureTile {
+  const definition = pickWeighted<TileDefinition>(
+    profile.tileTable,
+    (tile) => tile.rarityWeight,
+    rng,
+  )
+  return tileFromDefinition(profile, definition)
 }
 
 function createProgressionState(profile: FeatureProfile): ProgressionState | undefined {
@@ -259,6 +267,41 @@ function generateTile(
   return generateStandardTile(profile, rng)
 }
 
+function applyTileEvolution(
+  profile: FeatureProfile,
+  tiles: Array<RevealedFeatureTile | null>,
+  eligibleIndices: number[],
+  rng: Rng,
+): { tiles: Array<RevealedFeatureTile | null>; events: FeatureEvolutionEvent[]; payout: number } {
+  if (!profile.tileEvolution || profile.tileEvolution.length === 0) {
+    return { tiles, events: [], payout: 0 }
+  }
+
+  const evolvedTiles = [...tiles]
+  const events: FeatureEvolutionEvent[] = []
+  let payout = 0
+
+  for (const index of eligibleIndices) {
+    const currentTile = evolvedTiles[index]
+    if (!currentTile) continue
+    const rule = profile.tileEvolution.find((candidate) => candidate.fromTileId === currentTile.id)
+    if (!rule || rng.next() >= rule.probability) continue
+
+    const nextTile = tileFromDefinition(profile, rule.toTile)
+    const payoutIncrease = Math.max(0, nextTile.payoutValue - currentTile.payoutValue)
+    evolvedTiles[index] = nextTile
+    payout += payoutIncrease
+    events.push({
+      index,
+      fromTile: currentTile,
+      toTile: nextTile,
+      payoutIncrease,
+    })
+  }
+
+  return { tiles: evolvedTiles, events, payout }
+}
+
 export class FeatureEngine {
   play(
     profile: FeatureProfile,
@@ -337,6 +380,9 @@ export function stepFeatureSession(session: FeatureSession): FeatureSession {
   }
 
   const revealedBefore = tiles.filter((tile) => tile !== null).length
+  const evolutionEligibleIndices = tiles
+    .map((value, index) => (value === null ? -1 : index))
+    .filter((index) => index >= 0)
   let revealsThisHit = 1
   if (
     profile.hitGeneration.maxTilesPerHit > 1 &&
@@ -369,6 +415,15 @@ export function stepFeatureSession(session: FeatureSession): FeatureSession {
     progressionEvents.push(...progressionUpdate.events)
   }
 
+  const evolution = applyTileEvolution(profile, tiles, evolutionEligibleIndices, rng)
+  tiles.splice(0, tiles.length, ...evolution.tiles)
+  for (const event of evolution.events) {
+    const progressionUpdate = applyProgressionReveal(profile, progression, event.toTile)
+    progression = progressionUpdate.progression
+    progressionBonus += progressionUpdate.bonus
+    progressionEvents.push(...progressionUpdate.events)
+  }
+
   const fullyRevealed = tiles.every((tile) => tile !== null)
   const completionReward = fullyRevealed ? profile.completionReward : 0
   const finalProgression = fullyRevealed ? finalizeProgression(progression) : undefined
@@ -383,6 +438,7 @@ export function stepFeatureSession(session: FeatureSession): FeatureSession {
         hit: true,
         respinsRemaining,
         reveals,
+        evolutionEvents: evolution.events,
         progressionEvents: [...progressionEvents, ...(finalProgression?.events ?? [])],
         bonusAwarded,
       },
@@ -390,7 +446,13 @@ export function stepFeatureSession(session: FeatureSession): FeatureSession {
     respinsRemaining,
     completionReward,
     progression: finalProgression?.progression ?? progression,
-    totalWin: session.totalWin + revealPayout + progressionBonus + (finalProgression?.bonus ?? 0) + completionReward,
+    totalWin:
+      session.totalWin +
+      revealPayout +
+      evolution.payout +
+      progressionBonus +
+      (finalProgression?.bonus ?? 0) +
+      completionReward,
     fullyRevealed,
     isComplete: fullyRevealed,
   }

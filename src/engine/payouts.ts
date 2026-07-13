@@ -9,8 +9,13 @@ import type {
 
 function isPayingSymbol(
   symbol: SymbolId,
-): symbol is Exclude<SymbolId, 'footprint' | 'predatorTracks' | 'campWild'> {
-  return symbol !== 'footprint' && symbol !== 'predatorTracks' && symbol !== 'campWild'
+): symbol is Exclude<SymbolId, 'footprint' | 'predatorTracks' | 'nestingEggs' | 'campWild'> {
+  return (
+    symbol !== 'footprint' &&
+    symbol !== 'predatorTracks' &&
+    symbol !== 'nestingEggs' &&
+    symbol !== 'campWild'
+  )
 }
 
 function isWild(symbol: SymbolId): boolean {
@@ -41,7 +46,7 @@ const DIRECTIONS = [
 ] as const
 
 function paytableForSymbol(
-  symbol: Exclude<SymbolId, 'footprint' | 'predatorTracks' | 'campWild'>,
+  symbol: Exclude<SymbolId, 'footprint' | 'predatorTracks' | 'nestingEggs' | 'campWild'>,
   config: GameConfig,
 ): [number, number, number, number, number] {
   if (GRAY_CLUSTER_SYMBOLS.has(symbol)) return config.clusterPays.gray

@@ -16,6 +16,12 @@ export interface TileDefinition {
   classificationTag?: string
 }
 
+export interface TileEvolutionRule {
+  fromTileId: string
+  toTile: TileDefinition
+  probability: number
+}
+
 export interface ProgressionSectionDefinition {
   id: string
   displayName: string
@@ -57,7 +63,7 @@ export interface FeatureProfile {
   displayName: string
   triggerSymbol?: string
   triggerDisplayName?: string
-  theme?: 'fossil' | 'predator'
+  theme?: 'fossil' | 'predator' | 'nesting'
   startingRespins: number
   boardWidth: number
   boardHeight: number
@@ -71,6 +77,7 @@ export interface FeatureProfile {
   jackpotProbability: number
   jackpotWeights: JackpotDefinition[]
   tileTable: TileDefinition[]
+  tileEvolution?: TileEvolutionRule[]
   progression?: ProgressionProfile
   payoutRules: {
     tileValueMultiplier: number
@@ -96,6 +103,13 @@ export interface RevealedFeatureTile {
 export interface FeatureReveal {
   index: number
   tile: RevealedFeatureTile
+}
+
+export interface FeatureEvolutionEvent {
+  index: number
+  fromTile: RevealedFeatureTile
+  toTile: RevealedFeatureTile
+  payoutIncrease: number
 }
 
 export interface ProgressionSectionState {
@@ -136,6 +150,7 @@ export interface FeatureStep {
   hit: boolean
   respinsRemaining: number
   reveals: FeatureReveal[]
+  evolutionEvents?: FeatureEvolutionEvent[]
   progressionEvents?: ProgressionEvent[]
   bonusAwarded?: number
 }

@@ -1,6 +1,7 @@
 import type { GameConfig } from './types'
 import { FOSSIL_VALLEY_PROFILE } from './profiles/fossilValley'
 import { PREDATOR_VALLEY_PROFILE } from './profiles/predatorValley'
+import { NESTING_GROUNDS_PROFILE } from './profiles/nestingGrounds'
 
 export const DEFAULT_CONFIG: GameConfig = {
   boardSize: 5,
@@ -18,8 +19,9 @@ export const DEFAULT_CONFIG: GameConfig = {
     { symbol: 'helicopter', weight: 13.1 },
     { symbol: 'scientist', weight: 13.1 },
     { symbol: 'crate', weight: 13.1 },
-    { symbol: 'footprint', weight: 1.5 },
-    { symbol: 'predatorTracks', weight: 1.5 },
+    { symbol: 'footprint', weight: 1.2 },
+    { symbol: 'predatorTracks', weight: 1.2 },
+    { symbol: 'nestingEggs', weight: 1.2 },
   ],
   clusterPays: {
     gray: [0.146, 0.439, 1.159, 2.806, 7.076],
@@ -33,5 +35,5 @@ export const DEFAULT_CONFIG: GameConfig = {
     4: 11.5,
     5: 75,
   },
-  featureProfiles: [FOSSIL_VALLEY_PROFILE, PREDATOR_VALLEY_PROFILE],
+  featureProfiles: [FOSSIL_VALLEY_PROFILE, PREDATOR_VALLEY_PROFILE, NESTING_GROUNDS_PROFILE],
 }

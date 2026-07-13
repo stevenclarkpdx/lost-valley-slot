@@ -77,6 +77,21 @@ describe('feature trigger', () => {
     expect(result.startingRespins).toBe(3)
   })
 
+  it('routes Nesting Eggs to Nesting Grounds without using other valley cues', () => {
+    const board = Array.from({ length: 5 }, () => Array(5).fill('jeep')) as Board
+    board[0][0] = 'nestingEggs'
+    board[2][3] = 'nestingEggs'
+    board[4][4] = 'nestingEggs'
+
+    const result = resolveTriggeredFeature(board, DEFAULT_CONFIG)
+
+    expect(result.profile?.id).toBe('nesting-grounds')
+    expect(result.triggerCounts['fossil-valley']).toBe(0)
+    expect(result.triggerCounts['predator-valley']).toBe(0)
+    expect(result.triggerCounts['nesting-grounds']).toBe(3)
+    expect(result.startingRespins).toBe(3)
+  })
+
   it('adds extra starting respins for four and five Predator Tracks', () => {
     const board = Array.from({ length: 5 }, () => Array(5).fill('jeep')) as Board
     board[0][0] = 'predatorTracks'
@@ -99,6 +114,10 @@ describe('feature trigger', () => {
       getTriggeredFeatureProfile(DEFAULT_CONFIG, { triggeredFeatureId: 'predator-valley' })
         .displayName,
     ).toBe('Predator Valley')
+    expect(
+      getTriggeredFeatureProfile(DEFAULT_CONFIG, { triggeredFeatureId: 'nesting-grounds' })
+        .displayName,
+    ).toBe('Nesting Grounds')
   })
 })
 
@@ -394,6 +413,130 @@ describe('FeatureEngine', () => {
     expect(result.totalWin).toBe(12)
     expect(result.steps.at(-1)?.bonusAwarded).toBe(7)
   })
+
+  it('evolves existing tiles through generic profile configuration', () => {
+    const profile: FeatureProfile = {
+      id: 'evolution-test',
+      displayName: 'Evolution Test',
+      startingRespins: 3,
+      boardWidth: 2,
+      boardHeight: 1,
+      hitGeneration: {
+        hitProbability: 1,
+        multiHitProbability: 0,
+        maxTilesPerHit: 1,
+      },
+      collectorProbability: 0,
+      collectors: [],
+      jackpotProbability: 0,
+      jackpotWeights: [],
+      tileTable: [
+        {
+          id: 'egg',
+          displayName: 'Egg',
+          rarity: 'common',
+          rarityWeight: 1,
+          payoutValue: 2,
+        },
+      ],
+      tileEvolution: [
+        {
+          fromTileId: 'egg',
+          probability: 1,
+          toTile: {
+            id: 'hatchling',
+            displayName: 'Hatchling',
+            rarity: 'uncommon',
+            rarityWeight: 1,
+            payoutValue: 10,
+          },
+        },
+      ],
+      payoutRules: {
+        tileValueMultiplier: 1,
+        collectorCollectsExistingTiles: true,
+        hitResetsRespinsTo: 3,
+      },
+      completionReward: 0,
+    }
+    const rng: Rng = { next: () => 0, int: (min) => min }
+    const first = stepFeatureSession(createFeatureSession(profile, rng))
+    const second = stepFeatureSession(first)
+
+    expect(first.steps.at(-1)?.reveals[0].tile.id).toBe('egg')
+    expect(first.steps.at(-1)?.evolutionEvents).toEqual([])
+    expect(first.totalWin).toBe(2)
+    expect(second.tiles[0]?.id).toBe('hatchling')
+    expect(second.tiles[1]?.id).toBe('egg')
+    expect(second.steps.at(-1)?.evolutionEvents?.[0]).toMatchObject({
+      index: 0,
+      fromTile: {
+        id: 'egg',
+        displayName: 'Egg',
+        payoutValue: 2,
+      },
+      toTile: {
+        id: 'hatchling',
+        displayName: 'Hatchling',
+        payoutValue: 10,
+      },
+      payoutIncrease: 8,
+    })
+    expect(second.steps.at(-1)?.evolutionEvents).toHaveLength(1)
+    expect(second.totalWin).toBe(12)
+  })
+
+  it('does not evolve newly revealed tiles until a future successful survey', () => {
+    const profile: FeatureProfile = {
+      id: 'new-reveal-evolution-test',
+      displayName: 'New Reveal Evolution Test',
+      startingRespins: 3,
+      boardWidth: 1,
+      boardHeight: 1,
+      hitGeneration: {
+        hitProbability: 1,
+        multiHitProbability: 0,
+        maxTilesPerHit: 1,
+      },
+      collectorProbability: 0,
+      collectors: [],
+      jackpotProbability: 0,
+      jackpotWeights: [],
+      tileTable: [
+        {
+          id: 'egg',
+          displayName: 'Egg',
+          rarity: 'common',
+          rarityWeight: 1,
+          payoutValue: 2,
+        },
+      ],
+      tileEvolution: [
+        {
+          fromTileId: 'egg',
+          probability: 1,
+          toTile: {
+            id: 'hatchling',
+            displayName: 'Hatchling',
+            rarity: 'uncommon',
+            rarityWeight: 1,
+            payoutValue: 10,
+          },
+        },
+      ],
+      payoutRules: {
+        tileValueMultiplier: 1,
+        collectorCollectsExistingTiles: true,
+        hitResetsRespinsTo: 3,
+      },
+      completionReward: 0,
+    }
+    const rng: Rng = { next: () => 0, int: (min) => min }
+    const next = stepFeatureSession(createFeatureSession(profile, rng))
+
+    expect(next.tiles[0]?.id).toBe('egg')
+    expect(next.steps.at(-1)?.evolutionEvents).toEqual([])
+  })
 })
 
 describe('payout calculation', () => {
@@ -483,6 +626,28 @@ describe('payout calculation', () => {
     expect(resolveTriggeredFeature(twoTracksAndWild, DEFAULT_CONFIG).profile).toBeNull()
   })
 
+  it('does not let Expedition Camp Wild substitute for Nesting Eggs', () => {
+    const board: Board = [
+      ['nestingEggs', 'campWild', 'nestingEggs', 'nestingEggs', 'crate'],
+      ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
+      ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
+      ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
+      ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
+    ]
+    const trigger = resolveTriggeredFeature(board, DEFAULT_CONFIG)
+    expect(calculateClusterWins(board, DEFAULT_CONFIG).wins).toHaveLength(0)
+    expect(trigger.profile?.id).toBe('nesting-grounds')
+
+    const twoEggsAndWild: Board = [
+      ['nestingEggs', 'campWild', 'nestingEggs', 'crate', 'crate'],
+      ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
+      ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
+      ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
+      ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
+    ]
+    expect(resolveTriggeredFeature(twoEggsAndWild, DEFAULT_CONFIG).profile).toBeNull()
+  })
+
   it("uses Golden Amber's dedicated paytable", () => {
     const board: Board = [
       ['goldenAmber', 'goldenAmber', 'goldenAmber', 'goldenAmber', 'crate'],
@@ -535,9 +700,9 @@ describe('payout calculation', () => {
     })
   })
 
-  it('does not count wilds, footprints, Predator Tracks, or premium symbols as Field Notes evidence', () => {
+  it('does not count wilds, footprints, valley cues, or premium symbols as Field Notes evidence', () => {
     const board: Board = [
-      ['campWild', 'campWild', 'footprint', 'predatorTracks', 'crate'],
+      ['campWild', 'campWild', 'footprint', 'predatorTracks', 'nestingEggs'],
       ['helicopter', 'scientist', 'compass', 'crate', 'jeep'],
       ['crate', 'jeep', 'pickaxe', 'scientist', 'helicopter'],
       ['footprint', 'campWild', 'crate', 'scientist', 'compass'],
@@ -571,34 +736,41 @@ describe('simulation diagnostics', () => {
     ).toBeCloseTo(1)
   })
 
-  it('preserves the tuned two-valley payout stream', () => {
+  it('preserves the tuned three-valley payout stream', () => {
     const result = runSimulation(DEFAULT_CONFIG, 10_000, 123)
-    expect(result.baseRtp).toBeCloseTo(0.2725984, 4)
-    expect(result.evidenceRtp).toBeCloseTo(0.20057, 4)
-    expect(result.evidenceRtpByMilestone['3']).toBeCloseTo(0.14592, 4)
-    expect(result.evidenceRtpByMilestone['4']).toBeCloseTo(0.04715, 4)
-    expect(result.evidenceRtpByMilestone['5']).toBeCloseTo(0.0075, 4)
-    expect(result.featureRtp).toBeGreaterThan(0.45)
-    expect(result.featureRtp).toBeLessThan(0.55)
-    expect(result.totalRtp).toBeGreaterThan(0.94)
-    expect(result.totalRtp).toBeLessThan(0.98)
-    expect(result.triggerFrequency).toBeCloseTo(0.0138, 4)
-    expect(result.averageFeatureWin).toBeGreaterThan(34)
-    expect(result.averageFeatureWin).toBeLessThan(38)
-    expect(result.evidenceBonusFrequency).toBeCloseTo(0.0498, 4)
-    expect(result.evidenceMilestoneFrequency['3']).toBeCloseTo(0.0456, 4)
-    expect(result.evidenceMilestoneFrequency['4']).toBeCloseTo(0.0041, 4)
-    expect(result.evidenceMilestoneFrequency['5']).toBeCloseTo(0.0001, 4)
-    expect(result.wildAppearanceRate).toBeCloseTo(0.01224, 4)
-    expect(result.wildAssistedClusterFrequency).toBeCloseTo(0.1024, 4)
-    expect(result.goldenAmberHitFrequency).toBeCloseTo(0.0246, 4)
-    expect(result.twoFootprintFrequency).toBeCloseTo(0.0517, 4)
-    expect(result.twoPredatorTrackFrequency).toBeCloseTo(0.0522, 4)
-    expect(result.baseWinsOver10Frequency).toBeCloseTo(0.0063, 4)
+    expect(result.baseRtp).toBeCloseTo(0.2623461, 4)
+    expect(result.evidenceRtp).toBeCloseTo(0.20393, 4)
+    expect(result.evidenceRtpByMilestone['3']).toBeCloseTo(0.13888, 4)
+    expect(result.evidenceRtpByMilestone['4']).toBeCloseTo(0.04255, 4)
+    expect(result.evidenceRtpByMilestone['5']).toBeCloseTo(0.0225, 4)
+    expect(result.featureRtp).toBeCloseTo(0.516328, 4)
+    expect(result.totalRtp).toBeCloseTo(0.9826041, 4)
+    expect(result.triggerFrequency).toBeCloseTo(0.0113, 4)
+    expect(result.averageFeatureWin).toBeCloseTo(45.69274336283186, 4)
+    expect(result.evidenceBonusFrequency).toBeCloseTo(0.0474, 4)
+    expect(result.evidenceMilestoneFrequency['3']).toBeCloseTo(0.0434, 4)
+    expect(result.evidenceMilestoneFrequency['4']).toBeCloseTo(0.0037, 4)
+    expect(result.evidenceMilestoneFrequency['5']).toBeCloseTo(0.0003, 4)
+    expect(result.wildAppearanceRate).toBeCloseTo(0.012224, 4)
+    expect(result.wildAssistedClusterFrequency).toBeCloseTo(0.0962, 4)
+    expect(result.goldenAmberHitFrequency).toBeCloseTo(0.0239, 4)
+    expect(result.twoFootprintFrequency).toBeCloseTo(0.0339, 4)
+    expect(result.twoPredatorTrackFrequency).toBeCloseTo(0.0327, 4)
+    expect(result.twoNestingEggFrequency).toBeCloseTo(0.0348, 4)
+    expect(result.baseWinsOver10Frequency).toBeCloseTo(0.0065, 4)
     expect(result.predatorTrackDistribution['2']).toBeGreaterThan(0)
-    expect(result.featureBreakdown['fossil-valley'].triggerFrequency).toBeCloseTo(0.0056, 4)
-    expect(result.featureBreakdown['predator-valley'].triggerFrequency).toBeCloseTo(0.0082, 4)
-    expect(result.featureBreakdown['fossil-valley'].rtp).toBeCloseTo(0.21048, 4)
-    expect(result.featureBreakdown['predator-valley'].rtp).toBeCloseTo(0.285804, 4)
+    expect(result.nestingEggDistribution['2']).toBeGreaterThan(0)
+    expect(result.featureBreakdown['fossil-valley'].triggerFrequency).toBeCloseTo(0.0049, 4)
+    expect(result.featureBreakdown['predator-valley'].triggerFrequency).toBeCloseTo(0.0027, 4)
+    expect(result.featureBreakdown['nesting-grounds'].triggerFrequency).toBeCloseTo(0.0037, 4)
+    expect(result.featureBreakdown['fossil-valley'].rtp).toBeCloseTo(0.155824, 4)
+    expect(result.featureBreakdown['predator-valley'].rtp).toBeCloseTo(0.07694, 4)
+    expect(result.featureBreakdown['nesting-grounds'].rtp).toBeCloseTo(0.283564, 4)
+    expect(
+      result.featureBreakdown['nesting-grounds'].evolutionDiagnostics?.averageSourceTilesCreated,
+    ).toBeGreaterThan(2)
+    expect(
+      result.featureBreakdown['nesting-grounds'].evolutionDiagnostics?.averageEvolvedTiles,
+    ).toBeGreaterThan(1)
   })
 })

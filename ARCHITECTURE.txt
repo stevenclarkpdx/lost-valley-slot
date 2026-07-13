@@ -12,10 +12,12 @@ Current game
 - Destination triggers:
   - 3+ Fossil Footprints trigger Fossil Valley.
   - 3+ Predator Tracks trigger Predator Valley.
+  - 3+ Nesting Eggs trigger Nesting Grounds.
   - 4 trigger symbols add +1 starting respin; 5+ add +2.
 - Wilds substitute for cluster-paying symbols only.
 - Feature sessions are 5x5 reveal boards with respins, hit resets, misses, tile
-  payouts, and optional generic progression.
+  payouts, optional generic progression, and optional profile-driven tile
+  evolution.
 
 Engine boundaries
 - src/engine is pure TypeScript and has no React/browser dependencies.
@@ -23,9 +25,10 @@ Engine boundaries
 - GameConfig.featureProfiles is the authoritative multi-feature configuration.
 - Legacy imported featureProfile JSON is normalized into featureProfiles.
 - FeatureEngine is profile-driven and contains no Fossil- or Predator-specific
-  logic.
-- Fossil Assembly and Tracking Confidence are presentation/profile concepts over
-  the generic progression contract.
+  or Nesting-specific logic.
+- Fossil Assembly, Tracking Confidence, and Nesting Life Cycle are
+  presentation/profile concepts over the generic progression and tile-evolution
+  contracts.
 
 Presentation boundaries
 - React owns animation, layout, credit display, and thematic language.
@@ -44,7 +47,8 @@ Simulation uses the production engine and reports:
 - Combined trigger frequency and feature win percentiles
 - Per-feature trigger frequency, average win, RTP contribution, percentiles,
   final reveal distributions, and full reveal rate
-- Footprint and Predator Track count distributions
+- Per-feature evolution diagnostics when a profile uses tile evolution
+- Footprint, Predator Track, and Nesting Egg count distributions
 - Cluster, symbol, wild, Golden Amber, and Field Notes diagnostics
 
 Engineering priorities

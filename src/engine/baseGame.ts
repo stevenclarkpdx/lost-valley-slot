@@ -96,6 +96,7 @@ export function spinBaseGame(config: GameConfig, rng: Rng): BaseSpinResult {
   )
   const footprintCount = countFootprints(board)
   const predatorTrackCount = countSymbol(board, 'predatorTracks')
+  const nestingEggCount = countSymbol(board, 'nestingEggs')
   const triggered = resolveTriggeredFeature(board, config)
   const payout = calculateClusterWins(board, config)
   const fieldNotes = calculateFieldNotes(board, config)
@@ -104,6 +105,7 @@ export function spinBaseGame(config: GameConfig, rng: Rng): BaseSpinResult {
     board,
     footprintCount,
     predatorTrackCount,
+    nestingEggCount,
     triggerCounts: triggered.triggerCounts,
     featureTriggered: triggered.profile !== null,
     triggeredFeatureId: triggered.profile?.id ?? null,

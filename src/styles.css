@@ -338,6 +338,60 @@ button {
   border-color: rgba(224, 109, 55, .38);
 }
 
+.feature-screen.nesting-feature {
+  background:
+    radial-gradient(circle at 46% 30%, rgba(170, 207, 86, .16), transparent 38%),
+    linear-gradient(rgba(6, 10, 8, .56), rgba(6, 10, 8, .9)),
+    url('./assets/concept/fossil-valley-background.png') center / cover no-repeat,
+    radial-gradient(circle at 48% 30%, rgba(110, 139, 84, .22), transparent 48%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 2px, transparent 2px 6px);
+}
+
+.feature-screen.nesting-feature::before {
+  background:
+    radial-gradient(circle at 13% 78%, rgba(183, 206, 77, .18), transparent 20%),
+    radial-gradient(circle at 88% 18%, rgba(238, 199, 88, .14), transparent 24%),
+    linear-gradient(90deg, rgba(6, 24, 8, .32), transparent 28%, transparent 72%, rgba(19, 28, 5, .38));
+}
+
+.feature-screen.nesting-feature .feature-site-stamp,
+.feature-screen.nesting-feature .Progression-event-panel {
+  border-color: rgba(219, 188, 82, .4);
+  box-shadow: inset 0 0 18px rgba(50, 75, 20, .34);
+}
+
+.feature-screen.nesting-feature .excavation-site {
+  border-color: rgba(180, 205, 84, .34);
+  background:
+    radial-gradient(circle at 48% 45%, rgba(148, 170, 73, .2), transparent 44%),
+    linear-gradient(145deg, rgba(48, 61, 30, .76), rgba(16, 24, 14, .92)),
+    repeating-linear-gradient(90deg, rgba(245, 218, 154, .032) 0 1px, transparent 1px 18px);
+  box-shadow:
+    inset 0 0 30px rgba(3, 10, 4, .72),
+    0 0 30px rgba(147, 184, 68, .14);
+}
+
+.feature-screen.nesting-feature .survey-square {
+  border-color: rgba(135, 122, 62, .78);
+  background:
+    radial-gradient(circle at 34% 28%, rgba(190, 170, 78, .16), transparent 34%),
+    radial-gradient(circle at 72% 70%, rgba(51, 74, 31, .34), transparent 42%),
+    linear-gradient(145deg, #3d482b, #181e11 68%);
+}
+
+.feature-screen.nesting-feature .discovery-card {
+  border-color: rgba(191, 179, 87, .42);
+}
+
+.feature-screen.nesting-feature .discovery-card.discovery-egg,
+.feature-screen.nesting-feature .discovery-card.discovery-hatchling {
+  border-color: rgba(230, 203, 107, .72);
+  color: #f1dc96;
+  background:
+    radial-gradient(circle at 50% 25%, rgba(226, 205, 119, .28), transparent 58%),
+    linear-gradient(145deg, #3c4426, #13180d);
+}
+
 .reel-stage {
   min-width: 0;
   min-height: 0;
@@ -628,6 +682,27 @@ button {
 
 .symbol.predator-track.trigger-footprint {
   animation-name: predator-track-trigger-glow;
+}
+
+.symbol.nesting-eggs {
+  border-color: #d0a347;
+  background:
+    linear-gradient(rgba(255, 219, 123, .2), transparent 42%),
+    radial-gradient(circle at 50% 30%, rgba(122, 151, 81, .36), transparent 48%),
+    linear-gradient(145deg, #394927, #171a0e 70%);
+  box-shadow:
+    inset 0 0 17px #070805,
+    inset 0 0 0 2px rgba(239, 205, 117, .16),
+    0 0 15px rgba(158, 192, 87, .26);
+}
+
+.symbol.nesting-eggs small {
+  color: #f0d98a;
+  text-shadow: 0 1px 2px #101407;
+}
+
+.symbol.nesting-eggs.trigger-footprint {
+  animation-name: nesting-egg-trigger-glow;
 }
 
 .symbol-evidence {
@@ -941,6 +1016,15 @@ button {
   color: #ff9e3d;
 }
 
+.nesting-cue-track {
+  border-color: rgba(209, 177, 82, .3);
+  background: rgba(16, 24, 10, .48);
+}
+
+.nesting-cue-track .cue-track-label strong {
+  color: #f0d98a;
+}
+
 .footprint-track {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1045,6 +1129,14 @@ button {
   box-shadow:
     inset 0 0 0 1px rgba(255, 182, 93, .2),
     0 0 14px rgba(214, 63, 28, .3);
+}
+
+.nesting-cue-track .footprint-track span.found {
+  border-color: rgba(226, 196, 93, .62);
+  background: rgba(53, 72, 30, .72);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 228, 132, .18),
+    0 0 14px rgba(143, 189, 76, .28);
 }
 
 .lost-valley-panel.predator-trail-panel .lost-valley-card {
@@ -2172,6 +2264,14 @@ button {
   animation-duration: 1150ms;
 }
 
+.discovery-card.newly-evolved {
+  animation: egg-hatch-pulse 760ms ease-out both;
+  box-shadow:
+    inset 0 0 24px rgba(237, 203, 107, .22),
+    0 0 24px rgba(170, 207, 86, .28),
+    0 0 42px rgba(221, 160, 52, .14);
+}
+
 .discovery-card.newly-revealed.rarity-rare .reveal-fog-overlay,
 .discovery-card.newly-revealed.rarity-legendary .reveal-fog-overlay {
   animation-duration: 420ms;
@@ -2553,6 +2653,25 @@ button {
   100% {
     filter: brightness(1) saturate(1);
     transform: scale(1);
+  }
+}
+
+@keyframes egg-hatch-pulse {
+  0% {
+    transform: scale(.98);
+    filter: brightness(.95) saturate(.95);
+  }
+  35% {
+    transform: scale(1.06);
+    filter: brightness(1.28) saturate(1.18);
+  }
+  72% {
+    transform: scale(1.015);
+    filter: brightness(1.12) saturate(1.08);
+  }
+  100% {
+    transform: scale(1);
+    filter: none;
   }
 }
 
@@ -2940,6 +3059,27 @@ button {
   100% {
     filter: brightness(1.18);
     transform: scale(1);
+  }
+}
+
+@keyframes nesting-egg-trigger-glow {
+  0% {
+    transform: scale(1);
+    box-shadow:
+      inset 0 0 17px #070805,
+      0 0 8px rgba(158, 192, 87, .18);
+  }
+  45% {
+    transform: scale(1.045);
+    box-shadow:
+      inset 0 0 22px rgba(250, 224, 126, .24),
+      0 0 26px rgba(179, 216, 83, .5);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow:
+      inset 0 0 17px #070805,
+      0 0 15px rgba(158, 192, 87, .26);
   }
 }
 

@@ -1,7 +1,7 @@
 import { SYMBOLS, type GameConfig } from './types'
 import type { FeatureProfile } from './featureTypes'
 
-const SCHEMA_VERSION = 7
+const SCHEMA_VERSION = 8
 
 type LegacyGameConfig = Partial<GameConfig> & {
   featureProfile?: FeatureProfile
@@ -115,6 +115,30 @@ function validateFeatureProfile(profile: Partial<FeatureProfile> | undefined): v
     throw new Error('Feature tile table is invalid.')
   }
 
+  if (
+    profile.tileEvolution !== undefined &&
+    (!Array.isArray(profile.tileEvolution) ||
+      profile.tileEvolution.some(
+        (rule) =>
+          typeof rule.fromTileId !== 'string' ||
+          !isProbability(rule.probability) ||
+          !rule.toTile ||
+          typeof rule.toTile.id !== 'string' ||
+          typeof rule.toTile.displayName !== 'string' ||
+          !['common', 'uncommon', 'rare', 'legendary'].includes(rule.toTile.rarity) ||
+          !isFiniteNumber(rule.toTile.payoutValue) ||
+          rule.toTile.payoutValue < 0 ||
+          (rule.toTile.progressionContribution !== undefined &&
+            (typeof rule.toTile.progressionContribution.sectionId !== 'string' ||
+              !isFiniteNumber(rule.toTile.progressionContribution.pieces) ||
+              rule.toTile.progressionContribution.pieces <= 0)) ||
+          (rule.toTile.classificationTag !== undefined &&
+            typeof rule.toTile.classificationTag !== 'string'),
+      ))
+  ) {
+    throw new Error('Feature tile evolution rules are invalid.')
+  }
+
   if (profile.progression !== undefined) {
     const progression = profile.progression
     if (
@@ -194,6 +218,16 @@ function migrateConfig(config: LegacyGameConfig, schemaVersion: number): LegacyG
       blue: config.clusterPays?.blue ?? premium,
       goldenAmber: config.clusterPays?.goldenAmber,
     } as GameConfig['clusterPays']
+    schemaVersion = 7
+  }
+
+  if (schemaVersion === 7) {
+    if (!config.symbolWeights?.some((item) => item?.symbol === 'nestingEggs')) {
+      config.symbolWeights = [
+        ...(config.symbolWeights ?? []),
+        { symbol: 'nestingEggs', weight: 1.2 },
+      ]
+    }
     return config
   }
 

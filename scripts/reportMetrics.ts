@@ -25,6 +25,8 @@ console.log(
       goldenAmberHitFrequency: result.goldenAmberHitFrequency,
       twoFootprintFrequency: result.twoFootprintFrequency,
       twoPredatorTrackFrequency: result.twoPredatorTrackFrequency,
+      twoNestingEggFrequency: result.twoNestingEggFrequency,
+      nestingEggDistribution: result.nestingEggDistribution,
       baseWinsOver10Frequency: result.baseWinsOver10Frequency,
       largestBaseGameHit: result.largestBaseGameHit,
       baseWinP95: result.baseWinPercentiles.p95,
@@ -33,7 +35,24 @@ console.log(
       featureP50: result.percentiles.p50,
       featureP90: result.percentiles.p90,
       featureP99: result.percentiles.p99,
-      ...(mode === 'summary' ? {} : { featureBreakdown: result.featureBreakdown }),
+      featureBreakdown:
+        mode === 'summary'
+          ? Object.fromEntries(
+              Object.entries(result.featureBreakdown).map(([id, feature]) => [
+                id,
+                {
+                  triggerFrequency: feature.triggerFrequency,
+                  averageWin: feature.averageWin,
+                  rtp: feature.rtp,
+                  p50: feature.percentiles.p50,
+                  p90: feature.percentiles.p90,
+                  p99: feature.percentiles.p99,
+                  fullRevealFrequency: feature.fullRevealFrequency,
+                  evolutionDiagnostics: feature.evolutionDiagnostics,
+                },
+              ]),
+            )
+          : result.featureBreakdown,
     },
     null,
     2,
