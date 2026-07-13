@@ -20,7 +20,7 @@ export const NESTING_GROUNDS_PROFILE: FeatureProfile = {
   jackpotWeights: [],
   tileTable: [
     {
-      id: 'fern',
+      id: 'nesting-fern',
       displayName: 'Fern',
       rarity: 'common',
       rarityWeight: 10,
@@ -28,7 +28,7 @@ export const NESTING_GROUNDS_PROFILE: FeatureProfile = {
       discoveryCategory: 'habitat',
     },
     {
-      id: 'river',
+      id: 'nesting-river',
       displayName: 'River',
       rarity: 'common',
       rarityWeight: 8,
@@ -36,7 +36,7 @@ export const NESTING_GROUNDS_PROFILE: FeatureProfile = {
       discoveryCategory: 'habitat',
     },
     {
-      id: 'footprints',
+      id: 'nesting-footprints',
       displayName: 'Footprints',
       rarity: 'common',
       rarityWeight: 7,
@@ -45,7 +45,7 @@ export const NESTING_GROUNDS_PROFILE: FeatureProfile = {
       classificationTag: 'movement',
     },
     {
-      id: 'nest',
+      id: 'nesting-nest',
       displayName: 'Nest',
       rarity: 'common',
       rarityWeight: 7,

@@ -100,6 +100,10 @@ const DISCOVERY_PRESENTATION: Record<
   'family-nest': { displayName: 'Family Nest', icon: '⌁', rarity: 'uncommon' },
   'juvenile-dinosaur': { displayName: 'Juvenile Dinosaur', icon: '◢', rarity: 'rare' },
   'nesting-colony': { displayName: 'Nesting Colony', icon: '★', rarity: 'legendary' },
+  'nesting-fern': { displayName: 'Fern', icon: '✣', rarity: 'common' },
+  'nesting-river': { displayName: 'River', icon: '≈', rarity: 'common' },
+  'nesting-footprints': { displayName: 'Footprints', icon: '◌', rarity: 'common' },
+  'nesting-nest': { displayName: 'Nest', icon: '⌁', rarity: 'common' },
 }
 
 function discoveryPresentation(tile: RevealedFeatureTile) {
@@ -140,7 +144,7 @@ const CONCEPT_SYMBOL_ASSETS: Record<string, string> = {
   crate: new URL('./assets/concept/crate.png', import.meta.url).href,
   footprint: new URL('./assets/concept/footprint.png', import.meta.url).href,
   predatorTracks: new URL('./assets/concept/predatorTracks.png', import.meta.url).href,
-  nestingEggs: new URL('./assets/concept/dinosaur-egg.png', import.meta.url).href,
+  nestingEggs: new URL('./assets/concept/nesting-egg.png', import.meta.url).href,
   campWild: new URL('./assets/concept/campWild.png', import.meta.url).href,
   goldenAmber: new URL('./assets/concept/goldenAmber.png', import.meta.url).href,
   trexTooth: new URL('./assets/concept/trexTooth.png', import.meta.url).href,
@@ -191,11 +195,15 @@ const CONCEPT_DISCOVERY_ASSETS: Record<string, string> = {
     './assets/concept/predator-encounter.png',
     import.meta.url,
   ).href,
-  egg: new URL('./assets/concept/dinosaur-egg.png', import.meta.url).href,
-  hatchling: new URL('./assets/concept/living-specimen.png', import.meta.url).href,
-  'family-nest': new URL('./assets/concept/dinosaur-egg.png', import.meta.url).href,
-  'juvenile-dinosaur': new URL('./assets/concept/living-specimen.png', import.meta.url).href,
-  'nesting-colony': new URL('./assets/concept/living-specimen.png', import.meta.url).href,
+  egg: new URL('./assets/concept/nesting-egg.png', import.meta.url).href,
+  hatchling: new URL('./assets/concept/nesting-hatchling.png', import.meta.url).href,
+  'family-nest': new URL('./assets/concept/nesting-family-nest.png', import.meta.url).href,
+  'juvenile-dinosaur': new URL('./assets/concept/nesting-juvenile-dinosaur.png', import.meta.url).href,
+  'nesting-colony': new URL('./assets/concept/nesting-colony.png', import.meta.url).href,
+  'nesting-fern': new URL('./assets/concept/nesting-fern.png', import.meta.url).href,
+  'nesting-river': new URL('./assets/concept/nesting-river.png', import.meta.url).href,
+  'nesting-footprints': new URL('./assets/concept/nesting-footprints.png', import.meta.url).href,
+  'nesting-nest': new URL('./assets/concept/nesting-nest.png', import.meta.url).href,
 }
 
 function ConceptImage({

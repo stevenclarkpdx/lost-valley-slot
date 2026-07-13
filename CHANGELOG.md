@@ -4,6 +4,7 @@ Brief summaries of significant project changes. Version numbers are prototype mi
 
 ## Unreleased
 
+- Integrated the Nesting Grounds art sheet into the Nesting feature background, intro treatment, survey button, panel framing, trigger symbol, and discovery tiles.
 - Added Nesting Grounds as the third major valley profile, triggered by Nesting Eggs.
 - Added generic profile-driven tile evolution so revealed Eggs can hatch into Hatchlings without valley-name branching in the feature engine.
 - Tuned Nesting Grounds toward high hit frequency, higher reveal counts, lower tile values, and hatch-chain momentum while keeping total RTP in the current 94-97% target band.
