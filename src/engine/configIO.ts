@@ -57,6 +57,28 @@ function validateFeatureProfile(profile: Partial<FeatureProfile> | undefined): v
     throw new Error('Feature trigger display name is invalid.')
   }
 
+  if (
+    profile.triggerCountMin !== undefined &&
+    (!Number.isInteger(profile.triggerCountMin) || profile.triggerCountMin < 1)
+  ) {
+    throw new Error('Feature trigger count minimum is invalid.')
+  }
+
+  if (
+    profile.triggerCountMax !== undefined &&
+    (!Number.isInteger(profile.triggerCountMax) || profile.triggerCountMax < 1)
+  ) {
+    throw new Error('Feature trigger count maximum is invalid.')
+  }
+
+  if (
+    profile.triggerCountMin !== undefined &&
+    profile.triggerCountMax !== undefined &&
+    profile.triggerCountMax < profile.triggerCountMin
+  ) {
+    throw new Error('Feature trigger count range is invalid.')
+  }
+
   const hits = profile.hitGeneration
   if (
     !hits ||
@@ -274,21 +296,24 @@ export function parseConfig(json: string): GameConfig {
     !Number.isInteger(config.boardSize) ||
     config.boardSize !== 5 ||
     !Array.isArray(config.symbolWeights) ||
-    config.symbolWeights.length !== SYMBOLS.length
+    config.symbolWeights.length === 0
   ) {
-    throw new Error('Config must define a 5x5 board and every symbol weight.')
+    throw new Error('Config must define a 5x5 board and at least one symbol weight.')
   }
 
   const suppliedSymbols = new Set(
     config.symbolWeights.map((item) => item?.symbol),
   )
   if (
-    SYMBOLS.some((symbol) => !suppliedSymbols.has(symbol)) ||
+    config.symbolWeights.some(
+      (item) => !SYMBOLS.includes(item?.symbol as (typeof SYMBOLS)[number]),
+    ) ||
+    suppliedSymbols.size !== config.symbolWeights.length ||
     config.symbolWeights.some(
       (item) => !isFiniteNumber(item?.weight) || item.weight <= 0,
     )
   ) {
-    throw new Error('Every known symbol needs one positive numeric weight.')
+    throw new Error('Every configured symbol needs one known id and positive numeric weight.')
   }
 
   const grayPays = config.clusterPays?.gray

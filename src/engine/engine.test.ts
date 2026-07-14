@@ -47,23 +47,23 @@ describe('config JSON', () => {
 })
 
 describe('feature trigger', () => {
-  it('requires at least three Footprints anywhere on the board', () => {
+  it('requires at least three Predator Tracks anywhere on the board', () => {
     const board = Array.from({ length: 5 }, () => Array(5).fill('compass')) as Board
-    board[0][0] = 'footprint'
-    board[2][3] = 'footprint'
+    board[0][0] = 'predatorTracks'
+    board[2][3] = 'predatorTracks'
     expect(isFeatureTriggered(board)).toBe(false)
-    board[4][4] = 'footprint'
+    board[4][4] = 'predatorTracks'
     expect(isFeatureTriggered(board)).toBe(true)
   })
 
-  it('awards extra starting respins for four and five Footprints', () => {
+  it('awards extra starting respins for four and five shared track triggers', () => {
     expect(getFeatureStartingRespins(3, 3)).toBe(3)
     expect(getFeatureStartingRespins(4, 3)).toBe(4)
     expect(getFeatureStartingRespins(5, 3)).toBe(5)
     expect(getFeatureStartingRespins(7, 3)).toBe(5)
   })
 
-  it('routes Predator Tracks to Predator Valley without using Fossil Footprints', () => {
+  it('routes three Predator Tracks to Fossil Valley', () => {
     const board = Array.from({ length: 5 }, () => Array(5).fill('jeep')) as Board
     board[0][0] = 'predatorTracks'
     board[2][3] = 'predatorTracks'
@@ -71,38 +71,42 @@ describe('feature trigger', () => {
 
     const result = resolveTriggeredFeature(board, DEFAULT_CONFIG)
 
-    expect(result.profile?.id).toBe('predator-valley')
-    expect(result.triggerCounts['fossil-valley']).toBe(0)
+    expect(result.profile?.id).toBe('fossil-valley')
+    expect(result.triggerCounts['fossil-valley']).toBe(3)
     expect(result.triggerCounts['predator-valley']).toBe(3)
-    expect(result.startingRespins).toBe(3)
-  })
-
-  it('routes Nesting Eggs to Nesting Grounds without using other valley cues', () => {
-    const board = Array.from({ length: 5 }, () => Array(5).fill('jeep')) as Board
-    board[0][0] = 'nestingEggs'
-    board[2][3] = 'nestingEggs'
-    board[4][4] = 'nestingEggs'
-
-    const result = resolveTriggeredFeature(board, DEFAULT_CONFIG)
-
-    expect(result.profile?.id).toBe('nesting-grounds')
-    expect(result.triggerCounts['fossil-valley']).toBe(0)
-    expect(result.triggerCounts['predator-valley']).toBe(0)
     expect(result.triggerCounts['nesting-grounds']).toBe(3)
     expect(result.startingRespins).toBe(3)
   })
 
-  it('adds extra starting respins for four and five Predator Tracks', () => {
+  it('routes four Predator Tracks to Nesting Grounds', () => {
     const board = Array.from({ length: 5 }, () => Array(5).fill('jeep')) as Board
     board[0][0] = 'predatorTracks'
     board[1][0] = 'predatorTracks'
     board[2][0] = 'predatorTracks'
     board[3][0] = 'predatorTracks'
 
-    expect(resolveTriggeredFeature(board, DEFAULT_CONFIG).startingRespins).toBe(4)
+    const result = resolveTriggeredFeature(board, DEFAULT_CONFIG)
 
+    expect(result.profile?.id).toBe('nesting-grounds')
+    expect(result.triggerCounts['fossil-valley']).toBe(4)
+    expect(result.triggerCounts['predator-valley']).toBe(4)
+    expect(result.triggerCounts['nesting-grounds']).toBe(4)
+    expect(result.startingRespins).toBe(4)
+  })
+
+  it('routes five or more Predator Tracks to Predator Valley', () => {
+    const board = Array.from({ length: 5 }, () => Array(5).fill('jeep')) as Board
+    board[0][0] = 'predatorTracks'
+    board[1][0] = 'predatorTracks'
+    board[2][0] = 'predatorTracks'
+    board[3][0] = 'predatorTracks'
     board[4][0] = 'predatorTracks'
-    expect(resolveTriggeredFeature(board, DEFAULT_CONFIG).startingRespins).toBe(5)
+
+    const result = resolveTriggeredFeature(board, DEFAULT_CONFIG)
+
+    expect(result.profile?.id).toBe('predator-valley')
+    expect(result.count).toBe(5)
+    expect(result.startingRespins).toBe(5)
   })
 
   it('selects the triggered feature profile through the shared resolver', () => {
@@ -145,9 +149,9 @@ describe('feature trigger', () => {
   it('prioritizes Lost Valley over ordinary valley cues on the same spin', () => {
     const board: Board = [
       ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
-      ['footprint', 'footprint', 'footprint', 'crate', 'compass'],
       ['predatorTracks', 'predatorTracks', 'predatorTracks', 'crate', 'compass'],
-      ['nestingEggs', 'nestingEggs', 'nestingEggs', 'crate', 'compass'],
+      ['jeep', 'helicopter', 'scientist', 'crate', 'compass'],
+      ['jeep', 'helicopter', 'scientist', 'crate', 'compass'],
       ['jeep', 'helicopter', 'scientist', 'crate', 'compass'],
     ]
     const fieldNotes = calculateFieldNotes(board, DEFAULT_CONFIG)
@@ -622,7 +626,7 @@ describe('payout calculation', () => {
     })
   })
 
-  it('does not let Expedition Camp Wild substitute for Footprints', () => {
+  it('does not let Expedition Camp Wild substitute for inactive Footprint cues', () => {
     const board: Board = [
       ['footprint', 'campWild', 'footprint', 'footprint', 'crate'],
       ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
@@ -631,7 +635,7 @@ describe('payout calculation', () => {
       ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
     ]
     expect(calculateClusterWins(board, DEFAULT_CONFIG).wins).toHaveLength(0)
-    expect(isFeatureTriggered(board)).toBe(true)
+    expect(isFeatureTriggered(board)).toBe(false)
 
     const twoFootprintsAndWild: Board = [
       ['footprint', 'campWild', 'footprint', 'crate', 'crate'],
@@ -643,7 +647,7 @@ describe('payout calculation', () => {
     expect(isFeatureTriggered(twoFootprintsAndWild)).toBe(false)
   })
 
-  it('does not let Expedition Camp Wild substitute for Predator Tracks', () => {
+  it('does not let Expedition Camp Wild substitute for the third Predator Track', () => {
     const board: Board = [
       ['predatorTracks', 'campWild', 'predatorTracks', 'predatorTracks', 'crate'],
       ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
@@ -653,7 +657,7 @@ describe('payout calculation', () => {
     ]
     const trigger = resolveTriggeredFeature(board, DEFAULT_CONFIG)
     expect(calculateClusterWins(board, DEFAULT_CONFIG).wins).toHaveLength(0)
-    expect(trigger.profile?.id).toBe('predator-valley')
+    expect(trigger.profile?.id).toBe('fossil-valley')
 
     const twoTracksAndWild: Board = [
       ['predatorTracks', 'campWild', 'predatorTracks', 'crate', 'crate'],
@@ -665,10 +669,10 @@ describe('payout calculation', () => {
     expect(resolveTriggeredFeature(twoTracksAndWild, DEFAULT_CONFIG).profile).toBeNull()
   })
 
-  it('does not let Expedition Camp Wild substitute for Nesting Eggs', () => {
+  it('does not let Expedition Camp Wild substitute for higher track-count destinations', () => {
     const board: Board = [
-      ['nestingEggs', 'campWild', 'nestingEggs', 'nestingEggs', 'crate'],
-      ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
+      ['predatorTracks', 'campWild', 'predatorTracks', 'predatorTracks', 'crate'],
+      ['predatorTracks', 'helicopter', 'scientist', 'pickaxe', 'crate'],
       ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
       ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
       ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
@@ -677,14 +681,17 @@ describe('payout calculation', () => {
     expect(calculateClusterWins(board, DEFAULT_CONFIG).wins).toHaveLength(0)
     expect(trigger.profile?.id).toBe('nesting-grounds')
 
-    const twoEggsAndWild: Board = [
-      ['nestingEggs', 'campWild', 'nestingEggs', 'crate', 'crate'],
+    const fourTracksAndWild: Board = [
+      ['predatorTracks', 'campWild', 'predatorTracks', 'predatorTracks', 'crate'],
+      ['predatorTracks', 'helicopter', 'scientist', 'pickaxe', 'crate'],
       ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
       ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
       ['jeep', 'helicopter', 'scientist', 'pickaxe', 'crate'],
       ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
     ]
-    expect(resolveTriggeredFeature(twoEggsAndWild, DEFAULT_CONFIG).profile).toBeNull()
+    expect(resolveTriggeredFeature(fourTracksAndWild, DEFAULT_CONFIG).profile?.id).toBe(
+      'nesting-grounds',
+    )
   })
 
   it("uses Golden Amber's dedicated paytable", () => {
@@ -777,36 +784,36 @@ describe('simulation diagnostics', () => {
 
   it('preserves the tuned three-valley payout stream', () => {
     const result = runSimulation(DEFAULT_CONFIG, 10_000, 123)
-    expect(result.baseRtp).toBeCloseTo(0.2613833, 4)
-    expect(result.evidenceRtp).toBeCloseTo(0.18137, 4)
-    expect(result.evidenceRtpByMilestone['3']).toBeCloseTo(0.14112, 4)
-    expect(result.evidenceRtpByMilestone['4']).toBeCloseTo(0.04025, 4)
+    expect(result.baseRtp).toBeCloseTo(0.2882964, 4)
+    expect(result.evidenceRtp).toBeCloseTo(0.19985, 4)
+    expect(result.evidenceRtpByMilestone['3']).toBeCloseTo(0.1504, 4)
+    expect(result.evidenceRtpByMilestone['4']).toBeCloseTo(0.04945, 4)
     expect(result.evidenceRtpByMilestone['5']).toBeCloseTo(0, 4)
-    expect(result.featureRtp).toBeCloseTo(0.51547192, 4)
-    expect(result.totalRtp).toBeCloseTo(0.95822522, 4)
-    expect(result.triggerFrequency).toBeCloseTo(0.0114, 4)
-    expect(result.averageFeatureWin).toBeCloseTo(45.21683508771931, 4)
-    expect(result.evidenceBonusFrequency).toBeCloseTo(0.0476, 4)
-    expect(result.evidenceMilestoneFrequency['3']).toBeCloseTo(0.0441, 4)
-    expect(result.evidenceMilestoneFrequency['4']).toBeCloseTo(0.0035, 4)
+    expect(result.featureRtp).toBeCloseTo(0.44521992, 4)
+    expect(result.totalRtp).toBeCloseTo(0.93336632, 4)
+    expect(result.triggerFrequency).toBeCloseTo(0.0144, 4)
+    expect(result.averageFeatureWin).toBeCloseTo(30.91805, 4)
+    expect(result.evidenceBonusFrequency).toBeCloseTo(0.0513, 4)
+    expect(result.evidenceMilestoneFrequency['3']).toBeCloseTo(0.047, 4)
+    expect(result.evidenceMilestoneFrequency['4']).toBeCloseTo(0.0043, 4)
     expect(result.evidenceMilestoneFrequency['5']).toBeCloseTo(0.0003, 4)
-    expect(result.wildAppearanceRate).toBeCloseTo(0.012228, 4)
-    expect(result.wildAssistedClusterFrequency).toBeCloseTo(0.0973, 4)
-    expect(result.goldenAmberHitFrequency).toBeCloseTo(0.0238, 4)
-    expect(result.twoFootprintFrequency).toBeCloseTo(0.0338, 4)
-    expect(result.twoPredatorTrackFrequency).toBeCloseTo(0.0329, 4)
-    expect(result.twoNestingEggFrequency).toBeCloseTo(0.035, 4)
-    expect(result.baseWinsOver10Frequency).toBeCloseTo(0.0061, 4)
+    expect(result.wildAppearanceRate).toBeCloseTo(0.012428, 4)
+    expect(result.wildAssistedClusterFrequency).toBeCloseTo(0.1, 4)
+    expect(result.goldenAmberHitFrequency).toBeCloseTo(0.0267, 4)
+    expect(result.twoFootprintFrequency).toBeCloseTo(0, 4)
+    expect(result.twoPredatorTrackFrequency).toBeCloseTo(0.0803, 4)
+    expect(result.twoNestingEggFrequency).toBeCloseTo(0, 4)
+    expect(result.baseWinsOver10Frequency).toBeCloseTo(0.0072, 4)
     expect(result.predatorTrackDistribution['2']).toBeGreaterThan(0)
-    expect(result.nestingEggDistribution['2']).toBeGreaterThan(0)
-    expect(result.featureBreakdown['fossil-valley'].triggerFrequency).toBeCloseTo(0.0047, 4)
-    expect(result.featureBreakdown['predator-valley'].triggerFrequency).toBeCloseTo(0.0028, 4)
-    expect(result.featureBreakdown['nesting-grounds'].triggerFrequency).toBeCloseTo(0.0036, 4)
+    expect(result.nestingEggDistribution['0']).toBeCloseTo(1, 4)
+    expect(result.featureBreakdown['fossil-valley'].triggerFrequency).toBeCloseTo(0.0128, 4)
+    expect(result.featureBreakdown['predator-valley'].triggerFrequency).toBeCloseTo(0.0002, 4)
+    expect(result.featureBreakdown['nesting-grounds'].triggerFrequency).toBeCloseTo(0.0011, 4)
     expect(result.featureBreakdown['lost-valley'].triggerFrequency).toBeCloseTo(0.0003, 4)
-    expect(result.featureBreakdown['fossil-valley'].rtp).toBeCloseTo(0.143752, 4)
-    expect(result.featureBreakdown['predator-valley'].rtp).toBeCloseTo(0.082612, 4)
-    expect(result.featureBreakdown['nesting-grounds'].rtp).toBeCloseTo(0.2652, 4)
-    expect(result.featureBreakdown['lost-valley'].rtp).toBeCloseTo(0.02390792, 4)
+    expect(result.featureBreakdown['fossil-valley'].rtp).toBeCloseTo(0.35169, 4)
+    expect(result.featureBreakdown['predator-valley'].rtp).toBeCloseTo(0.00189, 4)
+    expect(result.featureBreakdown['nesting-grounds'].rtp).toBeCloseTo(0.07472, 4)
+    expect(result.featureBreakdown['lost-valley'].rtp).toBeCloseTo(0.01691992, 4)
     expect(
       result.featureBreakdown['nesting-grounds'].evolutionDiagnostics?.averageSourceTilesCreated,
     ).toBeGreaterThan(2)

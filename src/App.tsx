@@ -106,7 +106,42 @@ const DISCOVERY_PRESENTATION: Record<
   'nesting-nest': { displayName: 'Nest', icon: '⌁', rarity: 'common' },
 }
 
-function discoveryPresentation(tile: RevealedFeatureTile) {
+const LOST_DISCOVERY_PRESENTATION: Record<
+  string,
+  { displayName: string; icon: string; rarity: TileRarity }
+> = {
+  fern: { displayName: 'Primeval Tree', icon: '♣', rarity: 'common' },
+  river: { displayName: 'Waterfall', icon: '≈', rarity: 'common' },
+  amber: { displayName: 'Temple Ruins', icon: '◆', rarity: 'common' },
+  'small-fossil': { displayName: 'Ancient Relic', icon: '◉', rarity: 'common' },
+  footprints: { displayName: 'Lost Valley Sigil', icon: '✦', rarity: 'common' },
+  'bone-cluster': { displayName: 'Sauropod Herd', icon: '✣', rarity: 'uncommon' },
+  'dinosaur-egg': { displayName: 'Pterosaur Flight', icon: '◯', rarity: 'uncommon' },
+  nest: { displayName: 'Raptor Pack', icon: '⌁', rarity: 'uncommon' },
+  'complete-skeleton': {
+    displayName: 'Temple Ruins',
+    icon: '★',
+    rarity: 'rare',
+  },
+  'living-specimen': {
+    displayName: 'Valley Sanctuary',
+    icon: '▲',
+    rarity: 'rare',
+  },
+  'new-species': { displayName: 'Valley Sanctuary', icon: '★', rarity: 'legendary' },
+}
+
+function discoveryPresentation(tile: RevealedFeatureTile, theme?: string) {
+  if (theme === 'lost') {
+    return (
+      LOST_DISCOVERY_PRESENTATION[tile.id] ?? {
+        displayName: tile.displayName,
+        icon: '?',
+        rarity: 'common' as const,
+      }
+    )
+  }
+
   return (
     DISCOVERY_PRESENTATION[tile.id] ?? {
       displayName: tile.displayName,
@@ -204,6 +239,24 @@ const CONCEPT_DISCOVERY_ASSETS: Record<string, string> = {
   'nesting-river': new URL('./assets/concept/nesting-river.png', import.meta.url).href,
   'nesting-footprints': new URL('./assets/concept/nesting-footprints.png', import.meta.url).href,
   'nesting-nest': new URL('./assets/concept/nesting-nest.png', import.meta.url).href,
+}
+
+const LOST_DISCOVERY_ASSETS: Record<string, string> = {
+  fern: new URL('./assets/concept/lost-primeval-tree.png', import.meta.url).href,
+  river: new URL('./assets/concept/lost-waterfall.png', import.meta.url).href,
+  amber: new URL('./assets/concept/lost-temple-ruins.png', import.meta.url).href,
+  footprints: new URL('./assets/concept/lost-valley-discovery-symbol.png', import.meta.url)
+    .href,
+  'small-fossil': new URL('./assets/concept/lost-ancient-relic.png', import.meta.url).href,
+  'bone-cluster': new URL('./assets/concept/lost-sauropod.png', import.meta.url).href,
+  'dinosaur-egg': new URL('./assets/concept/lost-pterosaur.png', import.meta.url).href,
+  nest: new URL('./assets/concept/lost-raptor-pack.png', import.meta.url).href,
+  'complete-skeleton': new URL('./assets/concept/lost-temple-ruins.png', import.meta.url)
+    .href,
+  'living-specimen': new URL('./assets/concept/lost-valley-sanctuary.png', import.meta.url)
+    .href,
+  'new-species': new URL('./assets/concept/lost-valley-sanctuary.png', import.meta.url)
+    .href,
 }
 
 function ConceptImage({
@@ -369,16 +422,25 @@ function SymbolIllustration({ symbol }: { symbol: string }) {
 function DiscoveryIllustration({
   id,
   rarity,
+  theme,
 }: {
   id: string
   rarity: TileRarity
+  theme?: string
 }) {
-  const asset = CONCEPT_DISCOVERY_ASSETS[id]
+  const asset =
+    theme === 'lost'
+      ? LOST_DISCOVERY_ASSETS[id] ?? CONCEPT_DISCOVERY_ASSETS[id]
+      : CONCEPT_DISCOVERY_ASSETS[id]
   if (asset) {
     return (
       <ConceptImage
         src={asset}
-        alt={DISCOVERY_PRESENTATION[id]?.displayName ?? id}
+        alt={
+          theme === 'lost'
+            ? LOST_DISCOVERY_PRESENTATION[id]?.displayName ?? id
+            : DISCOVERY_PRESENTATION[id]?.displayName ?? id
+        }
         className={`concept-discovery rarity-${rarity}`}
       />
     )
@@ -571,9 +633,10 @@ interface FeatureRevealEvent {
 function toFeatureRevealEvents(
   reveals: FeatureReveal[],
   session: FeatureSession,
+  theme?: string,
 ): FeatureRevealEvent[] {
   return reveals.map((reveal, order) => {
-    const presentation = discoveryPresentation(reveal.tile)
+    const presentation = discoveryPresentation(reveal.tile, theme)
     return {
       index: reveal.index,
       tileId: reveal.tile.id,
@@ -592,9 +655,7 @@ const REEL_SPIN_SYMBOLS: SymbolId[] = [
   'raptorClaw',
   'scientist',
   'crate',
-  'footprint',
   'predatorTracks',
-  'nestingEggs',
   'helicopter',
   'goldenAmber',
   'jeep',
@@ -708,12 +769,12 @@ function baseGameMessage(
       return 'The final evidence line is complete — the Lost Valley is real.'
     }
     if (spin.triggeredFeatureName === 'Predator Valley') {
-      return 'Three Predator Tracks — the warning zone opens.'
+      return 'Five Predator Tracks — the warning zone opens.'
     }
     if (spin.triggeredFeatureName === 'Nesting Grounds') {
-      return 'Three Nesting Eggs — active grounds discovered.'
+      return 'Four Predator Tracks — active nesting grounds discovered.'
     }
-    return 'Three Footprints — the hidden valley opens.'
+    return 'Three Predator Tracks — Fossil Valley opens.'
   }
   if (spin.fieldNotes.bonus > 0) {
     const milestoneName =
@@ -724,13 +785,9 @@ function baseGameMessage(
           : 'First breakthrough'
     return `FIELD NOTES UPDATED · ${milestoneName} ${spin.fieldNotes.bonus.toFixed(2)} · Total ${spin.baseWin.toFixed(2)}`
   }
-  if (spin.predatorTrackCount === 2) {
-    return 'Two Predator Tracks — one more could locate the hunter.'
-  }
-  if (spin.nestingEggCount === 2) {
-    return 'Two Nesting Eggs — one more could reveal active grounds.'
-  }
-  if (spin.footprintCount === 2) return 'Two trail markers found — one more would reveal the route.'
+  if (spin.predatorTrackCount === 4) return 'Four Predator Tracks — one more reaches the danger zone.'
+  if (spin.predatorTrackCount === 3) return 'Three Predator Tracks — Fossil Valley is marked.'
+  if (spin.predatorTrackCount === 2) return 'Two Predator Tracks — the route is starting to form.'
   if (spin.clusterWin > 0) {
     if (winTier === 'tiny') return `Minor find · ${spin.clusterWin.toFixed(2)} credits`
     if (winTier === 'small') return `${spin.clusterWins.length} expedition cluster${spin.clusterWins.length === 1 ? '' : 's'} pay ${spin.clusterWin.toFixed(2)}`
@@ -738,9 +795,7 @@ function baseGameMessage(
     return `Major expedition find · ${spin.clusterWin.toFixed(2)} credits`
   }
   if (spin.fieldNotes.uniqueEvidence.length > 0) return 'Evidence logged. No payout this time.'
-  if (spin.predatorTrackCount === 1) return 'A warning track cuts across the mud.'
-  if (spin.nestingEggCount === 1) return 'A warm nesting sign appears in the brush.'
-  if (spin.footprintCount === 1) return 'A faint trail mark fades into the brush.'
+  if (spin.predatorTrackCount === 1) return 'A single valley track cuts across the mud.'
   return 'No fresh signs in this sector.'
 }
 
@@ -795,6 +850,7 @@ function App() {
     for (const src of [
       ...Object.values(CONCEPT_SYMBOL_ASSETS),
       ...Object.values(CONCEPT_DISCOVERY_ASSETS),
+      ...Object.values(LOST_DISCOVERY_ASSETS),
     ]) {
       const image = new Image()
       image.src = src
@@ -926,30 +982,16 @@ function App() {
     const finalReelCueBonus = compressed ? 0 : 280
     const finalReelSweatBonus = compressed ? 0 : 420
 
-    const cueCount = result.footprintCount + result.predatorTrackCount + result.nestingEggCount
+    const cueCount = result.predatorTrackCount
     const anticipationForReel = (reelIndex: number) => {
       if (reelIndex === 0 || cueCount === 0) return 0
       const finalReel = reelIndex === config.boardSize - 1
-      const fossilCuesBeforeReel = result.board.reduce(
-        (count, row) =>
-          count + row.slice(0, reelIndex).filter((symbol) => symbol === 'footprint').length,
-        0,
-      )
       const predatorCuesBeforeReel = result.board.reduce(
         (count, row) =>
           count + row.slice(0, reelIndex).filter((symbol) => symbol === 'predatorTracks').length,
         0,
       )
-      const nestingCuesBeforeReel = result.board.reduce(
-        (count, row) =>
-          count + row.slice(0, reelIndex).filter((symbol) => symbol === 'nestingEggs').length,
-        0,
-      )
-      const strongestCueChain = Math.max(
-        fossilCuesBeforeReel,
-        predatorCuesBeforeReel,
-        nestingCuesBeforeReel,
-      )
+      const strongestCueChain = predatorCuesBeforeReel
       if (strongestCueChain >= 2) {
         return (
           twoCueAnticipationDelay +
@@ -1205,7 +1247,7 @@ function App() {
       const next = stepFeatureSession(feature)
       const latestReveals = next.steps.at(-1)?.reveals ?? []
       setFeature(next)
-      const revealEvents = toFeatureRevealEvents(latestReveals, next)
+      const revealEvents = toFeatureRevealEvents(latestReveals, next, next.profile.theme)
       setFeatureRevealEvents(revealEvents)
       setPresentationPhase('feature-reveal')
       if (revealEvents.length > 0) {
@@ -1428,13 +1470,11 @@ function BaseGame({
   const revealEvidence = resultVisible
   const revealFootprints = resultVisible
   const triggeredCueSymbol =
-    spin.triggeredFeatureName === 'Predator Valley'
+    spin.triggeredFeatureName === 'Predator Valley' ||
+    spin.triggeredFeatureName === 'Nesting Grounds' ||
+    spin.triggeredFeatureName === 'Fossil Valley'
       ? 'predatorTracks'
-      : spin.triggeredFeatureName === 'Nesting Grounds'
-        ? 'nestingEggs'
-        : spin.triggeredFeatureName === 'Fossil Valley'
-          ? 'footprint'
-          : null
+      : null
   const cueSuspense = false
   const trailActive = false
   return (
@@ -1447,9 +1487,7 @@ function BaseGame({
     >
       <div className="base-game-layout">
         <LostValleyPanel
-          footprintCount={revealFootprints ? spin.footprintCount : 0}
           predatorTrackCount={revealFootprints ? spin.predatorTrackCount : 0}
-          nestingEggCount={revealFootprints ? spin.nestingEggCount : 0}
           triggeredFeatureName={revealFootprints ? spin.triggeredFeatureName : null}
           featureTriggered={revealFootprints && spin.featureTriggered}
           active={trailActive}
@@ -1459,8 +1497,7 @@ function BaseGame({
       <div className="game-label">
         <span>Expedition grid</span>
         <span>
-          {spin.footprintCount}/3 fossil · {spin.predatorTrackCount}/3 predator ·{' '}
-          {spin.nestingEggCount}/3 nesting
+          {spin.predatorTrackCount}/5 valley tracks
         </span>
       </div>
       <div className="symbol-grid">
@@ -1601,87 +1638,83 @@ function BaseGame({
 }
 
 function LostValleyPanel({
-  footprintCount,
   predatorTrackCount,
-  nestingEggCount,
   triggeredFeatureName,
   featureTriggered,
   active,
   suspense,
 }: {
-  footprintCount: number
   predatorTrackCount: number
-  nestingEggCount: number
   triggeredFeatureName: string | null
   featureTriggered: boolean
   active: boolean
   suspense: boolean
 }) {
-  const fossilFound = Math.min(footprintCount, 3)
-  const predatorFound = Math.min(predatorTrackCount, 3)
-  const nestingFound = Math.min(nestingEggCount, 3)
+  const trackCount = Math.min(predatorTrackCount, 5)
   const destinationName =
     triggeredFeatureName ??
-    (predatorFound >= 3
+    (trackCount >= 5
       ? 'Predator Valley'
-      : nestingFound >= 3
+      : trackCount >= 4
         ? 'Nesting Grounds'
-        : fossilFound >= 3
+        : trackCount >= 3
           ? 'Fossil Valley'
           : 'Lost Valley')
-  const renderCueTrack = (
-    cueSymbol: 'footprint' | 'predatorTracks' | 'nestingEggs',
-    found: number,
-    label: string,
-    destination: string,
-  ) => (
-    <div
-      className={`cue-track ${
-        cueSymbol === 'predatorTracks'
-          ? 'predator-cue-track'
-          : cueSymbol === 'nestingEggs'
-            ? 'nesting-cue-track'
-            : 'fossil-cue-track'
-      } ${found >= 3 ? 'cue-complete' : ''}`}
-      aria-label={`${found} of 3 cues found for ${destination}`}
-    >
-      <div className="cue-track-label">
-        <span>{label}</span>
-        <strong>{found}/3</strong>
-      </div>
-      <div className="footprint-track">
-        {[0, 1, 2].map((index) => (
-          <span
-            className={index < found ? 'found' : ''}
-            key={index}
-            aria-hidden="true"
-            style={active && index < found ? { animationDelay: `${index * 120}ms` } : undefined}
-          >
-            <SymbolIllustration symbol={cueSymbol} />
-          </span>
-        ))}
-      </div>
-    </div>
-  )
+  const milestones = [
+    { count: 3, label: 'Fossil Valley' },
+    { count: 4, label: 'Nesting Grounds' },
+    { count: 5, label: 'Predator Valley' },
+  ]
   return (
     <aside
-      className={`lost-valley-panel multi-trail-panel ${
+      className={`lost-valley-panel multi-trail-panel predator-trail-panel ${
         featureTriggered ? 'trail-complete' : ''
       } ${
         active ? 'trail-active' : ''
       } ${suspense ? 'trail-suspense' : ''}`}
     >
       <div className="lost-valley-heading">
-        <span>Destination cues</span>
-        <strong>
-          {featureTriggered ? destinationName : `${fossilFound + predatorFound + nestingFound}/9`}
-        </strong>
+        <span>Valley tracks</span>
+        <strong>{featureTriggered ? destinationName : `${trackCount}/5`}</strong>
       </div>
-      <p>Follow expedition signs. Three matching cues reveal a valley destination.</p>
-      <div className="cue-track-list">
-        {renderCueTrack('footprint', fossilFound, 'Fossil Footprints', 'Fossil Valley')}
-        {renderCueTrack('predatorTracks', predatorFound, 'Predator Tracks', 'Predator Valley')}
-        {renderCueTrack('nestingEggs', nestingFound, 'Nesting Eggs', 'Nesting Grounds')}
+      <p>Track depth determines the destination: 3 Fossil, 4 Nesting, 5 Predator.</p>
+      <div
+        className="cue-track predator-cue-track valley-ladder-track"
+        aria-label={`${trackCount} of 5 Predator Tracks found`}
+      >
+        <div className="cue-track-label">
+          <span>Predator Tracks</span>
+          <strong>{trackCount}/5</strong>
+        </div>
+        <div className="footprint-track five-track">
+          {[0, 1, 2, 3, 4].map((index) => (
+            <span
+              className={index < trackCount ? 'found' : ''}
+              key={index}
+              aria-hidden="true"
+              style={
+                active && index < trackCount
+                  ? { animationDelay: `${index * 120}ms` }
+                  : undefined
+              }
+            >
+              <SymbolIllustration symbol="predatorTracks" />
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="valley-ladder">
+        {milestones.map((milestone) => (
+          <div
+            className={`valley-ladder-step ${trackCount >= milestone.count ? 'reached' : ''} ${
+              destinationName === milestone.label ? 'selected' : ''
+            }`}
+            key={milestone.count}
+          >
+            <span>{milestone.count}</span>
+            <strong>{milestone.label}</strong>
+          </div>
+        ))}
       </div>
       <div className="lost-valley-card" aria-hidden="true" />
     </aside>
@@ -1974,7 +2007,7 @@ function FeatureBoard({
           style={{ gridTemplateColumns: `repeat(${session.profile.boardWidth}, 1fr)` }}
         >
           {session.tiles.map((tile, index) => {
-            const presentation = tile ? discoveryPresentation(tile) : null
+            const presentation = tile ? discoveryPresentation(tile, session.profile.theme) : null
             const revealEvent = revealEventByIndex.get(index)
             return (
               <div
@@ -2013,6 +2046,7 @@ function FeatureBoard({
                       <DiscoveryIllustration
                         id={tile.id}
                         rarity={presentation!.rarity}
+                        theme={session.profile.theme}
                       />
                     </span>
                     <strong>{presentation!.displayName}</strong>
@@ -2150,13 +2184,14 @@ function FeatureBoard({
           ) : (
             <ol>
               {discoveries.map((reveal, index) => {
-                const presentation = discoveryPresentation(reveal.tile)
+                const presentation = discoveryPresentation(reveal.tile, session.profile.theme)
                 return (
                   <li className={`rarity-${presentation.rarity}`} key={`${index}-${reveal.index}`}>
                     <span className="log-icon">
                       <DiscoveryIllustration
                         id={reveal.tile.id}
                         rarity={presentation.rarity}
+                        theme={session.profile.theme}
                       />
                     </span>
                     <div>
@@ -2553,7 +2588,10 @@ function SimulationPanel({
             value={formatPercent(result.wildAssistedClusterFrequency)}
           />
           <Metric label="Golden Amber hits" value={formatPercent(result.goldenAmberHitFrequency)} />
-          <Metric label="Two Footprints" value={formatPercent(result.twoFootprintFrequency)} />
+          <Metric
+            label="Two Valley Tracks"
+            value={formatPercent(result.twoPredatorTrackFrequency)}
+          />
           <Metric
             label="Evidence bonus hit"
             value={formatPercent(result.evidenceBonusFrequency)}
@@ -2966,9 +3004,8 @@ function Diagnostics({
           value={formatPercent(result.wildAssistedClusterFrequency)}
         />
         <Metric label="Golden Amber hit" value={formatPercent(result.goldenAmberHitFrequency)} />
-        <Metric label="Two Footprints" value={formatPercent(result.twoFootprintFrequency)} />
         <Metric
-          label="Two Predator Tracks"
+          label="Two Valley Tracks"
           value={formatPercent(result.twoPredatorTrackFrequency)}
         />
         <Metric label="Base wins >10x" value={formatPercent(result.baseWinsOver10Frequency)} />
@@ -3052,8 +3089,7 @@ function Diagnostics({
       </div>
 
       <div className="distribution-grid">
-        <Distribution title="Footprint count / spin" values={result.footprintDistribution} />
-        <Distribution title="Predator Track count / spin" values={result.predatorTrackDistribution} />
+        <Distribution title="Valley Track count / spin" values={result.predatorTrackDistribution} />
         <Distribution
           title="Unique evidence / spin"
           values={result.evidenceUniqueDistribution}

@@ -35,7 +35,7 @@ export function countSymbol(board: Board, symbol: SymbolId): number {
 }
 
 export function isFeatureTriggered(board: Board): boolean {
-  return countFootprints(board) >= 3
+  return countSymbol(board, 'predatorTracks') >= 3
 }
 
 export function getFeatureStartingRespins(footprintCount: number, baseRespins: number): number {
@@ -80,7 +80,13 @@ export function resolveTriggeredFeature(
     }
   }
 
-  const profile = symbolProfiles.find((candidate) => triggerCounts[candidate.id] >= 3) ?? null
+  const profile =
+    symbolProfiles.find((candidate) => {
+      const count = triggerCounts[candidate.id]
+      const min = candidate.triggerCountMin ?? 3
+      const max = candidate.triggerCountMax ?? Number.POSITIVE_INFINITY
+      return count >= min && count <= max
+    }) ?? null
   const count = profile ? triggerCounts[profile.id] : 0
   return {
     triggerCounts,

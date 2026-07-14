@@ -20,9 +20,7 @@ export const DEFAULT_CONFIG: GameConfig = {
     { symbol: 'helicopter', weight: 13.1 },
     { symbol: 'scientist', weight: 13.1 },
     { symbol: 'crate', weight: 13.1 },
-    { symbol: 'footprint', weight: 1.2 },
-    { symbol: 'predatorTracks', weight: 1.2 },
-    { symbol: 'nestingEggs', weight: 1.2 },
+    { symbol: 'predatorTracks', weight: 1.94 },
   ],
   clusterPays: {
     gray: [0.146, 0.439, 1.159, 2.806, 7.076],

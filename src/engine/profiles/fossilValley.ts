@@ -3,8 +3,10 @@ import type { FeatureProfile } from '../featureTypes'
 export const FOSSIL_VALLEY_PROFILE: FeatureProfile = {
   id: 'fossil-valley',
   displayName: 'Fossil Valley',
-  triggerSymbol: 'footprint',
-  triggerDisplayName: 'Fossil Footprints',
+  triggerSymbol: 'predatorTracks',
+  triggerDisplayName: 'Valley Tracks',
+  triggerCountMin: 3,
+  triggerCountMax: 3,
   theme: 'fossil',
   startingRespins: 3,
   boardWidth: 5,
@@ -162,7 +164,7 @@ export const FOSSIL_VALLEY_PROFILE: FeatureProfile = {
     ],
   },
   payoutRules: {
-    tileValueMultiplier: 0.56,
+    tileValueMultiplier: 0.45,
     collectorCollectsExistingTiles: true,
     hitResetsRespinsTo: 3,
   },

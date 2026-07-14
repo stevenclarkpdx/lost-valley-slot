@@ -5,6 +5,7 @@ export const PREDATOR_VALLEY_PROFILE: FeatureProfile = {
   displayName: 'Predator Valley',
   triggerSymbol: 'predatorTracks',
   triggerDisplayName: 'Predator Tracks',
+  triggerCountMin: 5,
   theme: 'predator',
   startingRespins: 3,
   boardWidth: 5,
@@ -161,7 +162,7 @@ export const PREDATOR_VALLEY_PROFILE: FeatureProfile = {
     ],
   },
   payoutRules: {
-    tileValueMultiplier: 0.56,
+    tileValueMultiplier: 1.35,
     collectorCollectsExistingTiles: true,
     hitResetsRespinsTo: 3,
   },

@@ -3,8 +3,10 @@ import type { FeatureProfile } from '../featureTypes'
 export const NESTING_GROUNDS_PROFILE: FeatureProfile = {
   id: 'nesting-grounds',
   displayName: 'Nesting Grounds',
-  triggerSymbol: 'nestingEggs',
-  triggerDisplayName: 'Nesting Eggs',
+  triggerSymbol: 'predatorTracks',
+  triggerDisplayName: 'Valley Tracks',
+  triggerCountMin: 4,
+  triggerCountMax: 4,
   theme: 'nesting',
   startingRespins: 3,
   boardWidth: 5,
@@ -155,7 +157,7 @@ export const NESTING_GROUNDS_PROFILE: FeatureProfile = {
     ],
   },
   payoutRules: {
-    tileValueMultiplier: 0.44,
+    tileValueMultiplier: 0.6,
     collectorCollectsExistingTiles: true,
     hitResetsRespinsTo: 3,
   },

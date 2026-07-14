@@ -64,6 +64,8 @@ export interface FeatureProfile {
   triggerKind?: 'symbol' | 'evidence-completion'
   triggerSymbol?: string
   triggerDisplayName?: string
+  triggerCountMin?: number
+  triggerCountMax?: number
   theme?: 'fossil' | 'predator' | 'nesting' | 'lost'
   startingRespins: number
   boardWidth: number

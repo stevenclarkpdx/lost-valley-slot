@@ -4,6 +4,8 @@ Brief summaries of significant project changes. Version numbers are prototype mi
 
 ## Unreleased
 
+- Consolidated the three standard valley triggers into Predator Tracks: 3 tracks opens Fossil Valley, 4 opens Nesting Grounds, and 5+ opens Predator Valley.
+- Rebalanced standard valley trigger frequency and feature payout scaling so Fossil is the common/light valley, Nesting is the uncommon step-up, and Predator is the rare strongest standard valley while keeping total RTP near 95-98%.
 - Added The Lost Valley as a rare mega feature profile triggered by completing all five Field Notes Evidence entries on one spin.
 - Reframed Field Notes so 3 and 4 unique Evidence pay instant Discovery Bonuses, while 5 unique Evidence opens the Lost Valley instead of paying an ordinary notebook bonus.
 - Added Lost Valley simulation reporting for trigger frequency, expected triggers per 100K spins, average payout, percentiles, and RTP contribution.
