@@ -61,9 +61,10 @@ export interface JackpotDefinition {
 export interface FeatureProfile {
   id: string
   displayName: string
+  triggerKind?: 'symbol' | 'evidence-completion'
   triggerSymbol?: string
   triggerDisplayName?: string
-  theme?: 'fossil' | 'predator' | 'nesting'
+  theme?: 'fossil' | 'predator' | 'nesting' | 'lost'
   startingRespins: number
   boardWidth: number
   boardHeight: number

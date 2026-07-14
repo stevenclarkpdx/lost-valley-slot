@@ -98,11 +98,14 @@ export class LostValleyAudio {
     if (bonus > 0) this.tone(290, 0.28, 'triangle', 0.04, 0.26)
   }
 
-  featureTrigger(predator: boolean) {
+  featureTrigger(kind: 'standard' | 'predator' | 'lost' = 'standard') {
     if (!this.isReady()) return
-    this.noiseSweep(1.15, predator ? 520 : 360, predator ? 90 : 55, 0.08, 'lowpass')
-    this.tone(predator ? 52 : 62, 0.9, 'sawtooth', 0.06, 0)
-    this.tone(predator ? 130 : 174, 0.55, 'triangle', 0.04, 0.25)
+    const predator = kind === 'predator'
+    const lost = kind === 'lost'
+    this.noiseSweep(lost ? 1.45 : 1.15, predator ? 520 : lost ? 680 : 360, predator ? 90 : lost ? 42 : 55, lost ? 0.095 : 0.08, 'lowpass')
+    this.tone(predator ? 52 : lost ? 47 : 62, lost ? 1.15 : 0.9, 'sawtooth', lost ? 0.075 : 0.06, 0)
+    this.tone(predator ? 130 : lost ? 196 : 174, lost ? 0.8 : 0.55, 'triangle', lost ? 0.052 : 0.04, 0.25)
+    if (lost) this.tone(392, 0.55, 'sine', 0.035, 0.68)
   }
 
   featureSurvey() {

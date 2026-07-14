@@ -8,11 +8,13 @@ valleys without duplicating math or presentation flow.
 Current game
 - Base game: 5x5 independently weighted symbol board.
 - Payouts: orthogonal cluster pays for 4+ matching cluster symbols.
-- Field Notes: unique natural Evidence symbols award escalating instant bonuses.
+- Field Notes: 3 and 4 unique natural Evidence symbols award instant Discovery
+  Bonuses; all 5 unique Evidence symbols trigger The Lost Valley.
 - Destination triggers:
   - 3+ Fossil Footprints trigger Fossil Valley.
   - 3+ Predator Tracks trigger Predator Valley.
   - 3+ Nesting Eggs trigger Nesting Grounds.
+  - 5 unique Evidence symbols trigger The Lost Valley mega feature.
   - 4 trigger symbols add +1 starting respin; 5+ add +2.
 - Wilds substitute for cluster-paying symbols only.
 - Feature sessions are 5x5 reveal boards with respins, hit resets, misses, tile
@@ -26,9 +28,9 @@ Engine boundaries
 - Legacy imported featureProfile JSON is normalized into featureProfiles.
 - FeatureEngine is profile-driven and contains no Fossil- or Predator-specific
   or Nesting-specific logic.
-- Fossil Assembly, Tracking Confidence, and Nesting Life Cycle are
-  presentation/profile concepts over the generic progression and tile-evolution
-  contracts.
+- Fossil Assembly, Tracking Confidence, Nesting Life Cycle, and Hidden Sanctuary
+  are presentation/profile concepts over the generic progression,
+  tile-evolution, and trigger-kind contracts.
 
 Presentation boundaries
 - React owns animation, layout, credit display, and thematic language.
@@ -47,6 +49,8 @@ Simulation uses the production engine and reports:
 - Combined trigger frequency and feature win percentiles
 - Per-feature trigger frequency, average win, RTP contribution, percentiles,
   final reveal distributions, and full reveal rate
+- Lost Valley trigger frequency, expected triggers per 100K spins, average win,
+  percentiles, and RTP contribution
 - Per-feature evolution diagnostics when a profile uses tile evolution
 - Footprint, Predator Track, and Nesting Egg count distributions
 - Cluster, symbol, wild, Golden Amber, and Field Notes diagnostics

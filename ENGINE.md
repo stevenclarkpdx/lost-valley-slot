@@ -18,6 +18,7 @@ Core files:
 - `src/engine/profiles/fossilValley.ts` describes Fossil Valley.
 - `src/engine/profiles/predatorValley.ts` describes Predator Valley.
 - `src/engine/profiles/nestingGrounds.ts` describes Nesting Grounds.
+- `src/engine/profiles/lostValley.ts` describes The Lost Valley mega feature.
 - `src/engine/simulation.ts` runs the production engine headlessly and reports
   combined plus per-feature diagnostics.
 
@@ -29,7 +30,7 @@ backward compatibility and is immediately normalized into `featureProfiles`.
 
 A `FeatureProfile` describes:
 
-- id, display name, trigger symbol, and optional theme tag;
+- id, display name, trigger kind, optional trigger symbol, and optional theme tag;
 - board dimensions;
 - starting respins and hit-reset respins;
 - hit probability, multi-hit probability, and max tiles per hit;
@@ -48,6 +49,12 @@ events. Presentation maps those generic events into theme-specific language:
 - Predator Valley presents progression as Tracking Confidence.
 - Nesting Grounds presents progression as a Nesting Life Cycle, with Eggs
   hatching into Hatchlings via generic tile evolution.
+- The Lost Valley presents a richer Fossil-derived sanctuary profile and uses
+  the generic `evidence-completion` trigger kind instead of a reel symbol.
+
+Field Notes has two reward roles: 3 and 4 unique Evidence symbols pay instant
+Discovery Bonuses; all 5 unique Evidence symbols trigger The Lost Valley and do
+not pay a normal notebook cash bonus.
 
 ## Runtime APIs
 
@@ -64,9 +71,9 @@ Manual play and simulation therefore share one rule path.
 To add a fourth feature profile without modifying engine code:
 
 1. Create `src/engine/profiles/newValley.ts`.
-2. Export a `FeatureProfile` with a unique `id`, `triggerSymbol`, weighted tiles,
-   hit settings, payout rules, optional `progression`, and optional
-   `tileEvolution`.
+2. Export a `FeatureProfile` with a unique `id`, `triggerKind`, optional
+   `triggerSymbol`, weighted tiles, hit settings, payout rules, optional
+   `progression`, and optional `tileEvolution`.
 3. Add the profile to `DEFAULT_CONFIG.featureProfiles`.
 4. Add or import presentation assets for that profile in React.
 5. Add tests for trigger routing, deterministic stepping, and profile-specific

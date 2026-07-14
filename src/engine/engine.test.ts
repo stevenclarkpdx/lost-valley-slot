@@ -118,6 +118,45 @@ describe('feature trigger', () => {
       getTriggeredFeatureProfile(DEFAULT_CONFIG, { triggeredFeatureId: 'nesting-grounds' })
         .displayName,
     ).toBe('Nesting Grounds')
+    expect(
+      getTriggeredFeatureProfile(DEFAULT_CONFIG, { triggeredFeatureId: 'lost-valley' })
+        .displayName,
+    ).toBe('The Lost Valley')
+  })
+
+  it('routes five unique Evidence symbols to The Lost Valley mega feature', () => {
+    const board: Board = [
+      ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
+      ['jeep', 'helicopter', 'scientist', 'crate', 'compass'],
+      ['jeep', 'helicopter', 'scientist', 'crate', 'compass'],
+      ['jeep', 'helicopter', 'scientist', 'crate', 'compass'],
+      ['jeep', 'helicopter', 'scientist', 'crate', 'compass'],
+    ]
+    const fieldNotes = calculateFieldNotes(board, DEFAULT_CONFIG)
+    const result = resolveTriggeredFeature(board, DEFAULT_CONFIG, fieldNotes)
+
+    expect(fieldNotes.milestone).toBe(5)
+    expect(fieldNotes.bonus).toBe(0)
+    expect(result.profile?.id).toBe('lost-valley')
+    expect(result.triggerCounts['lost-valley']).toBe(5)
+    expect(result.startingRespins).toBe(5)
+  })
+
+  it('prioritizes Lost Valley over ordinary valley cues on the same spin', () => {
+    const board: Board = [
+      ['trexTooth', 'raptorClaw', 'triceratopsEggshell', 'pterosaurFeather', 'sauropodHorn'],
+      ['footprint', 'footprint', 'footprint', 'crate', 'compass'],
+      ['predatorTracks', 'predatorTracks', 'predatorTracks', 'crate', 'compass'],
+      ['nestingEggs', 'nestingEggs', 'nestingEggs', 'crate', 'compass'],
+      ['jeep', 'helicopter', 'scientist', 'crate', 'compass'],
+    ]
+    const fieldNotes = calculateFieldNotes(board, DEFAULT_CONFIG)
+    const result = resolveTriggeredFeature(board, DEFAULT_CONFIG, fieldNotes)
+
+    expect(result.profile?.id).toBe('lost-valley')
+    expect(result.triggerCounts['fossil-valley']).toBe(3)
+    expect(result.triggerCounts['predator-valley']).toBe(3)
+    expect(result.triggerCounts['nesting-grounds']).toBe(3)
   })
 })
 
@@ -738,34 +777,36 @@ describe('simulation diagnostics', () => {
 
   it('preserves the tuned three-valley payout stream', () => {
     const result = runSimulation(DEFAULT_CONFIG, 10_000, 123)
-    expect(result.baseRtp).toBeCloseTo(0.2623461, 4)
-    expect(result.evidenceRtp).toBeCloseTo(0.20393, 4)
-    expect(result.evidenceRtpByMilestone['3']).toBeCloseTo(0.13888, 4)
-    expect(result.evidenceRtpByMilestone['4']).toBeCloseTo(0.04255, 4)
-    expect(result.evidenceRtpByMilestone['5']).toBeCloseTo(0.0225, 4)
-    expect(result.featureRtp).toBeCloseTo(0.516328, 4)
-    expect(result.totalRtp).toBeCloseTo(0.9826041, 4)
-    expect(result.triggerFrequency).toBeCloseTo(0.0113, 4)
-    expect(result.averageFeatureWin).toBeCloseTo(45.69274336283186, 4)
-    expect(result.evidenceBonusFrequency).toBeCloseTo(0.0474, 4)
-    expect(result.evidenceMilestoneFrequency['3']).toBeCloseTo(0.0434, 4)
-    expect(result.evidenceMilestoneFrequency['4']).toBeCloseTo(0.0037, 4)
+    expect(result.baseRtp).toBeCloseTo(0.2613833, 4)
+    expect(result.evidenceRtp).toBeCloseTo(0.18137, 4)
+    expect(result.evidenceRtpByMilestone['3']).toBeCloseTo(0.14112, 4)
+    expect(result.evidenceRtpByMilestone['4']).toBeCloseTo(0.04025, 4)
+    expect(result.evidenceRtpByMilestone['5']).toBeCloseTo(0, 4)
+    expect(result.featureRtp).toBeCloseTo(0.51547192, 4)
+    expect(result.totalRtp).toBeCloseTo(0.95822522, 4)
+    expect(result.triggerFrequency).toBeCloseTo(0.0114, 4)
+    expect(result.averageFeatureWin).toBeCloseTo(45.21683508771931, 4)
+    expect(result.evidenceBonusFrequency).toBeCloseTo(0.0476, 4)
+    expect(result.evidenceMilestoneFrequency['3']).toBeCloseTo(0.0441, 4)
+    expect(result.evidenceMilestoneFrequency['4']).toBeCloseTo(0.0035, 4)
     expect(result.evidenceMilestoneFrequency['5']).toBeCloseTo(0.0003, 4)
-    expect(result.wildAppearanceRate).toBeCloseTo(0.012224, 4)
-    expect(result.wildAssistedClusterFrequency).toBeCloseTo(0.0962, 4)
-    expect(result.goldenAmberHitFrequency).toBeCloseTo(0.0239, 4)
-    expect(result.twoFootprintFrequency).toBeCloseTo(0.0339, 4)
-    expect(result.twoPredatorTrackFrequency).toBeCloseTo(0.0327, 4)
-    expect(result.twoNestingEggFrequency).toBeCloseTo(0.0348, 4)
-    expect(result.baseWinsOver10Frequency).toBeCloseTo(0.0065, 4)
+    expect(result.wildAppearanceRate).toBeCloseTo(0.012228, 4)
+    expect(result.wildAssistedClusterFrequency).toBeCloseTo(0.0973, 4)
+    expect(result.goldenAmberHitFrequency).toBeCloseTo(0.0238, 4)
+    expect(result.twoFootprintFrequency).toBeCloseTo(0.0338, 4)
+    expect(result.twoPredatorTrackFrequency).toBeCloseTo(0.0329, 4)
+    expect(result.twoNestingEggFrequency).toBeCloseTo(0.035, 4)
+    expect(result.baseWinsOver10Frequency).toBeCloseTo(0.0061, 4)
     expect(result.predatorTrackDistribution['2']).toBeGreaterThan(0)
     expect(result.nestingEggDistribution['2']).toBeGreaterThan(0)
-    expect(result.featureBreakdown['fossil-valley'].triggerFrequency).toBeCloseTo(0.0049, 4)
-    expect(result.featureBreakdown['predator-valley'].triggerFrequency).toBeCloseTo(0.0027, 4)
-    expect(result.featureBreakdown['nesting-grounds'].triggerFrequency).toBeCloseTo(0.0037, 4)
-    expect(result.featureBreakdown['fossil-valley'].rtp).toBeCloseTo(0.155824, 4)
-    expect(result.featureBreakdown['predator-valley'].rtp).toBeCloseTo(0.07694, 4)
-    expect(result.featureBreakdown['nesting-grounds'].rtp).toBeCloseTo(0.283564, 4)
+    expect(result.featureBreakdown['fossil-valley'].triggerFrequency).toBeCloseTo(0.0047, 4)
+    expect(result.featureBreakdown['predator-valley'].triggerFrequency).toBeCloseTo(0.0028, 4)
+    expect(result.featureBreakdown['nesting-grounds'].triggerFrequency).toBeCloseTo(0.0036, 4)
+    expect(result.featureBreakdown['lost-valley'].triggerFrequency).toBeCloseTo(0.0003, 4)
+    expect(result.featureBreakdown['fossil-valley'].rtp).toBeCloseTo(0.143752, 4)
+    expect(result.featureBreakdown['predator-valley'].rtp).toBeCloseTo(0.082612, 4)
+    expect(result.featureBreakdown['nesting-grounds'].rtp).toBeCloseTo(0.2652, 4)
+    expect(result.featureBreakdown['lost-valley'].rtp).toBeCloseTo(0.02390792, 4)
     expect(
       result.featureBreakdown['nesting-grounds'].evolutionDiagnostics?.averageSourceTilesCreated,
     ).toBeGreaterThan(2)

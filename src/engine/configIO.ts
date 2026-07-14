@@ -1,7 +1,8 @@
 import { SYMBOLS, type GameConfig } from './types'
 import type { FeatureProfile } from './featureTypes'
+import { LOST_VALLEY_PROFILE } from './profiles/lostValley'
 
-const SCHEMA_VERSION = 8
+const SCHEMA_VERSION = 9
 
 type LegacyGameConfig = Partial<GameConfig> & {
   featureProfile?: FeatureProfile
@@ -40,6 +41,13 @@ function validateFeatureProfile(profile: Partial<FeatureProfile> | undefined): v
     !SYMBOLS.includes(profile.triggerSymbol as (typeof SYMBOLS)[number])
   ) {
     throw new Error('Feature trigger symbol is invalid.')
+  }
+
+  if (
+    profile.triggerKind !== undefined &&
+    !['symbol', 'evidence-completion'].includes(profile.triggerKind)
+  ) {
+    throw new Error('Feature trigger kind is invalid.')
   }
 
   if (
@@ -228,6 +236,18 @@ function migrateConfig(config: LegacyGameConfig, schemaVersion: number): LegacyG
         { symbol: 'nestingEggs', weight: 1.2 },
       ]
     }
+    schemaVersion = 8
+  }
+
+  if (schemaVersion === 8) {
+    config.featureProfiles = config.featureProfiles ?? (config.featureProfile ? [config.featureProfile] : undefined)
+    if (!config.featureProfiles?.some((profile) => profile?.id === LOST_VALLEY_PROFILE.id)) {
+      config.featureProfiles = [...(config.featureProfiles ?? []), LOST_VALLEY_PROFILE]
+    }
+    config.fieldNotesPays = {
+      ...(config.fieldNotesPays ?? { 3: 3.2, 4: 11.5, 5: 0 }),
+      5: 0,
+    }
     return config
   }
 
@@ -304,9 +324,9 @@ export function parseConfig(json: string): GameConfig {
     !isFiniteNumber(fieldNotesPays[4]) ||
     fieldNotesPays[4] < fieldNotesPays[3] ||
     !isFiniteNumber(fieldNotesPays[5]) ||
-    fieldNotesPays[5] < fieldNotesPays[4]
+    fieldNotesPays[5] < 0
   ) {
-    throw new Error('Field Notes payouts need non-negative scaling values for 3, 4, and 5 evidence.')
+    throw new Error('Field Notes payouts need non-negative values; 4 evidence must scale above 3 evidence.')
   }
 
   if (config.featureProfiles !== undefined) {

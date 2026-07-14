@@ -244,6 +244,30 @@ button {
     repeating-linear-gradient(0deg, transparent 0 4px, rgba(255,255,255,.018) 4px 5px);
 }
 
+.screen.trigger-transition.lost-transition {
+  filter: brightness(.62) contrast(1.18) saturate(1.18);
+  transform: scale(1.028);
+}
+
+.screen.trigger-transition.lost-transition::before {
+  content: 'THE LOST VALLEY DISCOVERED';
+  border-color: rgba(255, 222, 128, .66);
+  color: #ffe8a6;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255, 222, 128, .18), transparent 42%),
+    rgba(5, 8, 6, .86);
+  box-shadow:
+    0 0 34px rgba(255, 214, 99, .28),
+    inset 0 0 18px rgba(255, 214, 99, .16);
+}
+
+.screen.trigger-transition.lost-transition::after {
+  background:
+    linear-gradient(90deg, transparent 0%, rgba(213, 232, 172, .08) 34%, rgba(255, 232, 166, .36) 50%, rgba(213, 232, 172, .08) 66%, transparent 100%),
+    radial-gradient(circle at 50% 48%, rgba(255, 232, 166, .2), transparent 42%),
+    repeating-linear-gradient(0deg, transparent 0 4px, rgba(255,255,255,.018) 4px 5px);
+}
+
 .screen.trigger-transition::after {
   z-index: 3;
   background:
@@ -414,6 +438,35 @@ button {
     url('./assets/concept/nesting-button.png') center / cover no-repeat;
   color: #f3e6b6;
   text-shadow: 0 2px 2px rgba(0, 0, 0, .8);
+}
+
+.feature-screen.lost-feature {
+  background:
+    radial-gradient(circle at 46% 30%, rgba(255, 221, 125, .2), transparent 38%),
+    linear-gradient(rgba(6, 10, 8, .5), rgba(6, 10, 8, .86)),
+    url('./assets/concept/fossil-valley-background.png') center / cover no-repeat,
+    radial-gradient(circle at 48% 30%, rgba(143, 171, 109, .24), transparent 48%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 2px, transparent 2px 6px);
+}
+
+.feature-screen.lost-feature::before {
+  background:
+    radial-gradient(circle at 18% 76%, rgba(255, 221, 125, .2), transparent 20%),
+    radial-gradient(circle at 88% 18%, rgba(192, 226, 155, .18), transparent 24%),
+    linear-gradient(90deg, rgba(3, 6, 5, .18), transparent 28%, transparent 72%, rgba(3, 6, 5, .28));
+}
+
+.feature-screen.lost-feature .feature-site-stamp,
+.feature-screen.lost-feature .Progression-event-panel {
+  border-color: rgba(255, 220, 122, .48);
+  box-shadow: inset 0 0 18px rgba(255, 214, 99, .18);
+}
+
+.feature-screen.lost-feature .excavation-site {
+  border-color: rgba(255, 221, 125, .4);
+  box-shadow:
+    inset 0 0 34px rgba(6, 12, 6, .62),
+    0 0 34px rgba(255, 214, 99, .16);
 }
 
 .reel-stage {
@@ -1444,6 +1497,7 @@ button {
   box-shadow:
     inset 0 0 18px rgba(0, 0, 0, .72),
     0 0 18px rgba(172, 200, 108, .22),
+    0 0 34px rgba(255, 218, 109, .12),
     0 2px 0 #050705;
 }
 
@@ -1455,7 +1509,18 @@ button {
 .field-notes.notes-active.evidence-count-5 .field-notes-bonus,
 .field-notes.notes-active.milestone-5 .field-notes-bonus {
   border-color: rgba(255, 210, 116, .52);
-  box-shadow: inset 0 0 16px rgba(255, 210, 116, .18);
+  color: #201408;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(255,255,255,.2), transparent 46%),
+    linear-gradient(#f5d982, #a66f25);
+  box-shadow:
+    inset 0 0 16px rgba(255, 210, 116, .24),
+    0 0 24px rgba(255, 210, 116, .2);
+}
+
+.field-notes.evidence-count-4 li:not(.found):last-child {
+  border-left-color: rgba(255, 210, 116, .38);
+  box-shadow: inset 0 0 12px rgba(255, 210, 116, .08);
 }
 
 .controls {

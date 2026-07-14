@@ -704,6 +704,9 @@ function baseGameMessage(
     return `Valley survey complete · ${lastFeatureWin.toFixed(2)} credits recovered`
   }
   if (spin.featureTriggered) {
+    if (spin.triggeredFeatureName === 'The Lost Valley') {
+      return 'The final evidence line is complete — the Lost Valley is real.'
+    }
     if (spin.triggeredFeatureName === 'Predator Valley') {
       return 'Three Predator Tracks — the warning zone opens.'
     }
@@ -1047,7 +1050,14 @@ function App() {
       const endPresentationTimer = window.setTimeout(() => {
         if (result.featureTriggered) {
           setPresentationPhase('feature-transition')
-          audio.current?.featureTrigger(result.triggeredFeatureName === 'Predator Valley')
+          const lostValleyTriggered = result.triggeredFeatureName === 'The Lost Valley'
+          audio.current?.featureTrigger(
+            result.triggeredFeatureName === 'Predator Valley'
+              ? 'predator'
+              : lostValleyTriggered
+                ? 'lost'
+                : 'standard',
+          )
           const featureTimer = window.setTimeout(() => {
             const featureRngSeed = manualRng.current.int(1, 0x7fffffff)
             const featureSessionId = nextFeatureSessionId.current
@@ -1071,7 +1081,7 @@ function App() {
               setPresentationPhase('input-ready')
             }, compressed ? 80 : 950)
             spinTimers.current.push(introTimer)
-          }, compressed ? 160 : 2200)
+          }, compressed ? 160 : lostValleyTriggered ? 3200 : 2200)
           spinTimers.current.push(featureTimer)
         } else {
           setPresentationPhase('input-ready')
@@ -1248,6 +1258,10 @@ function App() {
                 ? 'predator-transition'
                 : ''
             } ${
+              triggerTransition && spin.triggeredFeatureName === 'The Lost Valley'
+                ? 'lost-transition'
+                : ''
+            } ${
               featureEnding ? 'feature-fadeout' : ''
             }`}
           >
@@ -1418,7 +1432,9 @@ function BaseGame({
       ? 'predatorTracks'
       : spin.triggeredFeatureName === 'Nesting Grounds'
         ? 'nestingEggs'
-        : 'footprint'
+        : spin.triggeredFeatureName === 'Fossil Valley'
+          ? 'footprint'
+          : null
   const cueSuspense = false
   const trailActive = false
   return (
@@ -1516,14 +1532,14 @@ function BaseGame({
                     } ${
                   spinning ? 'reel-spinning' : ''
                 } ${isReeling && columnIndex < settledReels ? 'reel-settled' : ''} ${
-                  (triggerTransition && symbol === triggeredCueSymbol)
+                  (triggerTransition && triggeredCueSymbol !== null && symbol === triggeredCueSymbol)
                     ? 'trigger-footprint'
                     : ''
                 }`}
                 data-win-key={winning ? winAnimationKey : undefined}
                 key={`${rowIndex}-${columnIndex}`}
                 style={
-                  triggerTransition && symbol === triggeredCueSymbol
+                  triggerTransition && triggeredCueSymbol !== null && symbol === triggeredCueSymbol
                     ? { animationDelay: `${Math.min(rowIndex + columnIndex, 5) * 110}ms` }
                     : undefined
                 }
@@ -1704,9 +1720,10 @@ function FieldNotesPanel({
   const nextMilestone = reveal ? spin.fieldNotes.nextMilestone : 3
   const remaining = reveal ? spin.fieldNotes.remainingToNextMilestone : 3
   const nextReward = reveal ? spin.fieldNotes.nextMilestoneReward : 0
+  const lostValleyDiscovered = reveal && milestone === 5
   const milestoneLabel =
     milestone === 5
-      ? 'Expedition complete'
+      ? 'Lost Valley discovered'
       : milestone === 4
         ? 'Major discovery'
         : milestone === 3
@@ -1714,7 +1731,9 @@ function FieldNotesPanel({
           : 'No milestone'
   return (
     <aside
-      className={`field-notes ${reveal && spin.fieldNotes.bonus > 0 ? 'bonus-earned' : ''} ${
+      className={`field-notes ${
+        reveal && (spin.fieldNotes.bonus > 0 || lostValleyDiscovered) ? 'bonus-earned' : ''
+      } ${
         active && reveal && spin.fieldNotes.bonus > 0 ? 'bonus-hit' : ''
       } ${
         active ? 'notes-active' : ''
@@ -1727,7 +1746,9 @@ function FieldNotesPanel({
       </div>
       <p>Document unique evidence found anywhere on the expedition grid.</p>
       <p className="field-notes-progress">
-        {nextMilestone === null
+        {lostValleyDiscovered
+          ? 'The final entry points beyond the map.'
+          : nextMilestone === null
           ? 'All five evidence lines are complete.'
           : `${remaining} more unique evidence ${remaining === 1 ? 'symbol' : 'symbols'} to reach ${nextMilestone}.`}
       </p>
@@ -1750,7 +1771,13 @@ function FieldNotesPanel({
         })}
       </ol>
       <div className="field-notes-bonus">
-        {reveal && spin.fieldNotes.bonus > 0 ? (
+        {lostValleyDiscovered ? (
+          <>
+            <span>The Lost Valley discovered</span>
+            <strong>Map opens</strong>
+            <small>Notebook complete · destination found</small>
+          </>
+        ) : reveal && spin.fieldNotes.bonus > 0 ? (
           <>
             <span>{milestoneLabel}</span>
             <strong>{spin.fieldNotes.bonus.toFixed(2)}x</strong>
@@ -1819,16 +1846,21 @@ function FeatureBoard({
   const latestBonus = lastStep?.bonusAwarded ?? 0
   const predator = session.profile.theme === 'predator'
   const nesting = session.profile.theme === 'nesting'
+  const lost = session.profile.theme === 'lost'
   const progressName = predator
     ? 'Tracking Confidence'
     : nesting
       ? 'Life Cycle'
-      : 'Fossil Assembly'
+      : lost
+        ? 'Hidden Sanctuary'
+        : 'Fossil Assembly'
   const completeSectionsLabel = predator
     ? `${completedSections}/${totalSections} trail stages confirmed`
     : nesting
       ? `${completedSections}/${totalSections} nesting stages observed`
-      : `${completedSections}/${totalSections} body sections identified`
+      : lost
+        ? `${completedSections}/${totalSections} sanctuary signs confirmed`
+        : `${completedSections}/${totalSections} body sections identified`
   const surveyBusy =
     presentationPhase === 'feature-survey' || presentationPhase === 'feature-reveal'
   const featureCopy =
@@ -1884,7 +1916,7 @@ function FeatureBoard({
         collectorEvent ? 'collector-event' : ''
       } ${lastStep && !lastStep.hit && !session.isComplete ? 'feature-miss' : ''} ${
         session.isComplete ? 'feature-complete' : ''
-      } ${predator ? 'predator-feature' : nesting ? 'nesting-feature' : 'fossil-feature'} phase-${presentationPhase}`}
+      } ${predator ? 'predator-feature' : nesting ? 'nesting-feature' : lost ? 'lost-feature' : 'fossil-feature'} phase-${presentationPhase}`}
     >
       {introActive && (
         <div className="feature-intro">
@@ -1895,7 +1927,9 @@ function FeatureBoard({
               ? 'The hunt is on.'
               : nesting
                 ? 'Life spreads through the valley.'
-                : 'Steady discoveries. Reliable rewards.'}
+                : lost
+                  ? 'The place beyond every map.'
+                  : 'Steady discoveries. Reliable rewards.'}
           </p>
         </div>
       )}
@@ -2490,6 +2524,18 @@ function SimulationPanel({
 
       {result ? (
         <div className="metrics">
+          {result.featureBreakdown['lost-valley'] && (
+            <>
+              <Metric
+                label="Lost Valley trigger"
+                value={`${formatOdds(result.featureBreakdown['lost-valley'].triggerFrequency)} · ${(result.featureBreakdown['lost-valley'].triggerFrequency * 100_000).toFixed(1)}/100K`}
+              />
+              <Metric
+                label="Lost Valley avg"
+                value={`${result.featureBreakdown['lost-valley'].averageWin.toFixed(2)}x · ${formatPercent(result.featureBreakdown['lost-valley'].rtp)}`}
+              />
+            </>
+          )}
           <Metric label="Base RTP" value={formatPercent(result.baseRtp)} />
           <Metric label="Evidence RTP" value={formatPercent(result.evidenceRtp)} />
           <Metric label="Feature RTP" value={formatPercent(result.featureRtp)} />
@@ -2977,6 +3023,18 @@ function Diagnostics({
           percent={false}
         />
         <Metric label="Full reveal rate" value={formatPercent(result.fullRevealRate)} />
+        {result.featureBreakdown['lost-valley'] && (
+          <>
+            <Metric
+              label="Lost Valley / 100K"
+              value={(result.featureBreakdown['lost-valley'].triggerFrequency * 100_000).toFixed(1)}
+            />
+            <Metric
+              label="Lost Valley P90 / P99"
+              value={`${result.featureBreakdown['lost-valley'].percentiles.p90.toFixed(1)} / ${result.featureBreakdown['lost-valley'].percentiles.p99.toFixed(1)}`}
+            />
+          </>
+        )}
       </div>
 
       <div className="diagnostic-summary">

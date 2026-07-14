@@ -9,7 +9,12 @@ import type {
 import type { FeatureProfile } from './featureTypes'
 import type { Rng } from './rng'
 import { calculateClusterWins, EVIDENCE_SYMBOLS } from './payouts'
-import { getFeatureProfiles, getFeatureTriggerSymbol } from './featureProfiles'
+import {
+  getEvidenceCompletionFeatureProfile,
+  getFeatureProfiles,
+  getFeatureTriggerSymbol,
+  getSymbolTriggeredFeatureProfiles,
+} from './featureProfiles'
 
 function pickSymbol(config: GameConfig, rng: Rng): SymbolId {
   const totalWeight = config.symbolWeights.reduce((sum, item) => sum + item.weight, 0)
@@ -42,6 +47,7 @@ export function getFeatureStartingRespins(footprintCount: number, baseRespins: n
 export function resolveTriggeredFeature(
   board: Board,
   config: GameConfig,
+  fieldNotes?: FieldNotesResult,
 ): {
   triggerCounts: Record<string, number>
   profile: FeatureProfile | null
@@ -49,12 +55,32 @@ export function resolveTriggeredFeature(
   startingRespins: number
 } {
   const profiles = getFeatureProfiles(config)
+  const symbolProfiles = getSymbolTriggeredFeatureProfiles(config)
   const triggerCounts = Object.fromEntries(
-    profiles.map((profile) => [profile.id, countSymbol(board, getFeatureTriggerSymbol(profile))]),
+    profiles.map((profile) => {
+      const triggerSymbol = getFeatureTriggerSymbol(profile)
+      return [
+        profile.id,
+        triggerSymbol === null ? 0 : countSymbol(board, triggerSymbol),
+      ]
+    }),
   )
 
-  const profile =
-    profiles.find((candidate) => triggerCounts[candidate.id] >= 3) ?? null
+  const evidenceCompletionProfile =
+    fieldNotes && fieldNotes.uniqueEvidence.length >= 5
+      ? getEvidenceCompletionFeatureProfile(config) ?? null
+      : null
+  if (evidenceCompletionProfile) {
+    triggerCounts[evidenceCompletionProfile.id] = fieldNotes?.uniqueEvidence.length ?? 5
+    return {
+      triggerCounts,
+      profile: evidenceCompletionProfile,
+      count: fieldNotes?.uniqueEvidence.length ?? 5,
+      startingRespins: evidenceCompletionProfile.startingRespins,
+    }
+  }
+
+  const profile = symbolProfiles.find((candidate) => triggerCounts[candidate.id] >= 3) ?? null
   const count = profile ? triggerCounts[profile.id] : 0
   return {
     triggerCounts,
@@ -97,9 +123,9 @@ export function spinBaseGame(config: GameConfig, rng: Rng): BaseSpinResult {
   const footprintCount = countFootprints(board)
   const predatorTrackCount = countSymbol(board, 'predatorTracks')
   const nestingEggCount = countSymbol(board, 'nestingEggs')
-  const triggered = resolveTriggeredFeature(board, config)
   const payout = calculateClusterWins(board, config)
   const fieldNotes = calculateFieldNotes(board, config)
+  const triggered = resolveTriggeredFeature(board, config, fieldNotes)
 
   return {
     board,

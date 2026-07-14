@@ -4,6 +4,10 @@ Brief summaries of significant project changes. Version numbers are prototype mi
 
 ## Unreleased
 
+- Added The Lost Valley as a rare mega feature profile triggered by completing all five Field Notes Evidence entries on one spin.
+- Reframed Field Notes so 3 and 4 unique Evidence pay instant Discovery Bonuses, while 5 unique Evidence opens the Lost Valley instead of paying an ordinary notebook bonus.
+- Added Lost Valley simulation reporting for trigger frequency, expected triggers per 100K spins, average payout, percentiles, and RTP contribution.
+- Added Lost Valley transition, Field Notes mystery/completion presentation, and a distinct sanctuary feature treatment.
 - Integrated the Nesting Grounds art sheet into the Nesting feature background, intro treatment, survey button, panel framing, trigger symbol, and discovery tiles.
 - Added Nesting Grounds as the third major valley profile, triggered by Nesting Eggs.
 - Added generic profile-driven tile evolution so revealed Eggs can hatch into Hatchlings without valley-name branching in the feature engine.

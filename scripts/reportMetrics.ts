@@ -5,6 +5,7 @@ const spins = Number(process.argv[2] ?? 100000)
 const seed = Number(process.argv[3] ?? 424242)
 const mode = process.argv[4] ?? 'full'
 const result = runSimulation(DEFAULT_CONFIG, spins, seed)
+const lostValley = result.featureBreakdown['lost-valley']
 
 console.log(
   JSON.stringify(
@@ -35,6 +36,17 @@ console.log(
       featureP50: result.percentiles.p50,
       featureP90: result.percentiles.p90,
       featureP99: result.percentiles.p99,
+      lostValley: lostValley
+        ? {
+            triggerFrequency: lostValley.triggerFrequency,
+            expectedTriggersPer100k: lostValley.triggerFrequency * 100_000,
+            averageWin: lostValley.averageWin,
+            p50: lostValley.percentiles.p50,
+            p90: lostValley.percentiles.p90,
+            p99: lostValley.percentiles.p99,
+            rtp: lostValley.rtp,
+          }
+        : null,
       featureBreakdown:
         mode === 'summary'
           ? Object.fromEntries(

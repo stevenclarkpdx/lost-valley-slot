@@ -2,6 +2,7 @@ import type { GameConfig } from './types'
 import { FOSSIL_VALLEY_PROFILE } from './profiles/fossilValley'
 import { PREDATOR_VALLEY_PROFILE } from './profiles/predatorValley'
 import { NESTING_GROUNDS_PROFILE } from './profiles/nestingGrounds'
+import { LOST_VALLEY_PROFILE } from './profiles/lostValley'
 
 export const DEFAULT_CONFIG: GameConfig = {
   boardSize: 5,
@@ -33,7 +34,12 @@ export const DEFAULT_CONFIG: GameConfig = {
   fieldNotesPays: {
     3: 3.2,
     4: 11.5,
-    5: 75,
+    5: 0,
   },
-  featureProfiles: [FOSSIL_VALLEY_PROFILE, PREDATOR_VALLEY_PROFILE, NESTING_GROUNDS_PROFILE],
+  featureProfiles: [
+    FOSSIL_VALLEY_PROFILE,
+    PREDATOR_VALLEY_PROFILE,
+    NESTING_GROUNDS_PROFILE,
+    LOST_VALLEY_PROFILE,
+  ],
 }

@@ -19,7 +19,24 @@ export function getFeatureProfile(
   return id ? config.featureProfiles.find((profile) => profile.id === id) : undefined
 }
 
-export function getFeatureTriggerSymbol(profile: FeatureProfile): SymbolId {
+export function getSymbolTriggeredFeatureProfiles(
+  config: Pick<GameConfig, 'featureProfiles'>,
+): FeatureProfile[] {
+  return getFeatureProfiles(config).filter(
+    (profile) => (profile.triggerKind ?? 'symbol') === 'symbol',
+  )
+}
+
+export function getEvidenceCompletionFeatureProfile(
+  config: Pick<GameConfig, 'featureProfiles'>,
+): FeatureProfile | undefined {
+  return getFeatureProfiles(config).find(
+    (profile) => profile.triggerKind === 'evidence-completion',
+  )
+}
+
+export function getFeatureTriggerSymbol(profile: FeatureProfile): SymbolId | null {
+  if ((profile.triggerKind ?? 'symbol') !== 'symbol') return null
   return (profile.triggerSymbol ?? 'footprint') as SymbolId
 }
 
