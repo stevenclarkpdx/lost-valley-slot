@@ -1,0 +1,52 @@
+{
+  "asset_id": "lost_sauropod",
+  "status": "prototype",
+  "approved": false,
+  "production_reference_eligible": false,
+  "manifest_version": "1.0.0",
+  "asset_family": "feature_discovery",
+  "candidate_number": "01",
+  "provider_request_size": [
+    1024,
+    1024
+  ],
+  "canonical_output_size": [
+    512,
+    512
+  ],
+  "raw_provider_output_path": "C:\\Users\\sclar\\OneDrive\\Asztali gép\\Lost Valley Slot\\art\\generated\\feature_discoveries\\lost_sauropod\\raw\\feature_discovery_lost_sauropod_default_v001_c01_raw.png",
+  "canonicalization": {
+    "action": "downsampled",
+    "resampler": "sharp",
+    "preservesAspectRatio": true,
+    "distorted": false
+  },
+  "compiled_prompt_path": "C:\\Users\\sclar\\OneDrive\\Asztali gép\\Lost Valley Slot\\art\\prompts\\compiled\\prototype\\lost_sauropod\\feature_discovery_lost_sauropod_default_v001_c01.txt",
+  "reference_files_used": [],
+  "provider": "openai",
+  "generation_timestamp": "2026-09-04T23:10:15.183Z",
+  "output_filename": "feature_discovery_lost_sauropod_default_v001_c01.png",
+  "prototype_paths": [
+    "C:\\Users\\sclar\\OneDrive\\Asztali gép\\Lost Valley Slot\\art\\prototype\\symbols\\lost_sauropod.png",
+    "C:\\Users\\sclar\\OneDrive\\Asztali gép\\Lost Valley Slot\\art\\prototype\\symbols\\lost-sauropod.png"
+  ],
+  "runtime_names": [
+    "lost_sauropod.png",
+    "lost-sauropod.png"
+  ],
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [
+      "image has alpha; verify this is intentional for a filled-background asset"
+    ],
+    "png": {
+      "width": 512,
+      "height": 512,
+      "bitDepth": 8,
+      "colorType": 6,
+      "hasAlpha": true,
+      "bytes": 426085
+    }
+  }
+}

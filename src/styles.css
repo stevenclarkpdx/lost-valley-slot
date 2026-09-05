@@ -1906,13 +1906,14 @@ button {
   padding: 17px 14px 14px;
   border: 1px solid rgba(97, 79, 50, .66);
   background:
-    radial-gradient(circle at 48% 45%, rgba(167, 123, 70, .22), transparent 44%),
-    linear-gradient(145deg, rgba(61, 49, 33, .78), rgba(18, 22, 16, .92)),
+    radial-gradient(circle at 48% 45%, rgba(167, 123, 70, .2), transparent 44%),
+    linear-gradient(145deg, rgba(61, 49, 33, .7), rgba(18, 22, 16, .84)),
     repeating-linear-gradient(90deg, rgba(245, 218, 154, .035) 0 1px, transparent 1px 18px);
   box-shadow:
     inset 0 0 38px rgba(0, 0, 0, .64),
     inset 0 0 0 3px rgba(207, 171, 99, .05),
     0 18px 36px rgba(0, 0, 0, .35);
+  overflow: hidden;
 }
 
 .excavation-site::before {
@@ -1933,6 +1934,128 @@ button {
     radial-gradient(circle at 18% 74%, rgba(226, 176, 86, .12), transparent 16%),
     radial-gradient(circle at 82% 22%, rgba(79, 102, 72, .16), transparent 18%);
   opacity: .75;
+}
+
+.survey-team-overlay {
+  --survey-x: 50%;
+  --survey-y: 50%;
+  position: absolute;
+  z-index: 5;
+  left: 14px;
+  right: 14px;
+  top: 17px;
+  bottom: 14px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate3d(0, 0, 0);
+}
+
+.survey-team-overlay::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--survey-x) - 30px);
+  top: calc(var(--survey-y) - 30px);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(255, 218, 126, .26), rgba(214, 154, 58, .08) 38%, transparent 70%);
+  filter: blur(.4px);
+  transform: scale(.8);
+}
+
+.survey-team-overlay::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--survey-x) - 22px);
+  top: calc(var(--survey-y) + 17px);
+  width: 48px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, .36);
+  filter: blur(4px);
+}
+
+.survey-team-figure,
+.survey-team-lantern,
+.survey-team-tool {
+  position: absolute;
+  left: var(--survey-x);
+  top: var(--survey-y);
+  display: block;
+  transform-origin: 50% 100%;
+}
+
+.survey-team-figure {
+  width: 7px;
+  height: 18px;
+  border-radius: 6px 6px 3px 3px;
+  background: linear-gradient(#d2b36e 0 18%, #5b4930 18% 58%, #22180e 58%);
+  box-shadow: 0 0 0 1px rgba(10, 8, 5, .6), 0 0 8px rgba(214, 154, 58, .16);
+}
+
+.figure-lead {
+  margin-left: -12px;
+  margin-top: -15px;
+}
+
+.figure-dig {
+  margin-left: 7px;
+  margin-top: -12px;
+  transform: rotate(10deg);
+}
+
+.survey-team-lantern {
+  width: 8px;
+  height: 8px;
+  margin-left: -23px;
+  margin-top: -18px;
+  border-radius: 50%;
+  background: #ffd77a;
+  box-shadow:
+    0 0 10px rgba(255, 215, 122, .78),
+    0 0 22px rgba(255, 160, 58, .34);
+}
+
+.survey-team-tool {
+  width: 25px;
+  height: 2px;
+  margin-left: 1px;
+  margin-top: 0;
+  border-radius: 2px;
+  background: #bd9360;
+  box-shadow: 0 0 0 1px rgba(43, 28, 12, .48);
+  transform: rotate(-28deg);
+}
+
+.survey-team-searching {
+  opacity: .9;
+  animation: survey-team-search-path 620ms ease-out both;
+}
+
+.survey-team-searching .survey-team-lantern {
+  animation: survey-lantern-sweep 620ms ease-out both;
+}
+
+.survey-team-searching .survey-team-tool {
+  animation: survey-tool-probe 620ms ease-out both;
+}
+
+.survey-team-hit {
+  opacity: 1;
+  animation: survey-team-hit-path 880ms cubic-bezier(.18, .78, .18, 1) both;
+}
+
+.survey-team-hit .survey-team-lantern {
+  animation: survey-lantern-hit 880ms ease-out both;
+}
+
+.survey-team-hit .survey-team-tool {
+  animation: survey-tool-dig 880ms ease-out both;
+}
+
+.feature-screen.phase-feature-reveal:not(.feature-miss) .survey-team-overlay::before {
+  animation: survey-reveal-light 880ms ease-out both;
 }
 
 .site-rope {
@@ -2307,9 +2430,9 @@ button {
   border: 1px solid rgba(112, 84, 50, .82);
   border-radius: 3px;
   background:
-    radial-gradient(circle at 34% 28%, rgba(182, 142, 83, .16), transparent 34%),
-    radial-gradient(circle at 72% 70%, rgba(67, 50, 31, .35), transparent 42%),
-    linear-gradient(145deg, #54422a, #201910 68%);
+    radial-gradient(circle at 34% 28%, rgba(182, 142, 83, .13), transparent 34%),
+    radial-gradient(circle at 72% 70%, rgba(67, 50, 31, .3), transparent 42%),
+    linear-gradient(145deg, rgba(84, 66, 42, .86), rgba(32, 25, 16, .78) 68%);
   box-shadow:
     inset 0 0 18px rgba(0, 0, 0, .55),
     inset 0 0 0 1px rgba(224, 190, 112, .06),
@@ -2342,10 +2465,10 @@ button {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 38% 35%, rgba(204, 218, 204, .14), transparent 36%),
-    radial-gradient(circle at 62% 60%, rgba(122, 139, 124, .11), transparent 32%),
-    linear-gradient(135deg, rgba(104, 124, 106, .16), rgba(5, 9, 7, .38));
-  opacity: .9;
+    radial-gradient(circle at 38% 35%, rgba(214, 226, 210, .24), transparent 36%),
+    radial-gradient(circle at 62% 60%, rgba(145, 158, 139, .18), transparent 32%),
+    linear-gradient(135deg, rgba(126, 145, 120, .22), rgba(5, 9, 7, .48));
+  opacity: .66;
   animation: fog-breathe 3.8s ease-in-out infinite alternate;
 }
 
@@ -2623,6 +2746,7 @@ button {
 .feature-screen.phase-feature-reveal .feature-total strong {
   color: #ffd477;
   text-shadow: 0 0 14px rgba(255, 212, 119, .24);
+  animation: feature-value-kick 520ms ease-out both;
 }
 
 .feature-screen.phase-feature-reveal:not(.feature-miss) .survey-button {
@@ -2641,6 +2765,21 @@ button {
     inset 0 0 0 3px rgba(207, 171, 99, .08),
     0 0 24px rgba(207, 143, 51, .18),
     0 18px 36px rgba(0, 0, 0, .35);
+}
+
+.feature-screen.phase-feature-reveal.reveal-rarity-rare .excavation-site,
+.feature-screen.phase-feature-reveal.reveal-rarity-legendary .excavation-site {
+  animation: excavation-rare-find 760ms ease-out both;
+}
+
+.feature-screen.phase-feature-reveal.reveal-rarity-rare .feature-total strong,
+.feature-screen.phase-feature-reveal.reveal-rarity-legendary .feature-total strong {
+  animation: feature-value-big-kick 720ms ease-out both;
+}
+
+.feature-screen.phase-feature-reveal.reveal-rarity-legendary .survey-team-overlay::before {
+  background:
+    radial-gradient(circle, rgba(255, 234, 151, .56), rgba(255, 181, 55, .2) 40%, transparent 72%);
 }
 
 .feature-screen.phase-input-ready .survey-button:not(:disabled) {
@@ -3403,6 +3542,156 @@ button {
   }
   48% {
     filter: brightness(1.13) saturate(1.04);
+  }
+}
+
+@keyframes survey-team-search-path {
+  0% {
+    opacity: 0;
+    transform: translate3d(-16px, 10px, 0) scale(.96);
+  }
+  18% {
+    opacity: .88;
+  }
+  58% {
+    opacity: .9;
+    transform: translate3d(10px, -8px, 0) scale(1);
+  }
+  100% {
+    opacity: .78;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes survey-team-hit-path {
+  0% {
+    opacity: 0;
+    transform: translate3d(-22px, 14px, 0) scale(.92);
+  }
+  26% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  60% {
+    opacity: 1;
+    transform: translate3d(0, -3px, 0) scale(1.03);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -5px, 0) scale(.98);
+  }
+}
+
+@keyframes survey-lantern-sweep {
+  0% {
+    filter: brightness(.8);
+    transform: translate3d(-6px, 2px, 0);
+  }
+  50% {
+    filter: brightness(1.35);
+    transform: translate3d(8px, -4px, 0);
+  }
+  100% {
+    filter: brightness(1.05);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes survey-lantern-hit {
+  0% {
+    opacity: .4;
+    transform: scale(.65);
+  }
+  28% {
+    opacity: 1;
+    transform: scale(1.55);
+  }
+  62% {
+    opacity: .95;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(.8);
+  }
+}
+
+@keyframes survey-tool-probe {
+  0%,
+  100% {
+    transform: rotate(-28deg) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: rotate(-12deg) translate3d(3px, -2px, 0);
+  }
+}
+
+@keyframes survey-tool-dig {
+  0% {
+    transform: rotate(-32deg) translate3d(-2px, -2px, 0);
+  }
+  30% {
+    transform: rotate(-6deg) translate3d(5px, 4px, 0);
+  }
+  58% {
+    transform: rotate(-40deg) translate3d(-3px, 0, 0);
+  }
+  100% {
+    transform: rotate(-18deg) translate3d(0, -2px, 0);
+  }
+}
+
+@keyframes survey-reveal-light {
+  0% {
+    opacity: .25;
+    transform: scale(.66);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1.24);
+  }
+  72% {
+    opacity: .72;
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(.84);
+  }
+}
+
+@keyframes excavation-rare-find {
+  0%,
+  100% {
+    filter: brightness(1) saturate(1);
+  }
+  38% {
+    filter: brightness(1.2) saturate(1.14);
+  }
+}
+
+@keyframes feature-value-kick {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  42% {
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes feature-value-big-kick {
+  0% {
+    transform: translateY(0) scale(1);
+    filter: brightness(1);
+  }
+  42% {
+    transform: translateY(-2px) scale(1.08);
+    filter: brightness(1.28);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    filter: brightness(1.04);
   }
 }
 
@@ -4503,6 +4792,13 @@ footer {
   .feature-screen.phase-feature-survey .excavation-site,
   .feature-screen.phase-feature-survey .fog-grid::before,
   .feature-screen.phase-feature-survey .fog-tile,
+  .survey-team-overlay,
+  .survey-team-overlay::before,
+  .survey-team-lantern,
+  .survey-team-tool,
+  .feature-screen.phase-feature-reveal .feature-total strong,
+  .feature-screen.phase-feature-reveal.reveal-rarity-rare .excavation-site,
+  .feature-screen.phase-feature-reveal.reveal-rarity-legendary .excavation-site,
   .feature-screen.phase-input-ready .survey-button:not(:disabled),
   .feature-screen.phase-feature-complete .feature-footer,
   .feature-screen.feature-complete .excavation-site,

@@ -1,0 +1,24 @@
+Lost Valley visual style: Premium 1990s animated action-cartoon paleontology adventure with heavy expressive ink contours, saturated flat color masses, hard-edged cel shading, strong silhouettes, and high slot-machine readability..
+Required traits: premium 1990s American animated action-cartoon paleontology adventure; drawn like a serious animation-cel prop rather than realistic concept art; heavy expressive dark exterior ink contours; bold simplified interior construction lines; strong readable silhouette with slight purposeful exaggeration; moderately saturated flat color masses; clear separation between major color regions; hard-edged graphic cel-shadow shapes; selective bold graphic highlight shapes; warm/cool color contrast; high visual punch at small slot-symbol size; adult pulp expedition tone.
+Negative constraints: no photorealism; no 3D render appearance; no painterly concept-art treatment; no realistic material rendering; no product-rendering realism; no glossy mobile-game rendering; no chibi or cute styling; no pixel art; no airbrushed or smoothly modeled volume; no subtle tonal transitions as the main shading method; no dozens of intermediate shades; no realistic reflections or physically accurate metallic shading; no muted muddy desaturation; no excessive texture; no bloom; no depth of field; no ornamental AI clutter; no readable text or nonsense lettering.
+Color construction: prefer a small number of deliberate color masses: dominant local-color region, darker cel-shadow region, brighter highlight/accent region, and very dark ink outlines. Avoid realistic gradients and tiny representational detail.
+Style test: the asset should look like a prop painted onto an animation cel in a serious 1990s dinosaur adventure cartoon. If it looks like a realistic object illustration with outlines applied afterward, push it further toward bold cel animation.
+Readability first. Consistency second. Style third. Detail last.
+
+feature_symbol production rules: exact square 512x512px PNG master.
+One isolated primary subject, centered, fully contained inside safe margins.
+Consistent perceived subject scale, roughly 70-80% of usable area.
+Simple contained background supporting the symbol category.
+No neighboring symbols, no contact-sheet border, no baked gameplay label, no readable text.
+
+Asset id: lost_valley_sanctuary.
+Family: feature_discovery. Tier: feature_high.
+Subject: hidden prehistoric valley sanctuary.
+Composition: majestic valley sanctuary vista with dinosaurs and ancient cliffs, strongest Lost Valley reward card.
+Background: sunlit lost world.
+Palette notes: golden sunlight, saturated jungle green, turquoise water, dark ink.
+Special constraints: legendary mega-feature tier; cinematic but symbol-readable.
+
+No approved reference images selected for this request.
+
+Generate only the requested asset. The result must be production-clean and reviewable as a standalone asset.

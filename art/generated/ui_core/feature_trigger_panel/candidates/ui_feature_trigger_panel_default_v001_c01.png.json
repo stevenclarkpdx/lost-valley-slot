@@ -1,0 +1,50 @@
+{
+  "asset_id": "feature_trigger_panel",
+  "status": "prototype",
+  "approved": false,
+  "production_reference_eligible": false,
+  "manifest_version": "1.0.0",
+  "asset_family": "ui",
+  "candidate_number": "01",
+  "provider_request_size": [
+    1024,
+    1536
+  ],
+  "canonical_output_size": [
+    512,
+    1024
+  ],
+  "raw_provider_output_path": "C:\\Users\\sclar\\OneDrive\\Asztali gép\\Lost Valley Slot\\art\\generated\\ui_core\\feature_trigger_panel\\raw\\ui_feature_trigger_panel_default_v001_c01_raw.png",
+  "canonicalization": {
+    "action": "resized-and-cropped",
+    "resampler": "sharp",
+    "preservesAspectRatio": true,
+    "distorted": false
+  },
+  "compiled_prompt_path": "C:\\Users\\sclar\\OneDrive\\Asztali gép\\Lost Valley Slot\\art\\prompts\\compiled\\prototype\\feature_trigger_panel\\ui_feature_trigger_panel_default_v001_c01.txt",
+  "reference_files_used": [],
+  "provider": "openai",
+  "generation_timestamp": "2026-09-04T23:14:21.783Z",
+  "output_filename": "ui_feature_trigger_panel_default_v001_c01.png",
+  "prototype_paths": [
+    "C:\\Users\\sclar\\OneDrive\\Asztali gép\\Lost Valley Slot\\art\\prototype\\ui\\feature_trigger_panel.png",
+    "C:\\Users\\sclar\\OneDrive\\Asztali gép\\Lost Valley Slot\\art\\prototype\\ui\\trail-markers-panel.png"
+  ],
+  "runtime_names": [
+    "feature_trigger_panel.png",
+    "trail-markers-panel.png"
+  ],
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "png": {
+      "width": 512,
+      "height": 1024,
+      "bitDepth": 8,
+      "colorType": 2,
+      "hasAlpha": false,
+      "bytes": 903122
+    }
+  }
+}

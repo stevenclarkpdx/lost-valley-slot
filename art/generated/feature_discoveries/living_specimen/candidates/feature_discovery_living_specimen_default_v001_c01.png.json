@@ -1,0 +1,50 @@
+{
+  "asset_id": "living_specimen",
+  "status": "prototype",
+  "approved": false,
+  "production_reference_eligible": false,
+  "manifest_version": "1.0.0",
+  "asset_family": "feature_discovery",
+  "candidate_number": "01",
+  "provider_request_size": [
+    1024,
+    1024
+  ],
+  "canonical_output_size": [
+    512,
+    512
+  ],
+  "raw_provider_output_path": "C:\\Users\\sclar\\OneDrive\\Asztali gép\\Lost Valley Slot\\art\\generated\\feature_discoveries\\living_specimen\\raw\\feature_discovery_living_specimen_default_v001_c01_raw.png",
+  "canonicalization": {
+    "action": "downsampled",
+    "resampler": "sharp",
+    "preservesAspectRatio": true,
+    "distorted": false
+  },
+  "compiled_prompt_path": "C:\\Users\\sclar\\OneDrive\\Asztali gép\\Lost Valley Slot\\art\\prompts\\compiled\\prototype\\living_specimen\\feature_discovery_living_specimen_default_v001_c01.txt",
+  "reference_files_used": [],
+  "provider": "openai",
+  "generation_timestamp": "2026-09-04T22:55:23.099Z",
+  "output_filename": "feature_discovery_living_specimen_default_v001_c01.png",
+  "prototype_paths": [
+    "C:\\Users\\sclar\\OneDrive\\Asztali gép\\Lost Valley Slot\\art\\prototype\\symbols\\living_specimen.png",
+    "C:\\Users\\sclar\\OneDrive\\Asztali gép\\Lost Valley Slot\\art\\prototype\\symbols\\living-specimen.png"
+  ],
+  "runtime_names": [
+    "living_specimen.png",
+    "living-specimen.png"
+  ],
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "png": {
+      "width": 512,
+      "height": 512,
+      "bitDepth": 8,
+      "colorType": 2,
+      "hasAlpha": false,
+      "bytes": 431331
+    }
+  }
+}

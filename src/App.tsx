@@ -159,6 +159,16 @@ const FIELD_NOTE_SYMBOLS = [
   'sauropodHorn',
 ] as const
 
+const CONCEPT_ART_URLS = import.meta.glob('./assets/concept/*.png', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>
+
+function artUrl(filename: string) {
+  return CONCEPT_ART_URLS[`./assets/concept/${filename}`]
+}
+
 function symbolColorTier(symbol: SymbolId): 'gray' | 'brown' | 'green' | 'blue' | null {
   if (symbol === 'compass' || symbol === 'pickaxe' || symbol === 'crate') return 'gray'
   if (FIELD_NOTE_SYMBOLS.includes(symbol as (typeof FIELD_NOTE_SYMBOLS)[number])) return 'brown'
@@ -168,95 +178,72 @@ function symbolColorTier(symbol: SymbolId): 'gray' | 'brown' | 'green' | 'blue' 
 }
 
 const CONCEPT_SYMBOL_ASSETS: Record<string, string> = {
-  compass: new URL('./assets/concept/compass.png', import.meta.url).href,
-  brush: new URL('./assets/concept/brush.png', import.meta.url).href,
-  journal: new URL('./assets/concept/journal.png', import.meta.url).href,
-  pickaxe: new URL('./assets/concept/pickaxe.png', import.meta.url).href,
-  canteen: new URL('./assets/concept/canteen.png', import.meta.url).href,
-  jeep: new URL('./assets/concept/jeep.png', import.meta.url).href,
-  helicopter: new URL('./assets/concept/helicopter.png', import.meta.url).href,
-  scientist: new URL('./assets/concept/scientist.png', import.meta.url).href,
-  crate: new URL('./assets/concept/crate.png', import.meta.url).href,
-  footprint: new URL('./assets/concept/footprint.png', import.meta.url).href,
-  predatorTracks: new URL('./assets/concept/predatorTracks.png', import.meta.url).href,
-  nestingEggs: new URL('./assets/concept/nesting-egg.png', import.meta.url).href,
-  campWild: new URL('./assets/concept/campWild.png', import.meta.url).href,
-  goldenAmber: new URL('./assets/concept/goldenAmber.png', import.meta.url).href,
-  trexTooth: new URL('./assets/concept/trexTooth.png', import.meta.url).href,
-  raptorClaw: new URL('./assets/concept/raptorClaw.png', import.meta.url).href,
-  triceratopsEggshell: new URL(
-    './assets/concept/triceratopsEggshell.png',
-    import.meta.url,
-  ).href,
-  pterosaurFeather: new URL('./assets/concept/pterosaurFeather.png', import.meta.url)
-    .href,
-  sauropodHorn: new URL('./assets/concept/sauropodHorn.png', import.meta.url).href,
+  compass: artUrl('compass.png'),
+  brush: artUrl('brush.png'),
+  journal: artUrl('journal.png'),
+  pickaxe: artUrl('pickaxe.png'),
+  canteen: artUrl('canteen.png'),
+  jeep: artUrl('jeep.png'),
+  helicopter: artUrl('helicopter.png'),
+  scientist: artUrl('scientist.png'),
+  crate: artUrl('crate.png'),
+  footprint: artUrl('footprint.png'),
+  predatorTracks: artUrl('predatorTracks.png'),
+  nestingEggs: artUrl('nesting-egg.png'),
+  campWild: artUrl('campWild.png'),
+  goldenAmber: artUrl('goldenAmber.png'),
+  trexTooth: artUrl('trexTooth.png'),
+  raptorClaw: artUrl('raptorClaw.png'),
+  triceratopsEggshell: artUrl('triceratopsEggshell.png'),
+  pterosaurFeather: artUrl('pterosaurFeather.png'),
+  sauropodHorn: artUrl('sauropodHorn.png'),
 }
 
 const CONCEPT_DISCOVERY_ASSETS: Record<string, string> = {
-  fern: new URL('./assets/concept/fern.png', import.meta.url).href,
-  river: new URL('./assets/concept/river.png', import.meta.url).href,
-  amber: new URL('./assets/concept/amber.png', import.meta.url).href,
-  footprints: new URL('./assets/concept/footprint.png', import.meta.url).href,
-  'small-fossil': new URL('./assets/concept/small-fossil.png', import.meta.url).href,
-  'bone-cluster': new URL('./assets/concept/bone-cluster.png', import.meta.url).href,
-  'dinosaur-egg': new URL('./assets/concept/dinosaur-egg.png', import.meta.url).href,
-  nest: new URL('./assets/concept/dinosaur-egg.png', import.meta.url).href,
-  'complete-skeleton': new URL('./assets/concept/complete-skeleton.png', import.meta.url)
-    .href,
-  'living-specimen': new URL('./assets/concept/living-specimen.png', import.meta.url)
-    .href,
-  'new-species': new URL('./assets/concept/living-specimen.png', import.meta.url).href,
-  'fresh-tracks': new URL('./assets/concept/predator-fresh-tracks.png', import.meta.url)
-    .href,
-  'broken-branches': new URL(
-    './assets/concept/predator-broken-branches.png',
-    import.meta.url,
-  ).href,
-  'scat-sample': new URL('./assets/concept/predator-scat-sample.png', import.meta.url)
-    .href,
-  feather: new URL('./assets/concept/predator-feather.png', import.meta.url).href,
-  claws: new URL('./assets/concept/predator-claws.png', import.meta.url).href,
-  'blood-trail': new URL('./assets/concept/predator-blood-trail.png', import.meta.url)
-    .href,
-  'footprint-pattern': new URL(
-    './assets/concept/predator-footprint-pattern.png',
-    import.meta.url,
-  ).href,
-  'nest-site': new URL('./assets/concept/predator-nest-site.png', import.meta.url).href,
-  'den-entrance': new URL('./assets/concept/predator-den-entrance.png', import.meta.url)
-    .href,
-  'predator-encounter': new URL(
-    './assets/concept/predator-encounter.png',
-    import.meta.url,
-  ).href,
-  egg: new URL('./assets/concept/nesting-egg.png', import.meta.url).href,
-  hatchling: new URL('./assets/concept/nesting-hatchling.png', import.meta.url).href,
-  'family-nest': new URL('./assets/concept/nesting-family-nest.png', import.meta.url).href,
-  'juvenile-dinosaur': new URL('./assets/concept/nesting-juvenile-dinosaur.png', import.meta.url).href,
-  'nesting-colony': new URL('./assets/concept/nesting-colony.png', import.meta.url).href,
-  'nesting-fern': new URL('./assets/concept/nesting-fern.png', import.meta.url).href,
-  'nesting-river': new URL('./assets/concept/nesting-river.png', import.meta.url).href,
-  'nesting-footprints': new URL('./assets/concept/nesting-footprints.png', import.meta.url).href,
-  'nesting-nest': new URL('./assets/concept/nesting-nest.png', import.meta.url).href,
+  fern: artUrl('fern.png'),
+  river: artUrl('river.png'),
+  amber: artUrl('amber.png'),
+  footprints: artUrl('footprint.png'),
+  'small-fossil': artUrl('small-fossil.png'),
+  'bone-cluster': artUrl('bone-cluster.png'),
+  'dinosaur-egg': artUrl('dinosaur-egg.png'),
+  nest: artUrl('dinosaur-egg.png'),
+  'complete-skeleton': artUrl('complete-skeleton.png'),
+  'living-specimen': artUrl('living-specimen.png'),
+  'new-species': artUrl('living-specimen.png'),
+  'fresh-tracks': artUrl('predator-fresh-tracks.png'),
+  'broken-branches': artUrl('predator-broken-branches.png'),
+  'scat-sample': artUrl('predator-scat-sample.png'),
+  feather: artUrl('predator-feather.png'),
+  claws: artUrl('predator-claws.png'),
+  'blood-trail': artUrl('predator-blood-trail.png'),
+  'footprint-pattern': artUrl('predator-footprint-pattern.png'),
+  'nest-site': artUrl('predator-nest-site.png'),
+  'den-entrance': artUrl('predator-den-entrance.png'),
+  'predator-encounter': artUrl('predator-encounter.png'),
+  egg: artUrl('nesting-egg.png'),
+  hatchling: artUrl('nesting-hatchling.png'),
+  'family-nest': artUrl('nesting-family-nest.png'),
+  'juvenile-dinosaur': artUrl('nesting-juvenile-dinosaur.png'),
+  'nesting-colony': artUrl('nesting-colony.png'),
+  'nesting-fern': artUrl('nesting-fern.png'),
+  'nesting-river': artUrl('nesting-river.png'),
+  'nesting-footprints': artUrl('nesting-footprints.png'),
+  'nesting-nest': artUrl('nesting-nest.png'),
 }
 
 const LOST_DISCOVERY_ASSETS: Record<string, string> = {
-  fern: new URL('./assets/concept/lost-primeval-tree.png', import.meta.url).href,
-  river: new URL('./assets/concept/lost-waterfall.png', import.meta.url).href,
-  amber: new URL('./assets/concept/lost-temple-ruins.png', import.meta.url).href,
-  footprints: new URL('./assets/concept/lost-valley-discovery-symbol.png', import.meta.url)
-    .href,
-  'small-fossil': new URL('./assets/concept/lost-ancient-relic.png', import.meta.url).href,
-  'bone-cluster': new URL('./assets/concept/lost-sauropod.png', import.meta.url).href,
-  'dinosaur-egg': new URL('./assets/concept/lost-pterosaur.png', import.meta.url).href,
-  nest: new URL('./assets/concept/lost-raptor-pack.png', import.meta.url).href,
-  'complete-skeleton': new URL('./assets/concept/lost-temple-ruins.png', import.meta.url)
-    .href,
-  'living-specimen': new URL('./assets/concept/lost-valley-sanctuary.png', import.meta.url)
-    .href,
-  'new-species': new URL('./assets/concept/lost-valley-sanctuary.png', import.meta.url)
-    .href,
+  fern: artUrl('lost-primeval-tree.png'),
+  river: artUrl('lost-waterfall.png'),
+  amber: artUrl('lost-temple-ruins.png'),
+  footprints: artUrl('lost-valley-discovery-symbol.png'),
+  'small-fossil': artUrl('lost-ancient-relic.png'),
+  'bone-cluster': artUrl('lost-sauropod.png'),
+  'dinosaur-egg': artUrl('lost-pterosaur.png'),
+  nest: artUrl('lost-raptor-pack.png'),
+  'complete-skeleton': artUrl('lost-temple-ruins.png'),
+  'living-specimen': artUrl('lost-valley-sanctuary.png'),
+  'new-species': artUrl('lost-valley-sanctuary.png'),
 }
 
 function ConceptImage({
@@ -692,6 +679,19 @@ function outcomeWinTier(win: number, goldenAmberPaying: boolean): WinTier {
   return goldenAmberPaying ? promoteWinTier(tier) : tier
 }
 
+function createInteractiveSeed(): number {
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const values = new Uint32Array(1)
+    crypto.getRandomValues(values)
+    return (values[0] || 1) >>> 0
+  }
+
+  return (
+    ((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0) ||
+    1
+  )
+}
+
 function presentationDurationForTier(tier: WinTier, compressed: boolean): number {
   if (compressed) return tier === 'dead' ? 40 : 90
   switch (tier) {
@@ -800,7 +800,7 @@ function baseGameMessage(
 }
 
 function App() {
-  const manualRng = useRef(createSeededRng(20260708))
+  const manualRng = useRef(createSeededRng(createInteractiveSeed()))
   const nextSpinId = useRef(1)
   const nextFeatureSessionId = useRef(1)
   const spinTimers = useRef<number[]>([])
@@ -914,6 +914,7 @@ function App() {
   const resetCredits = () => {
     spinTimers.current.forEach((timer) => window.clearTimeout(timer))
     spinTimers.current = []
+    manualRng.current = createSeededRng(createInteractiveSeed())
     setBalance(startingBalance)
     setDisplayedBalance(startingBalance)
     setCurrentWinTier('dead')
@@ -1101,7 +1102,7 @@ function App() {
                 : 'standard',
           )
           const featureTimer = window.setTimeout(() => {
-            const featureRngSeed = manualRng.current.int(1, 0x7fffffff)
+            const featureRngSeed = createInteractiveSeed()
             const featureSessionId = nextFeatureSessionId.current
             nextFeatureSessionId.current += 1
             setFeature(
@@ -1182,7 +1183,7 @@ function App() {
       setPresentationPhase('input-ready')
       setSimulation(null)
       setActiveLedgerId(null)
-      manualRng.current = createSeededRng(20260708)
+      manualRng.current = createSeededRng(createInteractiveSeed())
       nextFeatureSessionId.current = 1
       setConfigNotice(`Loaded ${file.name}.`)
     } catch (error) {
@@ -1857,6 +1858,13 @@ function FeatureBoard({
   const lastStep = session.steps.at(-1)
   const collectorEvent = lastStep?.reveals.some((reveal) => reveal.tile.kind === 'collector')
   const revealEventByIndex = new Map(revealEvents.map((event) => [event.index, event]))
+  const strongestRevealRarity =
+    revealEvents.find((event) => event.rarity === 'legendary')?.rarity ??
+    revealEvents.find((event) => event.rarity === 'rare')?.rarity ??
+    revealEvents.find((event) => event.rarity === 'uncommon')?.rarity ??
+    revealEvents[0]?.rarity ??
+    'common'
+  const activeRevealEvent = revealEvents[0]
   const evolutionEventByIndex = new Map(
     lastStep?.evolutionEvents?.map((event) => [event.index, event]) ?? [],
   )
@@ -1949,7 +1957,7 @@ function FeatureBoard({
         collectorEvent ? 'collector-event' : ''
       } ${lastStep && !lastStep.hit && !session.isComplete ? 'feature-miss' : ''} ${
         session.isComplete ? 'feature-complete' : ''
-      } ${predator ? 'predator-feature' : nesting ? 'nesting-feature' : lost ? 'lost-feature' : 'fossil-feature'} phase-${presentationPhase}`}
+      } ${predator ? 'predator-feature' : nesting ? 'nesting-feature' : lost ? 'lost-feature' : 'fossil-feature'} phase-${presentationPhase} reveal-rarity-${strongestRevealRarity}`}
     >
       {introActive && (
         <div className="feature-intro">
@@ -1996,6 +2004,37 @@ function FeatureBoard({
       </div>
       <div className="feature-exploration">
         <div className="excavation-site">
+          <div
+            className={`survey-team-overlay ${
+              presentationPhase === 'feature-reveal' && lastStep?.hit
+                ? 'survey-team-hit'
+                : presentationPhase === 'feature-survey'
+                  ? 'survey-team-searching'
+                  : ''
+            }`}
+            aria-hidden="true"
+            style={
+              activeRevealEvent
+                ? ({
+                    '--survey-x': `${
+                      ((activeRevealEvent.index % session.profile.boardWidth) /
+                        Math.max(1, session.profile.boardWidth - 1)) *
+                      100
+                    }%`,
+                    '--survey-y': `${
+                      (Math.floor(activeRevealEvent.index / session.profile.boardWidth) /
+                        Math.max(1, session.profile.boardHeight - 1)) *
+                      100
+                    }%`,
+                  } as CSSProperties)
+                : undefined
+            }
+          >
+            <span className="survey-team-lantern" />
+            <span className="survey-team-figure figure-lead" />
+            <span className="survey-team-figure figure-dig" />
+            <span className="survey-team-tool" />
+          </div>
           <div className="site-rope site-rope-top" aria-hidden="true" />
           <div className="site-rope site-rope-bottom" aria-hidden="true" />
           <div className="site-sign" aria-hidden="true">

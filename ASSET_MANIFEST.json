@@ -1,0 +1,1319 @@
+{
+  "project": "lost_valley",
+  "version": "1.0.0",
+  "art_bible": "ART_BIBLE.md",
+  "description": "Canonical asset manifest for Lost Valley batch art generation, validation, review, and runtime export.",
+  "global_defaults": {
+    "image_format": "png",
+    "master_symbol_size_px": [
+      512,
+      512
+    ],
+    "runtime_symbol_target_px": [
+      256,
+      256
+    ],
+    "symbol_aspect_ratio": "1:1",
+    "safe_area_fraction": 0.82,
+    "subject_fill_fraction_target": [
+      0.7,
+      0.8
+    ],
+    "background_mode": "filled",
+    "transparent_background": false,
+    "naming_pattern": "<family>_<subject>_<variant>_v###.png",
+    "initial_version": "v001",
+    "generation_count_default": 4,
+    "approval_required": true,
+    "overwrite_approved": false
+  },
+  "style_profile": {
+    "id": "lost_valley_90s_action_cartoon",
+    "summary": "Premium 1990s animated action-cartoon paleontology adventure with heavy expressive ink contours, saturated flat color masses, hard-edged cel shading, strong silhouettes, and high slot-machine readability.",
+    "positive_traits": [
+      "heavy expressive dark exterior contours",
+      "bold simplified interior construction lines",
+      "moderately saturated flat color masses",
+      "clear separation between major color regions",
+      "hard-edged graphic cel-shadow shapes",
+      "selective bold graphic highlight shapes",
+      "high local contrast",
+      "strong readable silhouette",
+      "slight purposeful silhouette exaggeration",
+      "warm/cool color contrast",
+      "visual punch at small symbol size",
+      "cleanly isolated subject",
+      "simple supportive background",
+      "adult action-adventure tone"
+    ],
+    "negative_traits": [
+      "photorealistic",
+      "3D rendered",
+      "painterly concept art",
+      "realistic material rendering",
+      "product-rendering realism",
+      "soft airbrushed illustration",
+      "glossy mobile-game icon",
+      "chibi",
+      "cute dinosaur styling",
+      "pixel art",
+      "muddy desaturated realism",
+      "excessive gradients",
+      "subtle tonal transitions",
+      "dozens of intermediate shades",
+      "fine surface texture",
+      "realistic reflections",
+      "physically accurate metallic shading",
+      "bloom",
+      "depth of field",
+      "ornamental AI micro-detail",
+      "nonsense text",
+      "cluttered background"
+    ]
+  },
+  "families": {
+    "utility": {
+      "asset_class": "reel_symbol",
+      "tier": "low",
+      "default_background_palette": [
+        "charcoal",
+        "slate_gray",
+        "muted_ochre"
+      ],
+      "batch_id": "base_utility"
+    },
+    "expedition": {
+      "asset_class": "reel_symbol",
+      "tier": "mid",
+      "default_background_palette": [
+        "forest_green",
+        "deep_blue",
+        "earth_ochre"
+      ],
+      "batch_id": "base_expedition"
+    },
+    "evidence": {
+      "asset_class": "reel_symbol",
+      "tier": "mid_high",
+      "default_background_palette": [
+        "warm_ochre",
+        "sandstone",
+        "dark_earth"
+      ],
+      "batch_id": "base_evidence"
+    },
+    "premium": {
+      "asset_class": "reel_symbol",
+      "tier": "high",
+      "batch_id": "base_premium"
+    },
+    "feature_environment": {
+      "asset_class": "feature_symbol",
+      "tier": "feature_low_mid",
+      "batch_id": "feature_environment"
+    },
+    "feature_discovery": {
+      "asset_class": "feature_symbol",
+      "tier": "feature_high",
+      "batch_id": "feature_discoveries"
+    },
+    "ui": {
+      "asset_class": "ui_art",
+      "batch_id": "ui_core"
+    }
+  },
+  "batches": [
+    {
+      "id": "base_utility",
+      "label": "Base Game Utility Symbols",
+      "assets": [
+        "mining_pick",
+        "canteen",
+        "compass",
+        "excavation_brush",
+        "journal"
+      ]
+    },
+    {
+      "id": "base_expedition",
+      "label": "Base Game Expedition Symbols",
+      "assets": [
+        "scientist",
+        "helicopter",
+        "satellite_map",
+        "jeep",
+        "supply_crate"
+      ]
+    },
+    {
+      "id": "base_evidence",
+      "label": "Base Game Evidence Symbols",
+      "assets": [
+        "trex_tooth",
+        "raptor_claw",
+        "eggshell",
+        "pterosaur_feather",
+        "horn_fragment"
+      ]
+    },
+    {
+      "id": "base_premium",
+      "label": "Base Game Premium and Feature Trigger Symbols",
+      "assets": [
+        "fossil_valley",
+        "predator_valley",
+        "golden_amber",
+        "expedition_camp_wild",
+        "nesting_eggs"
+      ]
+    },
+    {
+      "id": "feature_environment",
+      "label": "Feature Environmental Symbols",
+      "assets": [
+        "small_fossil",
+        "amber",
+        "footprints",
+        "fern",
+        "river",
+        "nest",
+        "dinosaur_egg",
+        "bone_cluster"
+      ]
+    },
+    {
+      "id": "feature_discoveries",
+      "label": "Feature Premium Discovery Symbols",
+      "assets": [
+        "complete_skeleton",
+        "living_specimen",
+        "new_species"
+      ]
+    },
+    {
+      "id": "predator_feature",
+      "label": "Predator Valley Feature Symbols",
+      "assets": [
+        "predator_fresh_tracks",
+        "predator_broken_branches",
+        "predator_scat_sample",
+        "predator_feather",
+        "predator_claws",
+        "predator_blood_trail",
+        "predator_footprint_pattern",
+        "predator_nest_site",
+        "predator_den_entrance",
+        "predator_encounter"
+      ]
+    },
+    {
+      "id": "nesting_feature",
+      "label": "Nesting Grounds Feature Symbols",
+      "assets": [
+        "nesting_fern",
+        "nesting_river",
+        "nesting_footprints",
+        "nesting_nest",
+        "nesting_egg",
+        "nesting_hatchling",
+        "nesting_family_nest",
+        "nesting_juvenile_dinosaur",
+        "nesting_colony"
+      ]
+    },
+    {
+      "id": "lost_valley_feature",
+      "label": "Lost Valley Mega Feature Symbols",
+      "assets": [
+        "lost_primeval_tree",
+        "lost_waterfall",
+        "lost_ancient_relic",
+        "lost_sauropod",
+        "lost_pterosaur",
+        "lost_raptor_pack",
+        "lost_temple_ruins",
+        "lost_valley_sanctuary",
+        "lost_valley_discovery_symbol"
+      ]
+    },
+    {
+      "id": "ui_core",
+      "label": "Core UI Panels",
+      "assets": [
+        "feature_trigger_panel",
+        "field_notes_panel",
+        "fossil_valley_background",
+        "predator_valley_background",
+        "nesting_grounds_background",
+        "lost_valley_mega_background",
+        "lost_valley_logo",
+        "nesting_grounds_logo",
+        "nesting_panel_small",
+        "nesting_button",
+        "lost_valley_notebook_complete"
+      ]
+    }
+  ],
+  "assets": {
+    "mining_pick": {
+      "family": "utility",
+      "runtime_aliases": [
+        "pickaxe"
+      ],
+      "subject": "mining pick",
+      "composition": "single rugged field pick centered on square canvas, three-quarter view, immediately readable silhouette",
+      "background": "simple charcoal or slate field with restrained earth texture",
+      "palette_notes": "dark steel, weathered wood, restrained warm earth accents",
+      "special_constraints": [
+        "do not add extra tools",
+        "no text"
+      ]
+    },
+    "canteen": {
+      "family": "utility",
+      "subject": "expedition canteen",
+      "composition": "single rugged metal field canteen centered, simple three-quarter view",
+      "background": "muted dark gray or olive field",
+      "palette_notes": "desaturated metal, olive, dark leather strap accents",
+      "special_constraints": [
+        "avoid modern plastic bottle appearance",
+        "no text"
+      ]
+    },
+    "compass": {
+      "family": "utility",
+      "subject": "expedition compass",
+      "composition": "large readable round compass, near-front view, centered",
+      "background": "dark slate field with subtle expedition texture",
+      "palette_notes": "aged brass, cream dial, dark ink, restrained red needle",
+      "special_constraints": [
+        "dial need not contain readable microtext",
+        "no nonsense lettering"
+      ]
+    },
+    "excavation_brush": {
+      "family": "utility",
+      "runtime_aliases": [
+        "brush"
+      ],
+      "subject": "archaeology excavation brush",
+      "composition": "single broad-bristle field brush at slight diagonal, centered",
+      "background": "muted charcoal or warm stone field",
+      "palette_notes": "wood handle, tan bristles, dark outline",
+      "special_constraints": [
+        "do not include dust cloud large enough to obscure silhouette"
+      ]
+    },
+    "journal": {
+      "family": "utility",
+      "subject": "weathered expedition field journal",
+      "composition": "single closed leather field journal centered, clear rectangular book silhouette, slight three-quarter view",
+      "background": "muted charcoal or warm stone field",
+      "palette_notes": "warm brown leather, brass clasp, parchment edges, dark ink contours",
+      "special_constraints": [
+        "no readable text",
+        "do not make it a magical spellbook"
+      ]
+    },
+    "scientist": {
+      "family": "expedition",
+      "subject": "female field scientist with notebook",
+      "composition": "waist-up or three-quarter portrait, practical expedition clothes, notebook clearly visible, confident focused expression",
+      "background": "simple muted jungle or olive field",
+      "palette_notes": "khaki, olive, warm skin tones, dark hair or clearly separated hair mass",
+      "special_constraints": [
+        "adult competent researcher",
+        "not glamorous or pin-up styled",
+        "not photorealistic",
+        "not holding a weapon"
+      ]
+    },
+    "helicopter": {
+      "family": "expedition",
+      "subject": "expedition helicopter",
+      "composition": "single rugged utility helicopter, clean side or three-quarter view, fully contained within square",
+      "background": "deep blue sky or muted mountainous backdrop",
+      "palette_notes": "olive expedition body, dark rotor, restrained yellow highlights",
+      "special_constraints": [
+        "all rotor blades contained in safe area",
+        "no military weaponry",
+        "no text markings required"
+      ]
+    },
+    "satellite_map": {
+      "family": "expedition",
+      "subject": "satellite expedition map",
+      "composition": "folded or mounted map with obvious topographic/satellite imagery and technological expedition cues",
+      "background": "deep blue or charcoal",
+      "palette_notes": "earth map colors, blue water, restrained cyan technology accents",
+      "special_constraints": [
+        "must read as satellite/navigation intelligence, not generic treasure map",
+        "no readable labels required"
+      ]
+    },
+    "jeep": {
+      "family": "expedition",
+      "subject": "rugged expedition jeep",
+      "composition": "single off-road expedition jeep, three-quarter front view, fully contained",
+      "background": "simple jungle-green or earth background",
+      "palette_notes": "olive drab vehicle, warm headlights, dark tires",
+      "special_constraints": [
+        "no branded logos",
+        "no mounted weapons"
+      ]
+    },
+    "supply_crate": {
+      "family": "expedition",
+      "runtime_aliases": [
+        "crate"
+      ],
+      "subject": "rugged expedition supply crate",
+      "composition": "single reinforced equipment crate centered, square readable silhouette, slightly angled",
+      "background": "simple jungle-green or earth background",
+      "palette_notes": "olive metal, worn bronze corners, canvas straps, dark ink",
+      "special_constraints": [
+        "no readable labels",
+        "no weapons or ammunition"
+      ]
+    },
+    "trex_tooth": {
+      "family": "evidence",
+      "runtime_aliases": [
+        "trexTooth"
+      ],
+      "subject": "large fossilized Tyrannosaurus rex tooth",
+      "composition": "single thick fossil tooth, centered, slightly angled, fractured fossil texture",
+      "background": "warm ochre or sandstone",
+      "palette_notes": "ivory fossil, tan, dark brown creases",
+      "special_constraints": [
+        "must read as tooth, not horn",
+        "heavy broad proportions"
+      ]
+    },
+    "raptor_claw": {
+      "family": "evidence",
+      "runtime_aliases": [
+        "raptorClaw"
+      ],
+      "subject": "fossilized raptor sickle claw",
+      "composition": "single strongly curved sickle claw, side profile, centered",
+      "background": "deep warm earth or muted rust",
+      "palette_notes": "dark fossil brown, bone tan highlights",
+      "special_constraints": [
+        "must look dramatically more curved than trex tooth",
+        "do not depict ordinary bird talon"
+      ]
+    },
+    "eggshell": {
+      "family": "evidence",
+      "runtime_aliases": [
+        "triceratopsEggshell"
+      ],
+      "subject": "broken prehistoric dinosaur eggshell fragment",
+      "composition": "single substantial broken shell fragment with clear concavity and jagged fracture",
+      "background": "warm ochre or muted olive",
+      "palette_notes": "eggshell cream, tan, speckled dark marks",
+      "special_constraints": [
+        "not a complete egg",
+        "not a nest",
+        "avoid tiny fragmented debris"
+      ]
+    },
+    "pterosaur_feather": {
+      "family": "evidence",
+      "runtime_aliases": [
+        "pterosaurFeather"
+      ],
+      "subject": "rare preserved pterosaur feather-like specimen",
+      "composition": "single elongated feather-like fossil specimen, diagonal for strong silhouette",
+      "background": "warm ochre or muted stone",
+      "palette_notes": "cream, brown, dark ink bands",
+      "special_constraints": [
+        "fictionalized pulp-science treatment is acceptable",
+        "must not resemble cannabis leaf",
+        "must not look like a modern colorful bird feather"
+      ]
+    },
+    "horn_fragment": {
+      "family": "evidence",
+      "runtime_aliases": [
+        "sauropodHorn"
+      ],
+      "subject": "broken fossil horn fragment",
+      "composition": "single thick horn section with clear broken base, centered",
+      "background": "dark sandstone or muted ochre",
+      "palette_notes": "bone tan, brown, charcoal creases",
+      "special_constraints": [
+        "must not read as tooth",
+        "show fractured base clearly"
+      ]
+    },
+    "fossil_valley": {
+      "family": "premium",
+      "subject": "round stone containing a prehistoric fern leaf fossil",
+      "composition": "round fossil stone centered, clearly visible prehistoric fern or pinnate leaf impression",
+      "background": "cool saturated blue field",
+      "palette_notes": "gray stone, cool pale fossil imprint, deep blue background",
+      "special_constraints": [
+        "prehistoric fern/leaf only",
+        "must not resemble cannabis",
+        "strong circular silhouette"
+      ]
+    },
+    "predator_valley": {
+      "family": "premium",
+      "runtime_aliases": [
+        "predatorTracks"
+      ],
+      "subject": "dinosaur footprint impressed into red rock",
+      "composition": "large three-toed theropod footprint centered in cracked red stone",
+      "background": "deep reddish rust field",
+      "palette_notes": "brick red, dark crimson, charcoal cracks, burnt orange highlights",
+      "special_constraints": [
+        "dangerous aggressive treatment",
+        "footprint must dominate",
+        "no full dinosaur"
+      ]
+    },
+    "golden_amber": {
+      "family": "premium",
+      "runtime_aliases": [
+        "goldenAmber"
+      ],
+      "subject": "valuable golden amber with visible prehistoric insect inclusion",
+      "composition": "single large amber specimen centered, insect silhouette clearly visible inside",
+      "background": "warm burnt orange or dark amber field",
+      "palette_notes": "honey gold, rich orange, yellow-white highlight, dark insect",
+      "special_constraints": [
+        "insect must be clearly visible",
+        "avoid glossy 3D candy look",
+        "high-value presentation"
+      ]
+    },
+    "expedition_camp_wild": {
+      "family": "premium",
+      "runtime_aliases": [
+        "campWild"
+      ],
+      "subject": "expedition camp wild",
+      "composition": "compact jungle campsite with visible tent, supply crates or equipment, and bright central campfire",
+      "background": "dense dark forest fills the square",
+      "palette_notes": "deep forest green, canvas tan, warm orange fire, dark blue-black shadows",
+      "special_constraints": [
+        "campfire must be focal point",
+        "scene must remain readable at symbol size",
+        "no baked WILD text unless explicitly requested later"
+      ]
+    },
+    "nesting_eggs": {
+      "family": "premium",
+      "runtime_aliases": [
+        "nestingEggs"
+      ],
+      "subject": "cluster of dinosaur eggs in a nest",
+      "composition": "several large speckled dinosaur eggs grouped in a compact nest, centered and highly readable",
+      "background": "lush green nesting-ground field",
+      "palette_notes": "eggshell cream, moss green, warm straw, dark ink",
+      "special_constraints": [
+        "eggs must dominate",
+        "no hatchling yet",
+        "no readable text"
+      ]
+    },
+    "small_fossil": {
+      "family": "feature_environment",
+      "runtime_aliases": [
+        "small-fossil"
+      ],
+      "subject": "small ordinary fossil embedded in stone",
+      "composition": "modest fossil imprint in a single stone chunk, centered",
+      "background": "muted blue-gray or earth",
+      "palette_notes": "gray stone, pale fossil",
+      "special_constraints": [
+        "visually low-value",
+        "do not make specimen spectacular"
+      ]
+    },
+    "amber": {
+      "family": "feature_environment",
+      "subject": "amber specimen",
+      "composition": "single amber fragment centered",
+      "background": "warm dark earth",
+      "palette_notes": "gold, orange, honey",
+      "special_constraints": [
+        "simpler and less premium than golden_amber unless gameplay later specifies otherwise"
+      ]
+    },
+    "footprints": {
+      "family": "feature_environment",
+      "runtime_aliases": [
+        "footprint"
+      ],
+      "subject": "dinosaur footprints",
+      "composition": "two or three large readable dinosaur tracks crossing earth or stone",
+      "background": "earth or muted rust",
+      "palette_notes": "earth brown, rust, dark track impressions",
+      "special_constraints": [
+        "tracks readable at 256 px",
+        "avoid cluttered trail of tiny prints"
+      ]
+    },
+    "fern": {
+      "family": "feature_environment",
+      "subject": "prehistoric fern",
+      "composition": "single large fern frond or compact prehistoric fern cluster",
+      "background": "deep forest green",
+      "palette_notes": "yellow-green, fern green, deep green shadows",
+      "special_constraints": [
+        "pinnate fern morphology",
+        "must not resemble cannabis"
+      ]
+    },
+    "river": {
+      "family": "feature_environment",
+      "subject": "lost valley river",
+      "composition": "compact river scene with strong S-curve or diagonal of turquoise water between jungle banks",
+      "background": "integrated jungle environment",
+      "palette_notes": "turquoise, deep blue, forest green, stone gray",
+      "special_constraints": [
+        "water is dominant recognition cue",
+        "avoid sprawling landscape composition"
+      ]
+    },
+    "nest": {
+      "family": "feature_environment",
+      "subject": "dinosaur nest with eggs",
+      "composition": "compact nest containing multiple large prehistoric eggs, centered",
+      "background": "dense vegetation or warm ground",
+      "palette_notes": "eggshell cream, olive, straw brown, deep green",
+      "special_constraints": [
+        "both nest and eggs clearly visible",
+        "not a generic modern bird nest"
+      ]
+    },
+    "dinosaur_egg": {
+      "family": "feature_environment",
+      "runtime_aliases": [
+        "dinosaur-egg"
+      ],
+      "subject": "single dinosaur egg fossil discovery",
+      "composition": "large speckled dinosaur egg centered on excavation ground, readable egg silhouette",
+      "background": "Fossil Valley excavation earth or stone",
+      "palette_notes": "eggshell cream, tan speckles, stone gray, dark ink",
+      "special_constraints": [
+        "single discovery egg",
+        "not a full nest",
+        "not a hatchling"
+      ]
+    },
+    "bone_cluster": {
+      "family": "feature_environment",
+      "runtime_aliases": [
+        "bone-cluster"
+      ],
+      "subject": "cluster of exposed fossil bones",
+      "composition": "several substantial fossil bones partially exposed in earth",
+      "background": "warm excavation soil",
+      "palette_notes": "bone cream, earth brown, ochre",
+      "special_constraints": [
+        "organized enough to read clearly",
+        "less complete than complete_skeleton"
+      ]
+    },
+    "complete_skeleton": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "complete-skeleton"
+      ],
+      "subject": "complete dinosaur skeleton discovery",
+      "composition": "highly recognizable full dinosaur skeleton with strong skull-spine-body silhouette",
+      "background": "excavation wall or dark rust earth",
+      "palette_notes": "bone cream, dark earth, controlled premium highlights",
+      "special_constraints": [
+        "must read as complete skeleton, not bone pile",
+        "premium discovery treatment"
+      ]
+    },
+    "living_specimen": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "living-specimen"
+      ],
+      "subject": "living dinosaur specimen",
+      "composition": "single living dinosaur dominates square, dramatic clean three-quarter pose in compact jungle setting",
+      "background": "lush jungle",
+      "palette_notes": "rich natural dinosaur coloration, deep green environment, strong contrast",
+      "special_constraints": [
+        "dinosaur dominates",
+        "no dragon anatomy",
+        "dangerous rather than cute",
+        "premium discovery treatment"
+      ]
+    },
+    "new_species": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "new-species"
+      ],
+      "subject": "newly discovered dinosaur species",
+      "composition": "single unusual but believable dinosaur with distinctive crest, skull, or anatomy, presented as extraordinary discovery",
+      "background": "dramatic lost-world environment with controlled detail",
+      "palette_notes": "strongest controlled contrast and saturation in feature set",
+      "special_constraints": [
+        "highest discovery tier",
+        "must feel distinct from living_specimen",
+        "do not rely on text",
+        "avoid fantasy monster mutation"
+      ]
+    },
+    "predator_fresh_tracks": {
+      "family": "feature_environment",
+      "runtime_aliases": [
+        "predator-fresh-tracks"
+      ],
+      "subject": "fresh predator tracks in mud",
+      "composition": "large readable theropod track impressions in muddy ground, centered",
+      "background": "dark predator valley earth",
+      "palette_notes": "brown mud, olive shadows, dark ink, restrained danger accents",
+      "special_constraints": [
+        "tracks must read instantly",
+        "no full dinosaur"
+      ]
+    },
+    "predator_broken_branches": {
+      "family": "feature_environment",
+      "runtime_aliases": [
+        "predator-broken-branches"
+      ],
+      "subject": "freshly broken jungle branches",
+      "composition": "cluster of snapped branches and leaves centered with clear fracture shapes",
+      "background": "muted jungle floor",
+      "palette_notes": "wood brown, leaf green, dark ink",
+      "special_constraints": [
+        "must read as tracking clue",
+        "avoid busy twig clutter"
+      ]
+    },
+    "predator_scat_sample": {
+      "family": "feature_environment",
+      "runtime_aliases": [
+        "predator-scat-sample"
+      ],
+      "subject": "predator scat sample",
+      "composition": "stylized field-science scat sample on ground, readable but not gross, centered",
+      "background": "muted earth field",
+      "palette_notes": "earth brown, ochre, dark ink",
+      "special_constraints": [
+        "tasteful adventure-cartoon treatment",
+        "no excessive realism"
+      ]
+    },
+    "predator_feather": {
+      "family": "feature_environment",
+      "runtime_aliases": [
+        "predator-feather",
+        "feather"
+      ],
+      "subject": "large dark predator feather clue",
+      "composition": "single dramatic feather angled across the square, strong silhouette",
+      "background": "muted predator valley field",
+      "palette_notes": "deep blue-black feather, cream edge light, dark ink",
+      "special_constraints": [
+        "not a colorful bird feather",
+        "no readable text"
+      ]
+    },
+    "predator_claws": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "predator-claws",
+        "claws"
+      ],
+      "subject": "predator claws",
+      "composition": "several sharp theropod claws arranged as an ominous clue, centered",
+      "background": "dark rust predator valley field",
+      "palette_notes": "bone tan, black claw shadows, rust red accents",
+      "special_constraints": [
+        "dangerous treatment",
+        "not a complete animal"
+      ]
+    },
+    "predator_blood_trail": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "predator-blood-trail",
+        "blood-trail"
+      ],
+      "subject": "predator blood trail",
+      "composition": "stylized red trail marks across earth, readable tracking clue, centered",
+      "background": "dark muddy ground",
+      "palette_notes": "deep red, rust, brown earth, dark ink",
+      "special_constraints": [
+        "serious adventure tone",
+        "not graphic gore"
+      ]
+    },
+    "predator_footprint_pattern": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "predator-footprint-pattern",
+        "footprint-pattern"
+      ],
+      "subject": "repeating predator footprint pattern",
+      "composition": "several connected theropod tracks forming an obvious trail pattern",
+      "background": "predator valley dirt grid",
+      "palette_notes": "brown earth, red danger accents, dark ink",
+      "special_constraints": [
+        "pattern must be readable",
+        "avoid many tiny marks"
+      ]
+    },
+    "predator_nest_site": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "predator-nest-site",
+        "nest-site"
+      ],
+      "subject": "dangerous predator nest site",
+      "composition": "ominous nest site with eggs or disturbed ground, centered",
+      "background": "dark jungle clearing",
+      "palette_notes": "olive, rust, eggshell, dark ink",
+      "special_constraints": [
+        "dangerous not cute",
+        "no full predator encounter"
+      ]
+    },
+    "predator_den_entrance": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "predator-den-entrance",
+        "den-entrance"
+      ],
+      "subject": "predator den entrance",
+      "composition": "dark cave or stone den opening with claw marks, centered",
+      "background": "rocky predator valley edge",
+      "palette_notes": "charcoal, stone gray, rust highlights, dark ink",
+      "special_constraints": [
+        "entrance silhouette must dominate",
+        "do not show the predator"
+      ]
+    },
+    "predator_encounter": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "predator-encounter"
+      ],
+      "subject": "predator dinosaur encounter",
+      "composition": "dramatic theropod head or upper body emerging from jungle, powerful readable silhouette",
+      "background": "dark predator valley jungle",
+      "palette_notes": "deep greens, rust red, bone teeth, dark ink",
+      "special_constraints": [
+        "highest predator discovery tier",
+        "dangerous not cute",
+        "no fantasy dragon anatomy"
+      ]
+    },
+    "nesting_fern": {
+      "family": "feature_environment",
+      "runtime_aliases": [
+        "nesting-fern"
+      ],
+      "subject": "lush nesting ground fern",
+      "composition": "bright prehistoric fern cluster centered, rounded friendly silhouette",
+      "background": "soft stone and moss nesting ground field",
+      "palette_notes": "leaf green, moss, warm sunlight, dark ink",
+      "special_constraints": [
+        "must not resemble cannabis",
+        "more alive and bright than Fossil Valley fern"
+      ]
+    },
+    "nesting_river": {
+      "family": "feature_environment",
+      "runtime_aliases": [
+        "nesting-river"
+      ],
+      "subject": "peaceful nesting ground river",
+      "composition": "compact river valley scene with blue water and nesting-ground greenery",
+      "background": "wide valley environment",
+      "palette_notes": "bright sky blue, turquoise water, green vegetation",
+      "special_constraints": [
+        "water must be primary recognition cue"
+      ]
+    },
+    "nesting_footprints": {
+      "family": "feature_environment",
+      "runtime_aliases": [
+        "nesting-footprints"
+      ],
+      "subject": "small nesting ground dinosaur footprints",
+      "composition": "several rounded dinosaur footprints crossing warm ground, centered",
+      "background": "nesting ground earth",
+      "palette_notes": "tan earth, moss green, dark track marks",
+      "special_constraints": [
+        "gentler than predator tracks",
+        "clear footprint silhouettes"
+      ]
+    },
+    "nesting_nest": {
+      "family": "feature_environment",
+      "runtime_aliases": [
+        "nesting-nest"
+      ],
+      "subject": "empty dinosaur nest",
+      "composition": "large woven nest centered, clear bowl silhouette, sparse vegetation",
+      "background": "stone and moss nesting field",
+      "palette_notes": "straw brown, moss green, eggshell accents, dark ink",
+      "special_constraints": [
+        "nest should read without eggs dominating"
+      ]
+    },
+    "nesting_egg": {
+      "family": "feature_environment",
+      "runtime_aliases": [
+        "nesting-egg",
+        "egg"
+      ],
+      "subject": "single dinosaur egg in nest",
+      "composition": "large speckled dinosaur egg seated in a small nest, centered",
+      "background": "green nesting ground frame",
+      "palette_notes": "eggshell cream, moss green, straw, dark ink",
+      "special_constraints": [
+        "egg must dominate",
+        "not cracked"
+      ]
+    },
+    "nesting_hatchling": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "nesting-hatchling",
+        "hatchling"
+      ],
+      "subject": "baby dinosaur hatchling",
+      "composition": "small dinosaur hatchling emerging from cracked shell, centered and charming but not cute parody",
+      "background": "bright nesting ground field",
+      "palette_notes": "warm yellow-green, eggshell, blue highlight, dark ink",
+      "special_constraints": [
+        "alive and exciting",
+        "avoid chibi proportions"
+      ]
+    },
+    "nesting_family_nest": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "nesting-family-nest",
+        "family-nest"
+      ],
+      "subject": "family dinosaur nest with multiple eggs",
+      "composition": "clustered nest with several eggs and signs of life, centered",
+      "background": "lush nesting ground",
+      "palette_notes": "eggshell, moss green, warm gold, dark ink",
+      "special_constraints": [
+        "more valuable than single egg",
+        "avoid clutter"
+      ]
+    },
+    "nesting_juvenile_dinosaur": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "nesting-juvenile-dinosaur",
+        "juvenile-dinosaur"
+      ],
+      "subject": "juvenile dinosaur",
+      "composition": "young dinosaur standing confidently in nesting ground, full readable body silhouette",
+      "background": "sunlit valley vegetation",
+      "palette_notes": "green dinosaur, warm light, blue sky accents, dark ink",
+      "special_constraints": [
+        "not cute mascot",
+        "believable young animal"
+      ]
+    },
+    "nesting_colony": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "nesting-colony"
+      ],
+      "subject": "thriving dinosaur nesting colony",
+      "composition": "wide compact scene of active nests and dinosaur life, strongest nesting reward presentation",
+      "background": "bright nesting valley",
+      "palette_notes": "lush green, warm gold, eggshell cream, sky blue",
+      "special_constraints": [
+        "legendary nesting tier",
+        "must remain readable as a symbol"
+      ]
+    },
+    "lost_primeval_tree": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "lost-primeval-tree"
+      ],
+      "subject": "ancient primeval tree",
+      "composition": "massive ancient tree in hidden valley, centered with powerful silhouette",
+      "background": "lush Lost Valley jungle",
+      "palette_notes": "deep green, golden light, dark ink",
+      "special_constraints": [
+        "mysterious and ancient",
+        "no text"
+      ]
+    },
+    "lost_waterfall": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "lost-waterfall"
+      ],
+      "subject": "hidden valley waterfall",
+      "composition": "dramatic waterfall and river scene with strong blue water shape",
+      "background": "Lost Valley cliffs and jungle",
+      "palette_notes": "turquoise, sky blue, jungle green, golden light",
+      "special_constraints": [
+        "cinematic but readable"
+      ]
+    },
+    "lost_ancient_relic": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "lost-ancient-relic"
+      ],
+      "subject": "ancient carved stone relic",
+      "composition": "single mysterious carved relic or idol fragment centered",
+      "background": "hidden valley temple stone",
+      "palette_notes": "stone gray, moss green, amber highlight, dark ink",
+      "special_constraints": [
+        "no readable writing",
+        "not magical fantasy"
+      ]
+    },
+    "lost_sauropod": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "lost-sauropod"
+      ],
+      "subject": "living sauropod herd in the hidden valley",
+      "composition": "one dominant sauropod with suggested herd shapes behind, readable long-neck silhouette",
+      "background": "sunlit lost valley",
+      "palette_notes": "green, blue sky, warm gold, dark ink",
+      "special_constraints": [
+        "majestic not cute",
+        "symbol readability over scenic detail"
+      ]
+    },
+    "lost_pterosaur": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "lost-pterosaur"
+      ],
+      "subject": "pterosaur flight over Lost Valley",
+      "composition": "large pterosaur silhouette gliding across bright sky and cliffs",
+      "background": "open hidden valley sky",
+      "palette_notes": "blue sky, sandstone cliffs, dark wing silhouette",
+      "special_constraints": [
+        "wings fully contained",
+        "no dragon anatomy"
+      ]
+    },
+    "lost_raptor_pack": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "lost-raptor-pack"
+      ],
+      "subject": "raptor pack in hidden valley",
+      "composition": "two or three raptors grouped with one dominant figure, clear pack read",
+      "background": "Lost Valley jungle",
+      "palette_notes": "green shadows, warm rim light, dark ink",
+      "special_constraints": [
+        "dangerous not cute",
+        "avoid crowd clutter"
+      ]
+    },
+    "lost_temple_ruins": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "lost-temple-ruins"
+      ],
+      "subject": "hidden temple ruins in Lost Valley",
+      "composition": "ancient stone temple ruin with strong stepped silhouette, centered",
+      "background": "bright hidden valley jungle",
+      "palette_notes": "sandstone, moss green, golden light, dark ink",
+      "special_constraints": [
+        "no readable text",
+        "important mega-feature feel"
+      ]
+    },
+    "lost_valley_sanctuary": {
+      "family": "feature_discovery",
+      "runtime_aliases": [
+        "lost-valley-sanctuary"
+      ],
+      "subject": "hidden prehistoric valley sanctuary",
+      "composition": "majestic valley sanctuary vista with dinosaurs and ancient cliffs, strongest Lost Valley reward card",
+      "background": "sunlit lost world",
+      "palette_notes": "golden sunlight, saturated jungle green, turquoise water, dark ink",
+      "special_constraints": [
+        "legendary mega-feature tier",
+        "cinematic but symbol-readable"
+      ]
+    },
+    "lost_valley_discovery_symbol": {
+      "family": "premium",
+      "runtime_aliases": [
+        "lost-valley-discovery-symbol"
+      ],
+      "subject": "glowing Lost Valley discovery medallion",
+      "composition": "round ancient stone medallion or sigil showing hidden valley silhouette, centered",
+      "background": "dark jungle and golden glow",
+      "palette_notes": "gold, stone gray, jungle green, dark ink",
+      "special_constraints": [
+        "must feel legendary",
+        "no readable text"
+      ]
+    },
+    "feature_trigger_panel": {
+      "family": "ui",
+      "runtime_aliases": [
+        "trail-markers-panel"
+      ],
+      "asset_class": "ui_panel_background",
+      "dimensions_px": [
+        512,
+        1024
+      ],
+      "subject": "vertical dinosaur track trail into jungle",
+      "composition": "portrait panel, large tracks begin near bottom and lead along a central path into dense forest depth",
+      "background": "full jungle scene",
+      "palette_notes": "deep forest green, earth brown, restrained warm highlights",
+      "special_constraints": [
+        "no baked text",
+        "leave clear central visual path",
+        "dark framing vegetation",
+        "reusable behind runtime overlays"
+      ]
+    },
+    "field_notes_panel": {
+      "family": "ui",
+      "runtime_aliases": [
+        "field-notes-panel"
+      ],
+      "asset_class": "ui_panel_background",
+      "dimensions_px": [
+        1024,
+        1024
+      ],
+      "subject": "field scientist notebook page",
+      "composition": "open or single-page field notebook with dinosaur skeleton sketches, fossil diagrams, annotations, and deliberate quiet areas",
+      "background": "parchment notebook surface",
+      "palette_notes": "parchment cream, sepia ink, dark linework, restrained muted accent marks",
+      "special_constraints": [
+        "no required gameplay text baked in",
+        "pseudo-writing decorative only",
+        "reserve quiet zones for runtime text",
+        "avoid overfilling every area"
+      ]
+    },
+    "fossil_valley_background": {
+      "family": "ui",
+      "runtime_aliases": [
+        "fossil-valley-background"
+      ],
+      "asset_class": "ui_art",
+      "dimensions_px": [
+        1536,
+        768
+      ],
+      "subject": "Fossil Valley excavation site background",
+      "composition": "landscape feature background showing jungle valley, excavation camp, stone survey grid, ropes, lanterns, and fossil dig site",
+      "background": "full Fossil Valley environment",
+      "palette_notes": "jungle green, stone gray, turquoise distance, warm lantern amber",
+      "special_constraints": [
+        "leave central board area usable",
+        "no baked gameplay text",
+        "board should feel embedded in excavation site"
+      ]
+    },
+    "predator_valley_background": {
+      "family": "ui",
+      "runtime_aliases": [
+        "predator-valley-background"
+      ],
+      "asset_class": "ui_art",
+      "dimensions_px": [
+        1536,
+        768
+      ],
+      "subject": "Predator Valley active predator tracking zone background",
+      "composition": "landscape feature background with dangerous jungle clearing, stone tracking grid, warning camp, claw marks, and ominous red accents",
+      "background": "full Predator Valley environment",
+      "palette_notes": "dark jungle green, rust red, charcoal, burnt orange",
+      "special_constraints": [
+        "leave central board area usable",
+        "dangerous but readable",
+        "no baked gameplay text"
+      ]
+    },
+    "nesting_grounds_background": {
+      "family": "ui",
+      "runtime_aliases": [
+        "nesting-grounds-background"
+      ],
+      "asset_class": "ui_art",
+      "dimensions_px": [
+        1536,
+        768
+      ],
+      "subject": "Nesting Grounds valley background",
+      "composition": "bright hidden nesting valley with cliffs, river, eggs, lush vegetation, and room for feature grid",
+      "background": "full Nesting Grounds environment",
+      "palette_notes": "bright sky blue, lush greens, eggshell cream, warm sun",
+      "special_constraints": [
+        "more alive and bright than other valleys",
+        "leave central board area usable",
+        "no baked gameplay text"
+      ]
+    },
+    "lost_valley_mega_background": {
+      "family": "ui",
+      "runtime_aliases": [
+        "lost-valley-mega-background"
+      ],
+      "asset_class": "ui_art",
+      "dimensions_px": [
+        1536,
+        768
+      ],
+      "subject": "legendary Lost Valley sanctuary background",
+      "composition": "wide cinematic hidden valley with ancient temple, waterfalls, dinosaurs, jungle, cliffs, and radiant sun",
+      "background": "full Lost Valley mega-feature environment",
+      "palette_notes": "saturated jungle green, turquoise water, blue sky, golden sunlight, dark ink",
+      "special_constraints": [
+        "most legendary valley presentation",
+        "no baked gameplay text",
+        "preserve usable overlay space"
+      ]
+    },
+    "lost_valley_logo": {
+      "family": "ui",
+      "runtime_aliases": [
+        "lost-valley-logo"
+      ],
+      "asset_class": "ui_art",
+      "dimensions_px": [
+        1024,
+        512
+      ],
+      "subject": "Lost Valley logo plaque",
+      "composition": "bold stone-and-jungle Lost Valley title logo on transparent-looking dark field",
+      "background": "dark jungle plaque background",
+      "palette_notes": "stone tan, moss green, golden highlights, dark ink",
+      "special_constraints": [
+        "title may be readable for logo art only",
+        "must match 1990s adventure title treatment"
+      ]
+    },
+    "nesting_grounds_logo": {
+      "family": "ui",
+      "runtime_aliases": [
+        "nesting-grounds-logo"
+      ],
+      "asset_class": "ui_art",
+      "dimensions_px": [
+        1024,
+        512
+      ],
+      "subject": "Nesting Grounds logo",
+      "composition": "bold nest-and-egg themed Nesting Grounds title logo",
+      "background": "dark jungle field",
+      "palette_notes": "eggshell, warm tan, green foliage, dark ink",
+      "special_constraints": [
+        "title may be readable for logo art only",
+        "avoid cute nursery tone"
+      ]
+    },
+    "nesting_panel_small": {
+      "family": "ui",
+      "runtime_aliases": [
+        "nesting-panel-small"
+      ],
+      "asset_class": "ui_panel_background",
+      "dimensions_px": [
+        512,
+        256
+      ],
+      "subject": "small nesting grounds UI panel",
+      "composition": "wide compact wooden and vine-framed panel with quiet central area",
+      "background": "weathered wood and leaves",
+      "palette_notes": "wood brown, moss green, eggshell highlights",
+      "special_constraints": [
+        "no baked text",
+        "quiet center for runtime value"
+      ]
+    },
+    "nesting_button": {
+      "family": "ui",
+      "runtime_aliases": [
+        "nesting-button"
+      ],
+      "asset_class": "ui_art",
+      "dimensions_px": [
+        512,
+        256
+      ],
+      "subject": "nesting grounds survey button art",
+      "composition": "wide rugged button frame made of wood, vines, and stone with empty center",
+      "background": "button frame only",
+      "palette_notes": "green, wood brown, stone gray, warm highlight",
+      "special_constraints": [
+        "no baked button text",
+        "center must remain readable"
+      ]
+    },
+    "lost_valley_notebook_complete": {
+      "family": "ui",
+      "runtime_aliases": [
+        "lost-valley-notebook-complete"
+      ],
+      "asset_class": "ui_art",
+      "dimensions_px": [
+        1024,
+        1024
+      ],
+      "subject": "completed Lost Valley field notes notebook",
+      "composition": "open field notebook showing completed evidence checkmarks and hidden valley sketch, with quiet readable areas",
+      "background": "parchment notebook",
+      "palette_notes": "parchment cream, sepia ink, green tabs, golden discovery glow",
+      "special_constraints": [
+        "decorative writing only",
+        "completion should feel legendary",
+        "do not replace runtime text"
+      ]
+    }
+  },
+  "runtime_export": {
+    "symbols": {
+      "source_status_required": "approved",
+      "resize_to_px": [
+        256,
+        256
+      ],
+      "filter": "high_quality_downsample",
+      "preserve_aspect_ratio": true,
+      "output_directory": "art/runtime/symbols"
+    },
+    "ui": {
+      "source_status_required": "approved",
+      "preserve_master_dimensions": true,
+      "output_directory": "art/runtime/ui"
+    }
+  },
+  "review": {
+    "required_checks": [
+      "subject_recognition",
+      "runtime_readability",
+      "style_consistency",
+      "silhouette_strength",
+      "correct_asset_class_composition",
+      "gameplay_value_hierarchy",
+      "palette_identity",
+      "detail_control",
+      "clean_isolation",
+      "absence_of_generation_artifacts"
+    ]
+  }
+}

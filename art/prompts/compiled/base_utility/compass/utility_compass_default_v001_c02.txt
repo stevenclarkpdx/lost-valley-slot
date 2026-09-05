@@ -1,0 +1,22 @@
+Lost Valley visual style: Bold 1990s action-cartoon paleontology adventure with heavy ink lines, flat/cel-shaded color, strong silhouettes, and high slot-machine readability..
+Required traits: 1990s American action-cartoon paleontology adventure; heavy dark exterior ink linework; medium-heavy internal lines; strong readable silhouette; flat color regions; limited hard-edged cel shading; high contrast slot-machine readability; adult pulp expedition tone.
+Negative constraints: no photorealism; no 3D render appearance; no painterly concept-art treatment; no glossy mobile-game rendering; no chibi or cute styling; no pixel art; no excessive texture; no bloom; no depth of field; no ornamental AI clutter; no readable text or nonsense lettering.
+Readability first. Consistency second. Style third. Detail last.
+
+reel_symbol production rules: exact square 512x512px PNG master.
+One isolated primary subject, centered, fully contained inside safe margins.
+Consistent perceived subject scale, roughly 70-80% of usable area.
+Simple contained background supporting the symbol category.
+No neighboring symbols, no contact-sheet border, no baked gameplay label, no readable text.
+
+Asset id: compass.
+Family: utility. Tier: low.
+Subject: expedition compass.
+Composition: large readable round compass, near-front view, centered.
+Background: dark slate field with subtle expedition texture.
+Palette notes: aged brass, cream dial, dark ink, restrained red needle.
+Special constraints: dial need not contain readable microtext; no nonsense lettering.
+
+No approved reference images selected for this request.
+
+Generate only the requested asset. The result must be production-clean and reviewable as a standalone asset.
