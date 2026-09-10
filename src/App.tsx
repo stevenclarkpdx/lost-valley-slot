@@ -35,7 +35,6 @@ import type {
 } from './engine/featureTypes'
 import { schedulePresentationSequence, type PresentationBeatStep } from './presentation/sequenceRunner'
 import { LostValleyAudio } from './audio'
-
 const SYMBOL_DISPLAY: Record<string, { icon: string; label: string }> = {
   trexTooth: { icon: '', label: 'T-Rex Tooth' },
   raptorClaw: { icon: '', label: 'Raptor Claw' },
@@ -57,7 +56,6 @@ const SYMBOL_DISPLAY: Record<string, { icon: string; label: string }> = {
   predatorTracks: { icon: '!', label: 'Predator Tracks' },
   nestingEggs: { icon: '◯', label: 'Nesting Eggs' },
 }
-
 const DISCOVERY_PRESENTATION: Record<
   string,
   { displayName: string; icon: string; rarity: TileRarity }
@@ -105,7 +103,6 @@ const DISCOVERY_PRESENTATION: Record<
   'nesting-footprints': { displayName: 'Footprints', icon: '◌', rarity: 'common' },
   'nesting-nest': { displayName: 'Nest', icon: '⌁', rarity: 'common' },
 }
-
 const LOST_DISCOVERY_PRESENTATION: Record<
   string,
   { displayName: string; icon: string; rarity: TileRarity }
@@ -130,7 +127,6 @@ const LOST_DISCOVERY_PRESENTATION: Record<
   },
   'new-species': { displayName: 'Valley Sanctuary', icon: '★', rarity: 'legendary' },
 }
-
 function discoveryPresentation(tile: RevealedFeatureTile, theme?: string) {
   if (theme === 'lost') {
     return (
@@ -141,7 +137,6 @@ function discoveryPresentation(tile: RevealedFeatureTile, theme?: string) {
       }
     )
   }
-
   return (
     DISCOVERY_PRESENTATION[tile.id] ?? {
       displayName: tile.displayName,
@@ -150,7 +145,6 @@ function discoveryPresentation(tile: RevealedFeatureTile, theme?: string) {
     }
   )
 }
-
 const FIELD_NOTE_SYMBOLS = [
   'trexTooth',
   'raptorClaw',
@@ -158,17 +152,14 @@ const FIELD_NOTE_SYMBOLS = [
   'pterosaurFeather',
   'sauropodHorn',
 ] as const
-
 const CONCEPT_ART_URLS = import.meta.glob('./assets/concept/*.png', {
   eager: true,
   query: '?url',
   import: 'default',
 }) as Record<string, string>
-
 function artUrl(filename: string) {
   return CONCEPT_ART_URLS[`./assets/concept/${filename}`]
 }
-
 function symbolColorTier(symbol: SymbolId): 'gray' | 'brown' | 'green' | 'blue' | null {
   if (symbol === 'compass' || symbol === 'pickaxe' || symbol === 'crate') return 'gray'
   if (FIELD_NOTE_SYMBOLS.includes(symbol as (typeof FIELD_NOTE_SYMBOLS)[number])) return 'brown'
@@ -176,7 +167,6 @@ function symbolColorTier(symbol: SymbolId): 'gray' | 'brown' | 'green' | 'blue' 
   if (symbol === 'helicopter') return 'blue'
   return null
 }
-
 const CONCEPT_SYMBOL_ASSETS: Record<string, string> = {
   compass: artUrl('compass.png'),
   brush: artUrl('brush.png'),
@@ -198,7 +188,6 @@ const CONCEPT_SYMBOL_ASSETS: Record<string, string> = {
   pterosaurFeather: artUrl('pterosaurFeather.png'),
   sauropodHorn: artUrl('sauropodHorn.png'),
 }
-
 const CONCEPT_DISCOVERY_ASSETS: Record<string, string> = {
   fern: artUrl('fern.png'),
   river: artUrl('river.png'),
@@ -231,7 +220,6 @@ const CONCEPT_DISCOVERY_ASSETS: Record<string, string> = {
   'nesting-footprints': artUrl('nesting-footprints.png'),
   'nesting-nest': artUrl('nesting-nest.png'),
 }
-
 const LOST_DISCOVERY_ASSETS: Record<string, string> = {
   fern: artUrl('lost-primeval-tree.png'),
   river: artUrl('lost-waterfall.png'),
@@ -245,7 +233,6 @@ const LOST_DISCOVERY_ASSETS: Record<string, string> = {
   'living-specimen': artUrl('lost-valley-sanctuary.png'),
   'new-species': artUrl('lost-valley-sanctuary.png'),
 }
-
 function ConceptImage({
   src,
   alt,
@@ -257,7 +244,6 @@ function ConceptImage({
 }) {
   return <img className={`concept-art ${className}`} src={src} alt={alt} draggable={false} />
 }
-
 function SymbolIllustration({ symbol }: { symbol: string }) {
   const asset = CONCEPT_SYMBOL_ASSETS[symbol]
   if (asset) {
@@ -269,14 +255,12 @@ function SymbolIllustration({ symbol }: { symbol: string }) {
       />
     )
   }
-
   const shared = {
     viewBox: '0 0 64 64',
     role: 'img',
     'aria-hidden': true,
     focusable: false,
   } as const
-
   switch (symbol) {
     case 'trexTooth':
       return (
@@ -405,7 +389,6 @@ function SymbolIllustration({ symbol }: { symbol: string }) {
       )
   }
 }
-
 function DiscoveryIllustration({
   id,
   rarity,
@@ -432,14 +415,12 @@ function DiscoveryIllustration({
       />
     )
   }
-
   const shared = {
     viewBox: '0 0 64 64',
     role: 'img',
     'aria-hidden': true,
     focusable: false,
   } as const
-
   switch (id) {
     case 'fern':
       return (
@@ -520,11 +501,9 @@ function DiscoveryIllustration({
       )
   }
 }
-
 function freshBoard(config: GameConfig): BaseSpinResult {
   return spinBaseGame(config, createSeededRng(1))
 }
-
 function clearSpinPresentation(spin: BaseSpinResult): BaseSpinResult {
   return {
     ...spin,
@@ -549,23 +528,18 @@ function clearSpinPresentation(spin: BaseSpinResult): BaseSpinResult {
     baseWin: 0,
   }
 }
-
 function formatPercent(value: number): string {
   return `${(value * 100).toFixed(2)}%`
 }
-
 function formatOdds(value: number): string {
   return value === 0 ? 'Never' : `1 in ${Math.round(1 / value)}`
 }
-
 function formatTargetValue(value: number, percent = true): string {
   return percent ? `${(value * 100).toFixed(1)}%` : value.toFixed(1)
 }
-
 function formatTargetRange(range: TargetRange, percent = true): string {
   return `${formatTargetValue(range.min, percent)}–${formatTargetValue(range.max, percent)}`
 }
-
 function updateTarget(
   targets: TuningTargets,
   key: keyof TuningTargets,
@@ -581,7 +555,6 @@ function updateTarget(
     },
   }
 }
-
 function updateConfigNumber(
   config: GameConfig,
   updater: (draft: GameConfig) => void,
@@ -590,7 +563,6 @@ function updateConfigNumber(
   updater(draft)
   return draft
 }
-
 interface SpinLedgerEntry {
   id: number
   bet: number
@@ -607,13 +579,11 @@ interface SpinLedgerEntry {
   triggeredFeatureName: string | null
   status: 'base-only' | 'feature-active' | 'complete'
 }
-
 type PresentationBeat =
   | 'idle'
   | 'reeling'
   | 'cluster'
   | 'transition'
-
 type PresentationPhase =
   | 'idle'
   | 'spin-started'
@@ -628,9 +598,7 @@ type PresentationPhase =
   | 'feature-complete'
   | 'return-to-base'
   | 'input-ready'
-
 type WinTier = 'dead' | 'tiny' | 'small' | 'medium' | 'large'
-
 interface FeatureRevealEvent {
   index: number
   tileId: string
@@ -641,7 +609,6 @@ interface FeatureRevealEvent {
   totalFeatureValue: number
   order: number
 }
-
 function toFeatureRevealEvents(
   reveals: FeatureReveal[],
   session: FeatureSession,
@@ -661,7 +628,6 @@ function toFeatureRevealEvents(
     }
   })
 }
-
 const REEL_SPIN_SYMBOLS: SymbolId[] = [
   'trexTooth',
   'raptorClaw',
@@ -675,15 +641,12 @@ const REEL_SPIN_SYMBOLS: SymbolId[] = [
   'compass',
   'pickaxe',
 ]
-
 function formatCredits(value: number): string {
   return value.toFixed(2)
 }
-
 function isPredatorFeature(feature: FeatureSession | null): boolean {
   return feature?.profile.theme === 'predator' || feature?.profile.id === 'predator-valley'
 }
-
 function baseWinTier(win: number): WinTier {
   if (win <= 0) return 'dead'
   if (win < 1) return 'tiny'
@@ -691,32 +654,27 @@ function baseWinTier(win: number): WinTier {
   if (win < 20) return 'medium'
   return 'large'
 }
-
 function promoteWinTier(tier: WinTier): WinTier {
   if (tier === 'dead') return 'tiny'
   if (tier === 'tiny') return 'small'
   if (tier === 'small') return 'medium'
   return 'large'
 }
-
 function outcomeWinTier(win: number, goldenAmberPaying: boolean): WinTier {
   const tier = baseWinTier(win)
   return goldenAmberPaying ? promoteWinTier(tier) : tier
 }
-
 function createInteractiveSeed(): number {
   if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
     const values = new Uint32Array(1)
     crypto.getRandomValues(values)
     return (values[0] || 1) >>> 0
   }
-
   return (
     ((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0) ||
     1
   )
 }
-
 function presentationDurationForTier(tier: WinTier, compressed: boolean): number {
   if (compressed) return tier === 'dead' ? 40 : 90
   switch (tier) {
@@ -732,7 +690,6 @@ function presentationDurationForTier(tier: WinTier, compressed: boolean): number
       return 700
   }
 }
-
 function beatForPhase(phase: PresentationPhase): PresentationBeat {
   switch (phase) {
     case 'spin-started':
@@ -748,7 +705,6 @@ function beatForPhase(phase: PresentationPhase): PresentationBeat {
       return 'idle'
   }
 }
-
 function isReelPhase(phase: PresentationPhase): boolean {
   return (
     phase === 'spin-started' ||
@@ -757,15 +713,12 @@ function isReelPhase(phase: PresentationPhase): boolean {
     phase === 'anticipation'
   )
 }
-
 function phaseAllowsBaseInput(phase: PresentationPhase): boolean {
   return phase === 'input-ready'
 }
-
 function phaseAllowsFeatureSurvey(phase: PresentationPhase): boolean {
   return phase === 'input-ready'
 }
-
 function balanceCountDurationForTier(tier: WinTier): number {
   switch (tier) {
     case 'large':
@@ -780,7 +733,6 @@ function balanceCountDurationForTier(tier: WinTier): number {
       return 180
   }
 }
-
 function baseGameMessage(
   spin: BaseSpinResult,
   lastFeatureWin: number | null,
@@ -823,12 +775,19 @@ function baseGameMessage(
   if (spin.predatorTrackCount === 1) return 'A single valley track cuts across the mud.'
   return 'No fresh signs in this sector.'
 }
-
 function baseResultPlaque(
   spin: BaseSpinResult,
   lastFeatureWin: number | null,
   winTier: WinTier,
+  hasPaidSpin = true,
 ): { label: string; value: string; detail: string } {
+  if (!hasPaidSpin) {
+    return {
+      label: 'Expedition Ready',
+      value: 'Spin',
+      detail: 'Begin the first survey',
+    }
+  }
   if (lastFeatureWin !== null) {
     return {
       label: 'Valley Complete',
@@ -836,7 +795,6 @@ function baseResultPlaque(
       detail: 'Feature recovery added to balance',
     }
   }
-
   if (spin.featureTriggered) {
     return {
       label:
@@ -850,7 +808,6 @@ function baseResultPlaque(
           : `${spin.predatorTrackCount}/5 valley tracks`,
     }
   }
-
   if (spin.fieldNotes.bonus > 0) {
     return {
       label: 'Field Notes Bonus',
@@ -858,7 +815,6 @@ function baseResultPlaque(
       detail: `${spin.fieldNotes.uniqueEvidence.length}/5 evidence logged`,
     }
   }
-
   if (spin.clusterWin > 0) {
     return {
       label: winTier === 'tiny' ? 'Minor Find' : 'Base Win',
@@ -866,7 +822,6 @@ function baseResultPlaque(
       detail: `${spin.clusterWins.length} paying cluster${spin.clusterWins.length === 1 ? '' : 's'}`,
     }
   }
-
   if (spin.fieldNotes.uniqueEvidence.length > 0) {
     return {
       label: 'Evidence Logged',
@@ -874,7 +829,6 @@ function baseResultPlaque(
       detail: 'No bonus yet',
     }
   }
-
   if (spin.predatorTrackCount > 0) {
     return {
       label: 'Trail Found',
@@ -885,25 +839,21 @@ function baseResultPlaque(
           : 'The route begins',
     }
   }
-
   return {
     label: 'No Discovery',
     value: '0.00',
     detail: 'Continue the survey',
   }
 }
-
 function isLocalDevelopmentHost(hostname: string) {
   return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1'
 }
-
 function shouldShowDesignerTools() {
   if (typeof window === 'undefined') return false
   const params = new URLSearchParams(window.location.search)
   if (params.get('debug') === '0') return false
   return isLocalDevelopmentHost(window.location.hostname) || params.get('debug') === '1'
 }
-
 function App() {
   const manualRng = useRef(createSeededRng(createInteractiveSeed()))
   const nextSpinId = useRef(1)
@@ -928,6 +878,7 @@ function App() {
   const [currentWinTier, setCurrentWinTier] = useState<WinTier>('dead')
   const [lastSpinSummary, setLastSpinSummary] = useState<SpinLedgerEntry | null>(null)
   const [spinHistory, setSpinHistory] = useState<SpinLedgerEntry[]>([])
+  const [hasPaidSpin, setHasPaidSpin] = useState(false)
   const [activeLedgerId, setActiveLedgerId] = useState<number | null>(null)
   const [settledReels, setSettledReels] = useState(5)
   const [winAnimationKey, setWinAnimationKey] = useState(0)
@@ -950,11 +901,9 @@ function App() {
   const isReeling = isReelPhase(presentationPhase)
   const triggerTransition = presentationPhase === 'feature-transition'
   const inputLocked = feature !== null || balance < bet || !phaseAllowsBaseInput(presentationPhase)
-
   if (!audio.current && typeof window !== 'undefined') {
     audio.current = new LostValleyAudio()
   }
-
   useEffect(() => {
     for (const src of [
       ...Object.values(CONCEPT_SYMBOL_ASSETS),
@@ -966,7 +915,6 @@ function App() {
       void image.decode?.().catch(() => undefined)
     }
   }, [])
-
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)')
     const update = () => setReducedMotion(media.matches)
@@ -974,37 +922,30 @@ function App() {
     media.addEventListener('change', update)
     return () => media.removeEventListener('change', update)
   }, [])
-
   useEffect(() => {
     audio.current?.setMuted(audioMuted)
   }, [audioMuted])
-
   useEffect(() => {
     return () => audio.current?.dispose()
   }, [])
-
   useEffect(() => {
     if (!feature) return
     cabinetRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
   }, [feature?.debug?.sessionId])
-
   useEffect(() => {
     if (reducedMotion || skipAnimations) {
       setDisplayedBalance(balance)
       return
     }
-
     const start = displayedBalance
     const delta = balance - start
     if (Math.abs(delta) < 0.005) {
       setDisplayedBalance(balance)
       return
     }
-
     const duration = balanceCountDurationForTier(currentWinTier)
     const startedAt = performance.now()
     let frame = 0
-
     const tick = (now: number) => {
       const progress = Math.min(1, (now - startedAt) / duration)
       const eased = 1 - Math.pow(1 - progress, 3)
@@ -1015,11 +956,9 @@ function App() {
         setDisplayedBalance(balance)
       }
     }
-
     frame = window.requestAnimationFrame(tick)
     return () => window.cancelAnimationFrame(frame)
   }, [balance, currentWinTier, reducedMotion, skipAnimations])
-
   const resetCredits = () => {
     spinTimers.current.forEach((timer) => window.clearTimeout(timer))
     spinTimers.current = []
@@ -1029,6 +968,7 @@ function App() {
     setCurrentWinTier('dead')
     setSpinHistory([])
     setLastSpinSummary(null)
+    setHasPaidSpin(false)
     setLastFeatureWin(null)
     setActiveLedgerId(null)
     setFeature(null)
@@ -1041,7 +981,6 @@ function App() {
     nextSpinId.current = 1
     nextFeatureSessionId.current = 1
   }
-
   const handleSpin = () => {
     if (inputLocked) return
     void audio.current?.unlock().then(() => audio.current?.spinStart())
@@ -1072,15 +1011,14 @@ function App() {
       triggeredFeatureName: result.triggeredFeatureName,
       status: result.featureTriggered ? 'feature-active' : 'base-only',
     }
-
     setLastFeatureWin(null)
     setFeatureRevealEvents([])
     setCurrentWinTier('dead')
+    setHasPaidSpin(true)
     setSpin((current) => clearSpinPresentation(current))
     setResolvedSpin(result)
     setPresentationPhase('spin-started')
     setSettledReels(0)
-
     const compressed = reducedMotion || skipAnimations
     const reelStart = compressed ? 50 : 620
     const reelDelay = compressed ? 0 : 115
@@ -1093,7 +1031,6 @@ function App() {
         : 1020
     const finalReelCueBonus = compressed ? 0 : 360
     const finalReelSweatBonus = compressed ? 0 : 520
-
     const cueCount = result.predatorTrackCount
     const anticipationForReel = (reelIndex: number) => {
       if (reelIndex === 0 || cueCount === 0) return 0
@@ -1123,7 +1060,6 @@ function App() {
     const reelStopTimes = Array.from({ length: config.boardSize }, (_, reelIndex) => {
       return reelStart + reelIndex * reelDelay + anticipationForReel(reelIndex)
     })
-
     const spinStartedTimer = window.setTimeout(
       () => setPresentationPhase('reels-spinning'),
       compressed ? 0 : 80,
@@ -1148,7 +1084,6 @@ function App() {
       )
       spinTimers.current.push(anticipationTimer)
     }
-
     reelStopTimes.forEach((stopTime, reelIndex) => {
       const timer = window.setTimeout(() => {
         setSettledReels(reelIndex + 1)
@@ -1157,7 +1092,6 @@ function App() {
       spinTimers.current.push(timer)
       return timer
     })
-
     // Simplified presentation flow:
     // 1) engine resolves immediately above, but the outcome is visually gated by reels
     // 2) reels stop left-to-right, retaining destination-cue anticipation timing
@@ -1171,7 +1105,6 @@ function App() {
       setCurrentWinTier(winTier)
       setWinAnimationKey((key) => key + 1)
       setPresentationPhase('result-evaluation')
-
       const phases: Array<PresentationBeatStep<PresentationPhase>> = [
         {
           phase: 'result-evaluation',
@@ -1197,13 +1130,11 @@ function App() {
           })
         }
       }
-
       const elapsed = schedulePresentationSequence({
         steps: phases,
         setPhase: setPresentationPhase,
         collectTimer: (timerId) => spinTimers.current.push(timerId),
       })
-
       const endPresentationTimer = window.setTimeout(() => {
         if (result.featureTriggered) {
           setPresentationPhase('feature-transition')
@@ -1247,14 +1178,12 @@ function App() {
       spinTimers.current.push(endPresentationTimer)
     }, reelStopTimes[reelStopTimes.length - 1] + reelSettle)
     spinTimers.current.push(finishTimer)
-
     if (result.featureTriggered) {
       setActiveLedgerId(id)
     } else {
       setActiveLedgerId(null)
     }
   }
-
   const handleSimulation = (spins: number, seed: number) => {
     setIsSimulating(true)
     window.setTimeout(() => {
@@ -1262,7 +1191,6 @@ function App() {
       setIsSimulating(false)
     }, 20)
   }
-
   const handleTuningSweep = (spins: number, seed: number) => {
     setIsTuning(true)
     window.setTimeout(() => {
@@ -1270,7 +1198,6 @@ function App() {
       setIsTuning(false)
     }, 20)
   }
-
   const exportConfig = () => {
     const blob = new Blob([serializeConfig(config)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
@@ -1281,7 +1208,6 @@ function App() {
     URL.revokeObjectURL(url)
     setConfigNotice('Config exported.')
   }
-
   const importConfig = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     event.target.value = ''
@@ -1293,6 +1219,7 @@ function App() {
       setResolvedSpin(null)
       setFeature(null)
       setFeatureRevealEvents([])
+      setHasPaidSpin(false)
       setFeatureIntro(false)
       setFeatureEnding(false)
       setPresentationPhase('input-ready')
@@ -1305,7 +1232,6 @@ function App() {
       setConfigNotice(error instanceof Error ? error.message : 'Config import failed.')
     }
   }
-
   const leaveFeature = () => {
     const featureWin = feature?.totalWin ?? 0
     setPresentationPhase('return-to-base')
@@ -1349,7 +1275,6 @@ function App() {
       setPresentationPhase('input-ready')
     }, 900)
   }
-
   const stepFeature = () => {
     if (featureIntro || featureEnding || !feature || !phaseAllowsFeatureSurvey(presentationPhase)) {
       return
@@ -1358,7 +1283,6 @@ function App() {
     void audio.current?.unlock().then(() => audio.current?.featureSurvey())
     setPresentationPhase('feature-survey')
     setFeatureRevealEvents([])
-
     const surveyTimer = window.setTimeout(() => {
       const next = stepFeatureSession(feature)
       const latestReveals = next.steps.at(-1)?.reveals ?? []
@@ -1377,7 +1301,6 @@ function App() {
       } else {
         audio.current?.featureMiss()
       }
-
       const revealDuration =
         compressed
           ? 80
@@ -1391,7 +1314,6 @@ function App() {
     }, compressed ? 40 : 260)
     spinTimers.current.push(surveyTimer)
   }
-
   if (!prototypeStarted) {
     return (
       <main className="app-shell intro-shell">
@@ -1435,7 +1357,6 @@ function App() {
       </main>
     )
   }
-
   return (
     <main className="app-shell">
       <header className="masthead">
@@ -1443,8 +1364,7 @@ function App() {
         <h1>Lost Valley</h1>
         <p>The evidence points somewhere no map remembers.</p>
       </header>
-
-      <div className="workbench">
+      <div className={`workbench ${designerToolsVisible ? 'designer-workbench' : 'public-workbench'}`}>
         <section className="cabinet" aria-label="Lost Valley slot cabinet" ref={cabinetRef}>
           <div className="cabinet-top">
             <span>Base Camp</span>
@@ -1453,7 +1373,6 @@ function App() {
             </span>
             <span className="status-light">● Survey active</span>
           </div>
-
           <div
             className={`screen ${triggerTransition ? 'trigger-transition' : ''} ${
               triggerTransition && spin.triggeredFeatureName === 'Predator Valley'
@@ -1491,10 +1410,10 @@ function App() {
                 winTier={currentWinTier}
                 reducedMotion={reducedMotion || skipAnimations}
                 showDesignerTools={designerToolsVisible}
+                hasPaidSpin={hasPaidSpin}
               />
             )}
           </div>
-
           {!feature && (
             <div className="controls">
               <div>
@@ -1507,7 +1426,7 @@ function App() {
               </div>
               <div>
                 <small>BASE WIN</small>
-                <strong>{formatCredits(spin.baseWin)}</strong>
+                <strong>{formatCredits(hasPaidSpin ? spin.baseWin : 0)}</strong>
               </div>
               <button
                 className="spin-button"
@@ -1550,7 +1469,6 @@ function App() {
             </div>
           )}
         </section>
-
         <div className="side-rail credit-rail">
           <CreditPanel
             balance={balance}
@@ -1559,13 +1477,13 @@ function App() {
             bet={bet}
             lastSpin={lastSpinSummary}
             history={spinHistory}
+            showDesignerTools={designerToolsVisible}
             onStartingBalanceChange={setStartingBalance}
             onBetChange={setBet}
             onReset={resetCredits}
           />
         </div>
       </div>
-
       {designerToolsVisible && (
         <section className="analysis-deck" aria-label="Math and tuning workspace">
           <SimulationPanel
@@ -1593,21 +1511,17 @@ function App() {
               setConfigNotice('Applied tuning sweep configuration.')
             }}
           />
-
           {simulation && <Diagnostics result={simulation} targets={targets} />}
         </section>
       )}
-
       <footer>
-        {!designerToolsVisible && (
-          <span>Designer tools hidden; add ?debug=1 to inspect math diagnostics. </span>
-        )}
-        Prototype math only · Seeded engine · 1 credit per spin · Orthogonal clusters pay
+        {designerToolsVisible
+          ? 'Designer mode active - seeded engine, diagnostics and tuning available.'
+          : 'Lost Valley prototype - portfolio playtest build.'}
       </footer>
     </main>
   )
 }
-
 function BaseGame({
   spin,
   resolvedSpin,
@@ -1621,6 +1535,7 @@ function BaseGame({
   winTier,
   reducedMotion,
   showDesignerTools,
+  hasPaidSpin,
 }: {
   spin: BaseSpinResult
   resolvedSpin: BaseSpinResult | null
@@ -1634,11 +1549,14 @@ function BaseGame({
   winTier: WinTier
   reducedMotion: boolean
   showDesignerTools: boolean
+  hasPaidSpin: boolean
 }) {
-  const resultVisible = !isReeling && presentationBeat !== 'reeling'
+  const resultVisible = hasPaidSpin && !isReeling && presentationBeat !== 'reeling'
   const resultPlaque = resultVisible
-    ? baseResultPlaque(spin, lastFeatureWin, winTier)
-    : { label: 'Survey In Progress', value: '—', detail: 'Reels turning' }
+    ? baseResultPlaque(spin, lastFeatureWin, winTier, hasPaidSpin)
+    : isReeling
+      ? { label: 'Survey In Progress', value: '-', detail: 'Reels turning' }
+      : baseResultPlaque(spin, lastFeatureWin, winTier, false)
   const visibleBoard =
     isReeling && resolvedSpin
       ? spin.board.map((row, rowIndex) =>
@@ -1792,7 +1710,11 @@ function BaseGame({
         )}
       </div>
       <div className="message-strip">
-        {isReeling ? 'Expedition reels in motion…' : baseGameMessage(spin, lastFeatureWin, winTier)}
+        {!hasPaidSpin
+          ? 'Expedition staged. Press Spin to begin.'
+          : isReeling
+            ? 'Expedition reels in motion...'
+            : baseGameMessage(spin, lastFeatureWin, winTier)}
       </div>
       <div className={`result-plaque win-tier-${winTier}`}>
         <span>{resultPlaque.label}</span>
@@ -1830,7 +1752,6 @@ function BaseGame({
     </div>
   )
 }
-
 function LostValleyPanel({
   predatorTrackCount,
   triggeredFeatureName,
@@ -1871,7 +1792,7 @@ function LostValleyPanel({
         <span>Valley tracks</span>
         <strong>{featureTriggered ? destinationName : `${trackCount}/5`}</strong>
       </div>
-      <p>Track depth determines the destination: 3 Fossil, 4 Nesting, 5 Predator.</p>
+      <p>All track symbols build one route. More tracks push the expedition deeper.</p>
       <div
         className="cue-track predator-cue-track valley-ladder-track"
         aria-label={`${trackCount} of 5 Predator Tracks found`}
@@ -1914,13 +1835,11 @@ function LostValleyPanel({
     </aside>
   )
 }
-
 function ReelMotionStrip({ columnIndex }: { columnIndex: number }) {
   const symbols = Array.from(
     { length: 12 },
     (_, index) => REEL_SPIN_SYMBOLS[(index + columnIndex * 3) % REEL_SPIN_SYMBOLS.length],
   )
-
   return (
     <span className="reel-motion-strip" aria-hidden="true">
       {symbols.map((symbol, index) => (
@@ -1931,7 +1850,6 @@ function ReelMotionStrip({ columnIndex }: { columnIndex: number }) {
     </span>
   )
 }
-
 function FieldNotesPanel({
   spin,
   reveal = true,
@@ -1971,7 +1889,7 @@ function FieldNotesPanel({
         <span className="eyebrow">Field Notes</span>
         <strong>{visibleCount}/5</strong>
       </div>
-      <p>Log different evidence symbols in one spin to move the expedition forward.</p>
+      <p>Collect different Evidence this spin.</p>
       <p className="field-notes-progress">
         {lostValleyDiscovered
           ? 'The final entry points beyond the map.'
@@ -1981,7 +1899,7 @@ function FieldNotesPanel({
           ? 'One final clue could reveal the Lost Valley.'
           : visibleCount === 2
           ? 'One more clue earns a Discovery Bonus.'
-          : `${remaining} more unique evidence ${remaining === 1 ? 'symbol' : 'symbols'} to reach ${nextMilestone}.`}
+            : `${remaining} more unique Evidence to reach ${nextMilestone}.`}
       </p>
       <ol>
         {FIELD_NOTE_SYMBOLS.map((symbol, index) => {
@@ -2024,21 +1942,19 @@ function FieldNotesPanel({
             <span>Next milestone</span>
             <strong>{nextMilestone ?? 5} evidence</strong>
             <small>
-              Next: {nextMilestone ?? 5} evidence
-              {nextReward > 0 ? ` · ${nextReward.toFixed(2)}x` : ''}
+              Next: {nextMilestone ?? 5} Evidence
             </small>
           </>
         )}
       </div>
       <div className="field-notes-ladder" aria-label="Field Notes reward ladder">
-        <span className={visibleCount >= 3 ? 'reached' : ''}>3 Evidence · Discovery Bonus</span>
-        <span className={visibleCount >= 4 ? 'reached' : ''}>4 Evidence · Major Discovery</span>
-        <span className={visibleCount >= 5 ? 'reached' : ''}>5 Evidence · Lost Valley</span>
+        <span className={visibleCount >= 3 ? 'reached' : ''}>3 Evidence = Discovery Bonus</span>
+        <span className={visibleCount >= 4 ? 'reached' : ''}>4 Evidence = Major Discovery</span>
+        <span className={visibleCount >= 5 ? 'reached' : ''}>5 Evidence = Lost Valley</span>
       </div>
     </aside>
   )
 }
-
 function FeatureBoard({
   session,
   onStep,
@@ -2127,7 +2043,9 @@ function FeatureBoard({
             : nesting
               ? 'The nests go quiet for a moment.'
               : 'The sweep turns up no fresh site.'
-        : session.isComplete
+          : session.isComplete && discoveries.length === 0
+            ? 'Survey exhausted. The team found no confirmed sites this time.'
+          : session.isComplete
           ? predator
             ? 'Tracking complete.'
             : nesting
@@ -2152,7 +2070,6 @@ function FeatureBoard({
               ? 'Watch nests'
               : 'Survey valley'
           : 'Respin'
-
   return (
     <div
       className={`feature-screen ${introActive ? 'feature-intro-active' : ''} ${
@@ -2451,15 +2368,17 @@ function FeatureBoard({
       <div className="feature-footer">
         <span>
           {session.isComplete
-            ? Progression
-              ? predator
-                ? `Tracking summary: ${Progression.classificationName} · ${completedSections}/${totalSections} stages confirmed · ${session.totalWin.toFixed(2)}x`
-                : nesting
-                  ? `Nesting summary: ${Progression.classificationName} · ${completedSections}/${totalSections} stages observed · ${session.totalWin.toFixed(2)}x`
-                  : `Expedition summary: ${Progression.classificationName} · ${completedSections}/${totalSections} sections complete · ${session.totalWin.toFixed(2)}x`
-              : session.fullyRevealed
-                ? 'The entire valley is revealed'
-                : 'Survey exhausted'
+            ? discoveries.length === 0
+              ? 'Survey exhausted - no confirmed discoveries'
+              : Progression
+                ? predator
+                  ? `Tracking summary: ${Progression.classificationName} - ${completedSections}/${totalSections} stages confirmed - ${session.totalWin.toFixed(2)}x`
+                  : nesting
+                    ? `Nesting summary: ${Progression.classificationName} - ${completedSections}/${totalSections} stages observed - ${session.totalWin.toFixed(2)}x`
+                    : `Expedition summary: ${Progression.classificationName} - ${completedSections}/${totalSections} sections complete - ${session.totalWin.toFixed(2)}x`
+                : session.fullyRevealed
+                  ? 'The entire valley is revealed'
+                  : 'Survey exhausted'
             : lastStep?.hit
               ? latestEvolutionEvents.length > 0
                 ? `${latestEvolutionEvents.length} egg${latestEvolutionEvents.length === 1 ? '' : 's'} hatched +${latestEvolutionEvents
@@ -2518,7 +2437,6 @@ function FeatureBoard({
     </div>
   )
 }
-
 function FeatureDebugPanel({
   session,
   currentState,
@@ -2528,7 +2446,6 @@ function FeatureDebugPanel({
 }) {
   const revealCount = session.tiles.filter((tile) => tile !== null).length
   const hiddenCount = session.tiles.length - revealCount
-
   return (
     <details className="feature-debug-panel">
       <summary>Feature debug</summary>
@@ -2565,7 +2482,6 @@ function FeatureDebugPanel({
     </details>
   )
 }
-
 function CreditPanel({
   balance,
   displayedBalance,
@@ -2573,6 +2489,7 @@ function CreditPanel({
   bet,
   lastSpin,
   history,
+  showDesignerTools,
   onStartingBalanceChange,
   onBetChange,
   onReset,
@@ -2583,6 +2500,7 @@ function CreditPanel({
   bet: number
   lastSpin: SpinLedgerEntry | null
   history: SpinLedgerEntry[]
+  showDesignerTools: boolean
   onStartingBalanceChange: (value: number) => void
   onBetChange: (value: number) => void
   onReset: () => void
@@ -2598,7 +2516,6 @@ function CreditPanel({
           {formatCredits(displayedBalance)}
         </span>
       </div>
-
       <div className="credit-controls">
         <NumberControl
           label="Starting balance"
@@ -2616,7 +2533,6 @@ function CreditPanel({
         />
         <button onClick={onReset}>Reset session</button>
       </div>
-
       <div className="last-spin-card">
         <h3>Last spin</h3>
         {lastSpin ? (
@@ -2637,45 +2553,57 @@ function CreditPanel({
           <p>No paid spins yet.</p>
         )}
       </div>
-
-      <div className="spin-history">
-        <div className="spin-history-heading">
-          <span>Recent spins</span>
-          <strong>{history.length}/25</strong>
+      {showDesignerTools ? (
+        <div className="spin-history">
+          <div className="spin-history-heading">
+            <span>Recent spins</span>
+            <strong>{history.length}/25</strong>
+          </div>
+          {history.length === 0 ? (
+            <p>Spin history will appear here.</p>
+          ) : (
+            <ol>
+              {history.map((entry) => (
+                <li className={entry.net >= 0 ? 'positive' : 'negative'} key={entry.id}>
+                  <span>#{entry.id}</span>
+                  <div>
+                    <strong>
+                      {entry.featureTriggered
+                        ? entry.status === 'feature-active'
+                          ? `${entry.triggeredFeatureName ?? 'Feature'} surveying`
+                          : `${entry.triggeredFeatureName ?? 'Feature'} complete`
+                        : 'Base spin'}
+                    </strong>
+                    <small>
+                      Bet {formatCredits(entry.bet)} - Base {formatCredits(entry.baseWin)} - Feature{' '}
+                      {entry.featureWin === null ? 'pending' : formatCredits(entry.featureWin)}
+                      {entry.evidenceBonus > 0
+                        ? ` - Notes ${formatCredits(entry.evidenceBonus)}`
+                        : ''}
+                    </small>
+                  </div>
+                  <b>{entry.net >= 0 ? '+' : ''}{formatCredits(entry.net)}</b>
+                </li>
+              ))}
+            </ol>
+          )}
         </div>
-        {history.length === 0 ? (
-          <p>Spin history will appear here.</p>
-        ) : (
-          <ol>
-            {history.map((entry) => (
-              <li className={entry.net >= 0 ? 'positive' : 'negative'} key={entry.id}>
-                <span>#{entry.id}</span>
-                <div>
-                  <strong>
-                    {entry.featureTriggered
-                      ? entry.status === 'feature-active'
-                        ? `${entry.triggeredFeatureName ?? 'Feature'} surveying`
-                        : `${entry.triggeredFeatureName ?? 'Feature'} complete`
-                      : 'Base spin'}
-                  </strong>
-                  <small>
-                    Bet {formatCredits(entry.bet)} · Base {formatCredits(entry.baseWin)} · Feature{' '}
-                    {entry.featureWin === null ? 'pending' : formatCredits(entry.featureWin)}
-                    {entry.evidenceBonus > 0
-                      ? ` · Notes ${formatCredits(entry.evidenceBonus)}`
-                      : ''}
-                  </small>
-                </div>
-                <b>{entry.net >= 0 ? '+' : ''}{formatCredits(entry.net)}</b>
-              </li>
-            ))}
-          </ol>
-        )}
-      </div>
+      ) : (
+        <div className="spin-history compact-session-summary">
+          <div className="spin-history-heading">
+            <span>Session</span>
+            <strong>{history.length} spins</strong>
+          </div>
+          <p>
+            {lastSpin
+              ? `Last result: ${lastSpin.net >= 0 ? '+' : ''}${formatCredits(lastSpin.net)}`
+              : 'Spin history is hidden in public play.'}
+          </p>
+        </div>
+      )}
     </aside>
   )
 }
-
 function CreditStat({
   label,
   value,
@@ -2698,7 +2626,6 @@ function CreditStat({
     </div>
   )
 }
-
 function SimulationPanel({
   result,
   isRunning,
@@ -2735,7 +2662,6 @@ function SimulationPanel({
   const parsedSeed = Number.parseInt(seed, 10)
   const validSeed = Number.isFinite(parsedSeed)
   const spinCount = Number.parseInt(volume, 10)
-
   return (
     <aside className="simulation-panel">
       <div className="panel-heading">
@@ -2788,7 +2714,6 @@ function SimulationPanel({
         </label>
       </div>
       {configNotice && <div className="config-notice">{configNotice}</div>}
-
       <TuningWorkspace
         config={config}
         onConfigChange={onConfigChange}
@@ -2797,7 +2722,6 @@ function SimulationPanel({
         sweepResults={sweepResults}
         onApplySweepConfig={onApplySweepConfig}
       />
-
       {result ? (
         <div className="metrics">
           {result.featureBreakdown['lost-valley'] && (
@@ -2857,7 +2781,6 @@ function SimulationPanel({
     </aside>
   )
 }
-
 function TuningWorkspace({
   config,
   onConfigChange,
@@ -2874,7 +2797,6 @@ function TuningWorkspace({
   onApplySweepConfig: (config: GameConfig) => void
 }) {
   const primaryFeatureProfile = getPrimaryFeatureProfile(config)
-
   const replacePrimaryFeatureProfile = (updatedProfile: typeof primaryFeatureProfile) => {
     onConfigChange(
       updateConfigNumber(config, (draft) => {
@@ -2882,7 +2804,6 @@ function TuningWorkspace({
       }),
     )
   }
-
   const setSymbolWeight = (symbol: SymbolId, weight: number) => {
     onConfigChange(
       updateConfigNumber(config, (draft) => {
@@ -2892,7 +2813,6 @@ function TuningWorkspace({
       }),
     )
   }
-
   const setClusterPay = (
     table: keyof GameConfig['clusterPays'],
     index: number,
@@ -2904,7 +2824,6 @@ function TuningWorkspace({
       }),
     )
   }
-
   const setTile = (
     tileId: string,
     field: 'rarityWeight' | 'payoutValue',
@@ -2917,7 +2836,6 @@ function TuningWorkspace({
       ),
     })
   }
-
   const setFeatureValue = (
     field: 'hitProbability' | 'multiHitProbability',
     value: number,
@@ -2930,14 +2848,12 @@ function TuningWorkspace({
       },
     })
   }
-
   return (
     <div className="tuning-workspace">
       <div className="tuning-heading">
         <span>RTP tuning workspace</span>
         <small>{primaryFeatureProfile.displayName}</small>
       </div>
-
       <div className="tuning-section tuning-section-symbols">
         <h3>Base symbol weights</h3>
         <div className="tuning-grid two">
@@ -2953,7 +2869,6 @@ function TuningWorkspace({
           ))}
         </div>
       </div>
-
       <div className="tuning-section tuning-section-paytables">
         <h3>Cluster paytables</h3>
         <div className="paytable-editor">
@@ -2974,7 +2889,6 @@ function TuningWorkspace({
           ))}
         </div>
       </div>
-
       <div className="tuning-section tuning-section-feature">
         <h3>Fossil Valley feature</h3>
         <div className="tuning-grid two">
@@ -3008,7 +2922,6 @@ function TuningWorkspace({
           />
         </div>
       </div>
-
       <div className="tuning-section tuning-section-tiles">
         <h3>Tile payouts / weights</h3>
         <div className="tile-editor">
@@ -3036,7 +2949,6 @@ function TuningWorkspace({
           ))}
         </div>
       </div>
-
       <div className="tuning-section tuning-section-targets">
         <h3>Target bands</h3>
         <TargetControl
@@ -3096,7 +3008,6 @@ function TuningWorkspace({
           }
         />
       </div>
-
       {sweepResults.length > 0 && (
         <div className="tuning-section tuning-section-sweep">
           <h3>Closest sweep configurations</h3>
@@ -3127,7 +3038,6 @@ function TuningWorkspace({
     </div>
   )
 }
-
 function NumberControl({
   label,
   value,
@@ -3157,7 +3067,6 @@ function NumberControl({
     </label>
   )
 }
-
 function TargetControl({
   label,
   range,
@@ -3187,7 +3096,6 @@ function TargetControl({
     </div>
   )
 }
-
 function Diagnostics({
   result,
   targets,
@@ -3204,7 +3112,6 @@ function Diagnostics({
   if (result.spins < 100_000) {
     warnings.push('Sample size is exploratory. Use at least 100K spins for tuning decisions.')
   }
-
   return (
     <section className="diagnostics-panel">
       <div className="diagnostics-heading">
@@ -3214,7 +3121,6 @@ function Diagnostics({
         </div>
         <span>{result.spins.toLocaleString()} spins · seed {result.seed}</span>
       </div>
-
       {warnings.length > 0 && (
         <div className="warning-stack">
           {warnings.map((warning) => (
@@ -3222,7 +3128,6 @@ function Diagnostics({
           ))}
         </div>
       )}
-
       <div className="diagnostic-summary">
         <TargetMetric
           label="Base RTP"
@@ -3314,7 +3219,6 @@ function Diagnostics({
           </>
         )}
       </div>
-
       <div className="diagnostic-summary">
         {Object.values(result.featureBreakdown).map((feature) => (
           <div className="metric" key={feature.id}>
@@ -3328,7 +3232,6 @@ function Diagnostics({
           </div>
         ))}
       </div>
-
       <div className="distribution-grid">
         <Distribution title="Valley Track count / spin" values={result.predatorTrackDistribution} />
         <Distribution
@@ -3352,7 +3255,6 @@ function Diagnostics({
           wide
         />
       </div>
-
       <div className="target-note">
         <strong>Active target</strong>
         <span>
@@ -3367,7 +3269,6 @@ function Diagnostics({
     </section>
   )
 }
-
 function TargetMetric({
   label,
   value,
@@ -3392,7 +3293,6 @@ function TargetMetric({
     </div>
   )
 }
-
 function Distribution({
   title,
   values,
@@ -3417,7 +3317,6 @@ function Distribution({
     </div>
   )
 }
-
 function Metric({
   label,
   value,
@@ -3434,5 +3333,4 @@ function Metric({
     </div>
   )
 }
-
 export default App
