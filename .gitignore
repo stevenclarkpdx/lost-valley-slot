@@ -2,3 +2,11 @@ dist/
 node_modules/
 *.tsbuildinfo
 .codex-temp/
+.env
+.env.*
+!.env.example
+*.log
+coverage/
+.netlify/
+art/generated/
+art/prompts/compiled/

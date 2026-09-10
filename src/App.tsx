@@ -525,6 +525,31 @@ function freshBoard(config: GameConfig): BaseSpinResult {
   return spinBaseGame(config, createSeededRng(1))
 }
 
+function clearSpinPresentation(spin: BaseSpinResult): BaseSpinResult {
+  return {
+    ...spin,
+    footprintCount: 0,
+    predatorTrackCount: 0,
+    nestingEggCount: 0,
+    featureTriggered: false,
+    triggeredFeatureId: null,
+    triggeredFeatureName: null,
+    featureStartingRespins: 0,
+    clusterWins: [],
+    clusterWin: 0,
+    fieldNotes: {
+      uniqueEvidence: [],
+      milestone: null,
+      milestoneReward: 0,
+      bonus: 0,
+      nextMilestone: 3,
+      remainingToNextMilestone: 3,
+      nextMilestoneReward: 0,
+    },
+    baseWin: 0,
+  }
+}
+
 function formatPercent(value: number): string {
   return `${(value * 100).toFixed(2)}%`
 }
@@ -799,6 +824,86 @@ function baseGameMessage(
   return 'No fresh signs in this sector.'
 }
 
+function baseResultPlaque(
+  spin: BaseSpinResult,
+  lastFeatureWin: number | null,
+  winTier: WinTier,
+): { label: string; value: string; detail: string } {
+  if (lastFeatureWin !== null) {
+    return {
+      label: 'Valley Complete',
+      value: formatCredits(lastFeatureWin),
+      detail: 'Feature recovery added to balance',
+    }
+  }
+
+  if (spin.featureTriggered) {
+    return {
+      label:
+        spin.triggeredFeatureName === 'The Lost Valley'
+          ? 'Lost Valley Discovered'
+          : 'Destination Discovered',
+      value: spin.triggeredFeatureName ?? 'Valley',
+      detail:
+        spin.triggeredFeatureName === 'The Lost Valley'
+          ? 'Notebook complete'
+          : `${spin.predatorTrackCount}/5 valley tracks`,
+    }
+  }
+
+  if (spin.fieldNotes.bonus > 0) {
+    return {
+      label: 'Field Notes Bonus',
+      value: formatCredits(spin.fieldNotes.bonus),
+      detail: `${spin.fieldNotes.uniqueEvidence.length}/5 evidence logged`,
+    }
+  }
+
+  if (spin.clusterWin > 0) {
+    return {
+      label: winTier === 'tiny' ? 'Minor Find' : 'Base Win',
+      value: formatCredits(spin.clusterWin),
+      detail: `${spin.clusterWins.length} paying cluster${spin.clusterWins.length === 1 ? '' : 's'}`,
+    }
+  }
+
+  if (spin.fieldNotes.uniqueEvidence.length > 0) {
+    return {
+      label: 'Evidence Logged',
+      value: `${spin.fieldNotes.uniqueEvidence.length}/5`,
+      detail: 'No bonus yet',
+    }
+  }
+
+  if (spin.predatorTrackCount > 0) {
+    return {
+      label: 'Trail Found',
+      value: `${spin.predatorTrackCount}/5`,
+      detail:
+        spin.predatorTrackCount >= 2
+          ? 'One more track could open Fossil Valley'
+          : 'The route begins',
+    }
+  }
+
+  return {
+    label: 'No Discovery',
+    value: '0.00',
+    detail: 'Continue the survey',
+  }
+}
+
+function isLocalDevelopmentHost(hostname: string) {
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1'
+}
+
+function shouldShowDesignerTools() {
+  if (typeof window === 'undefined') return false
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('debug') === '0') return false
+  return isLocalDevelopmentHost(window.location.hostname) || params.get('debug') === '1'
+}
+
 function App() {
   const manualRng = useRef(createSeededRng(createInteractiveSeed()))
   const nextSpinId = useRef(1)
@@ -810,6 +915,7 @@ function App() {
     JSON.parse(JSON.stringify(DEFAULT_CONFIG)),
   )
   const [spin, setSpin] = useState<BaseSpinResult>(() => freshBoard(DEFAULT_CONFIG))
+  const [resolvedSpin, setResolvedSpin] = useState<BaseSpinResult | null>(null)
   const [feature, setFeature] = useState<FeatureSession | null>(null)
   const [featureIntro, setFeatureIntro] = useState(false)
   const [featureEnding, setFeatureEnding] = useState(false)
@@ -837,6 +943,9 @@ function App() {
   )
   const [sweepResults, setSweepResults] = useState<TuningSweepResult[]>([])
   const [configNotice, setConfigNotice] = useState<string | null>(null)
+  const [prototypeStarted, setPrototypeStarted] = useState(false)
+  const [aboutOpen, setAboutOpen] = useState(false)
+  const designerToolsVisible = shouldShowDesignerTools()
   const presentationBeat = beatForPhase(presentationPhase)
   const isReeling = isReelPhase(presentationPhase)
   const triggerTransition = presentationPhase === 'feature-transition'
@@ -926,6 +1035,7 @@ function App() {
     setFeatureIntro(false)
     setFeatureEnding(false)
     setFeatureRevealEvents([])
+    setResolvedSpin(null)
     setPresentationPhase('input-ready')
     setSettledReels(5)
     nextSpinId.current = 1
@@ -965,23 +1075,24 @@ function App() {
 
     setLastFeatureWin(null)
     setFeatureRevealEvents([])
-    setCurrentWinTier(winTier)
-    setSpin(result)
+    setCurrentWinTier('dead')
+    setSpin((current) => clearSpinPresentation(current))
+    setResolvedSpin(result)
     setPresentationPhase('spin-started')
     setSettledReels(0)
 
     const compressed = reducedMotion || skipAnimations
-    const reelStart = compressed ? 60 : 420
-    const reelDelay = compressed ? 0 : 75
-    const reelSettle = compressed ? 80 : 250
-    const oneCueAnticipationDelay = compressed ? 0 : 340
+    const reelStart = compressed ? 50 : 620
+    const reelDelay = compressed ? 0 : 115
+    const reelSettle = compressed ? 70 : 280
+    const oneCueAnticipationDelay = compressed ? 0 : 470
     const twoCueAnticipationDelay = compressed
       ? 0
       : result.featureTriggered
-        ? 980
-        : 820
-    const finalReelCueBonus = compressed ? 0 : 280
-    const finalReelSweatBonus = compressed ? 0 : 420
+        ? 1180
+        : 1020
+    const finalReelCueBonus = compressed ? 0 : 360
+    const finalReelSweatBonus = compressed ? 0 : 520
 
     const cueCount = result.predatorTrackCount
     const anticipationForReel = (reelIndex: number) => {
@@ -1055,6 +1166,9 @@ function App() {
     // 5) feature spins skip secondary base-game beats and go straight to transition
     const finishTimer = window.setTimeout(() => {
       setSettledReels(config.boardSize)
+      setSpin(result)
+      setResolvedSpin(null)
+      setCurrentWinTier(winTier)
       setWinAnimationKey((key) => key + 1)
       setPresentationPhase('result-evaluation')
 
@@ -1176,6 +1290,7 @@ function App() {
       const imported = parseConfig(await file.text())
       setConfig(imported)
       setSpin(freshBoard(imported))
+      setResolvedSpin(null)
       setFeature(null)
       setFeatureRevealEvents([])
       setFeatureIntro(false)
@@ -1277,6 +1392,50 @@ function App() {
     spinTimers.current.push(surveyTimer)
   }
 
+  if (!prototypeStarted) {
+    return (
+      <main className="app-shell intro-shell">
+        <section className="intro-card" aria-label="Lost Valley prototype introduction">
+          <div className="intro-kicker">Expedition File 07</div>
+          <h1>Lost Valley</h1>
+          <p className="intro-subtitle">Slot Design Prototype</p>
+          <p className="intro-credit">
+            Design, math, game systems, and implementation:<br />
+            <strong>Steven Clark</strong>
+          </p>
+          <p className="intro-disclosure">
+            AI-assisted development and asset production tools were used during prototyping.
+          </p>
+          <div className="intro-actions">
+            <button
+              className="spin-button intro-play-button"
+              onClick={() => setPrototypeStarted(true)}
+            >
+              Play Prototype
+              <span>Enter the expedition</span>
+            </button>
+            <button className="about-button" onClick={() => setAboutOpen((open) => !open)}>
+              About this prototype
+            </button>
+          </div>
+          {aboutOpen && (
+            <div className="about-prototype-panel">
+              <p>
+                This is an independent slot design prototype created to explore
+                commercial-style slot game design, math, feature structure,
+                presentation, and implementation.
+              </p>
+              <p>
+                It is not a real-money gambling product. AI-assisted tools were
+                used in the development workflow.
+              </p>
+            </div>
+          )}
+        </section>
+      </main>
+    )
+  }
+
   return (
     <main className="app-shell">
       <header className="masthead">
@@ -1321,6 +1480,7 @@ function App() {
             ) : (
               <BaseGame
                 spin={spin}
+                resolvedSpin={resolvedSpin}
                 lastFeatureWin={lastFeatureWin}
                 isReeling={isReeling}
                 settledReels={settledReels}
@@ -1330,6 +1490,7 @@ function App() {
                 inputReady={!inputLocked}
                 winTier={currentWinTier}
                 reducedMotion={reducedMotion || skipAnimations}
+                showDesignerTools={designerToolsVisible}
               />
             )}
           </div>
@@ -1390,7 +1551,7 @@ function App() {
           )}
         </section>
 
-        <div className="side-rail">
+        <div className="side-rail credit-rail">
           <CreditPanel
             balance={balance}
             displayedBalance={displayedBalance}
@@ -1402,7 +1563,11 @@ function App() {
             onBetChange={setBet}
             onReset={resetCredits}
           />
+        </div>
+      </div>
 
+      {designerToolsVisible && (
+        <section className="analysis-deck" aria-label="Math and tuning workspace">
           <SimulationPanel
             result={simulation}
             isRunning={isSimulating}
@@ -1420,6 +1585,7 @@ function App() {
             onApplySweepConfig={(nextConfig) => {
               setConfig(nextConfig)
               setSpin(freshBoard(nextConfig))
+              setResolvedSpin(null)
               setFeature(null)
               setFeatureRevealEvents([])
               setActiveLedgerId(null)
@@ -1427,12 +1593,15 @@ function App() {
               setConfigNotice('Applied tuning sweep configuration.')
             }}
           />
-        </div>
-      </div>
 
-      {simulation && <Diagnostics result={simulation} targets={targets} />}
+          {simulation && <Diagnostics result={simulation} targets={targets} />}
+        </section>
+      )}
 
       <footer>
+        {!designerToolsVisible && (
+          <span>Designer tools hidden; add ?debug=1 to inspect math diagnostics. </span>
+        )}
         Prototype math only · Seeded engine · 1 credit per spin · Orthogonal clusters pay
       </footer>
     </main>
@@ -1441,6 +1610,7 @@ function App() {
 
 function BaseGame({
   spin,
+  resolvedSpin,
   lastFeatureWin,
   isReeling,
   settledReels,
@@ -1450,8 +1620,10 @@ function BaseGame({
   inputReady,
   winTier,
   reducedMotion,
+  showDesignerTools,
 }: {
   spin: BaseSpinResult
+  resolvedSpin: BaseSpinResult | null
   lastFeatureWin: number | null
   isReeling: boolean
   settledReels: number
@@ -1461,8 +1633,22 @@ function BaseGame({
   inputReady: boolean
   winTier: WinTier
   reducedMotion: boolean
+  showDesignerTools: boolean
 }) {
   const resultVisible = !isReeling && presentationBeat !== 'reeling'
+  const resultPlaque = resultVisible
+    ? baseResultPlaque(spin, lastFeatureWin, winTier)
+    : { label: 'Survey In Progress', value: '—', detail: 'Reels turning' }
+  const visibleBoard =
+    isReeling && resolvedSpin
+      ? spin.board.map((row, rowIndex) =>
+          row.map((symbol, columnIndex) =>
+            columnIndex < settledReels
+              ? resolvedSpin.board[rowIndex][columnIndex]
+              : symbol,
+          ),
+        )
+      : spin.board
   const clusterResolved =
     !spin.featureTriggered &&
     resultVisible &&
@@ -1498,11 +1684,11 @@ function BaseGame({
       <div className="game-label">
         <span>Expedition grid</span>
         <span>
-          {spin.predatorTrackCount}/5 valley tracks
+          {resultVisible ? spin.predatorTrackCount : 0}/5 valley tracks
         </span>
       </div>
       <div className="symbol-grid">
-        {spin.board.flatMap((row, rowIndex) =>
+        {visibleBoard.flatMap((row, rowIndex) =>
           row.map((symbol, columnIndex) => {
             const display = SYMBOL_DISPLAY[symbol]
             const colorTier = symbolColorTier(symbol)
@@ -1608,6 +1794,12 @@ function BaseGame({
       <div className="message-strip">
         {isReeling ? 'Expedition reels in motion…' : baseGameMessage(spin, lastFeatureWin, winTier)}
       </div>
+      <div className={`result-plaque win-tier-${winTier}`}>
+        <span>{resultPlaque.label}</span>
+        <strong>{resultPlaque.value}</strong>
+        <small>{resultPlaque.detail}</small>
+      </div>
+      {showDesignerTools && (
       <details className="cluster-debug">
         <summary className="debug-heading">
           <span>Last-spin cluster scan</span>
@@ -1629,6 +1821,7 @@ function BaseGame({
           <small>No orthogonal groups of 4+ detected.</small>
         )}
       </details>
+      )}
         </div>
         <div className="base-field-notes">
           <FieldNotesPanel spin={spin} reveal={revealEvidence} active={false} />
@@ -1778,12 +1971,16 @@ function FieldNotesPanel({
         <span className="eyebrow">Field Notes</span>
         <strong>{visibleCount}/5</strong>
       </div>
-      <p>Document unique evidence found anywhere on the expedition grid.</p>
+      <p>Log different evidence symbols in one spin to move the expedition forward.</p>
       <p className="field-notes-progress">
         {lostValleyDiscovered
           ? 'The final entry points beyond the map.'
           : nextMilestone === null
           ? 'All five evidence lines are complete.'
+          : visibleCount === 4
+          ? 'One final clue could reveal the Lost Valley.'
+          : visibleCount === 2
+          ? 'One more clue earns a Discovery Bonus.'
           : `${remaining} more unique evidence ${remaining === 1 ? 'symbol' : 'symbols'} to reach ${nextMilestone}.`}
       </p>
       <ol>
@@ -1832,6 +2029,11 @@ function FieldNotesPanel({
             </small>
           </>
         )}
+      </div>
+      <div className="field-notes-ladder" aria-label="Field Notes reward ladder">
+        <span className={visibleCount >= 3 ? 'reached' : ''}>3 Evidence · Discovery Bonus</span>
+        <span className={visibleCount >= 4 ? 'reached' : ''}>4 Evidence · Major Discovery</span>
+        <span className={visibleCount >= 5 ? 'reached' : ''}>5 Evidence · Lost Valley</span>
       </div>
     </aside>
   )
@@ -2736,7 +2938,7 @@ function TuningWorkspace({
         <small>{primaryFeatureProfile.displayName}</small>
       </div>
 
-      <div className="tuning-section">
+      <div className="tuning-section tuning-section-symbols">
         <h3>Base symbol weights</h3>
         <div className="tuning-grid two">
           {config.symbolWeights.map((entry) => (
@@ -2752,7 +2954,7 @@ function TuningWorkspace({
         </div>
       </div>
 
-      <div className="tuning-section">
+      <div className="tuning-section tuning-section-paytables">
         <h3>Cluster paytables</h3>
         <div className="paytable-editor">
           {(['gray', 'brown', 'green', 'blue', 'goldenAmber'] as const).map((table) => (
@@ -2773,7 +2975,7 @@ function TuningWorkspace({
         </div>
       </div>
 
-      <div className="tuning-section">
+      <div className="tuning-section tuning-section-feature">
         <h3>Fossil Valley feature</h3>
         <div className="tuning-grid two">
           <NumberControl
@@ -2807,7 +3009,7 @@ function TuningWorkspace({
         </div>
       </div>
 
-      <div className="tuning-section">
+      <div className="tuning-section tuning-section-tiles">
         <h3>Tile payouts / weights</h3>
         <div className="tile-editor">
           {primaryFeatureProfile.tileTable.map((tile) => (
@@ -2835,7 +3037,7 @@ function TuningWorkspace({
         </div>
       </div>
 
-      <div className="tuning-section">
+      <div className="tuning-section tuning-section-targets">
         <h3>Target bands</h3>
         <TargetControl
           label="Base RTP"
@@ -2896,7 +3098,7 @@ function TuningWorkspace({
       </div>
 
       {sweepResults.length > 0 && (
-        <div className="tuning-section">
+        <div className="tuning-section tuning-section-sweep">
           <h3>Closest sweep configurations</h3>
           <div className="sweep-list">
             {sweepResults.map((result, index) => (
